@@ -1,57 +1,87 @@
 <!doctype html>
 <html lang="en">
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Draw Board</title>
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>AI Draw – Emperor News</title>
+<link rel="icon" href="/favicon.ico" type="image/x-icon" />
 <style>
-  body{margin:0;display:flex;flex-direction:column;align-items:center;background:#fafafa;font-family:system-ui}
-  #toolbar{display:flex;gap:.75rem;margin:1rem}
-  canvas{border:2px solid #333;border-radius:10px;background:#fff;touch-action:none}
-  button,input{font-size:1rem}
+  body{margin:0;font:16px/1.5 system-ui;background:#0b0c10;color:#eaecef;display:flex;flex-direction:column;align-items:center}
+  header{padding:16px 20px;max-width:960px;width:100%}
+  h1{margin:0 0 8px}
+  #toolbar{display:flex;flex-wrap:wrap;gap:.75rem;margin:12px 0}
+  canvas{background:#fff;border-radius:12px;box-shadow:0 8px 30px rgba(0,0,0,.25)}
+  button,input,textarea{font:inherit}
+  .btn{background:#1f6feb;color:#fff;border:0;border-radius:10px;padding:10px 14px;cursor:pointer}
+  .ghost{background:#2d333b}
+  textarea{width:100%;max-width:960px;height:66px;border-radius:10px;border:1px solid #30363d;background:#0e1116;color:#eaecef;padding:10px}
+  .row{display:flex;gap:12px;flex-wrap:wrap;align-items:center}
+  img.preview{max-width:320px;border-radius:10px;border:1px solid #30363d}
 </style>
+</head>
 <body>
-  <h1 style="margin:1rem 0">🎨 Draw Board</h1>
-  <div id="toolbar">
+<header>
+  <h1>🎨 AI Draw</h1>
+  <div id="toolbar" class="row">
     <input type="color" id="color" value="#000000">
     <input type="range" id="size" min="1" max="24" value="4">
-    <button id="clear">Clear</button>
-    <button id="save">Save</button>
+    <button class="btn ghost" id="clear">Clear</button>
+    <button class="btn ghost" id="save">Save PNG</button>
+    <button class="btn" id="caption">🧠 Describe Sketch</button>
   </div>
-  <canvas id="c" width="800" height="600"></canvas>
+  <canvas id="c" width="900" height="600"></canvas>
+  <p id="status"></p>
 
-  <script>
-    const c=document.getElementById('c'),x=c.getContext('2d');
-    let d=false;
-    const col=document.getElementById('color'),sz=document.getElementById('size');
-    const P=e=>{
-      const r=c.getBoundingClientRect();
-      return{x:(e.clientX??e.touches[0].clientX)-r.left,
-             y:(e.clientY??e.touches[0].clientY)-r.top};
-    };
-    const S=e=>{d=true;x.beginPath();const p=P(e);x.moveTo(p.x,p.y)};
-    const M=e=>{
-      if(!d)return;
-      const p=P(e);
-      x.strokeStyle=col.value;
-      x.lineWidth=+sz.value;
-      x.lineCap='round';
-      x.lineTo(p.x,p.y);
-      x.stroke();
-    };
-    const E=()=>d=false;
-    c.addEventListener('mousedown',S);
-    c.addEventListener('mousemove',M);
-    window.addEventListener('mouseup',E);
-    c.addEventListener('touchstart',e=>{e.preventDefault();S(e)});
-    c.addEventListener('touchmove',e=>{e.preventDefault();M(e)});
-    c.addEventListener('touchend',E);
-    document.getElementById('clear').onclick=()=>x.clearRect(0,0,c.width,c.height);
-    document.getElementById('save').onclick=()=>{
-      const a=document.createElement('a');
-      a.href=c.toDataURL('image/png');
-      a.download='drawing.png';
-      a.click();
-    };
-  </script>
+  <h3 style="margin-top:18px">🖌️ Generate Image from Prompt</h3>
+  <textarea id="prompt" placeholder="e.g., a serene temple on a hill at sunset, minimalist style"></textarea>
+  <div class="row">
+    <button class="btn" id="gen">Generate</button>
+    <span id="genStatus"></span>
+  </div>
+  <div id="genOut"></div>
+</header>
+
+<script>
+const c = document.getElementById('c'), x = c.getContext('2d');
+let drawing=false;
+const color=document.getElementById('color'), size=document.getElementById('size');
+const statusEl=document.getElementById('status');
+function getPos(e){const r=c.getBoundingClientRect();const t=e.touches?e.touches[0]:e;return {x:t.clientX-r.left,y:t.clientY-r.top}}
+function start(e){drawing=true;x.beginPath();const p=getPos(e);x.moveTo(p.x,p.y)}
+function move(e){if(!drawing)return;const p=getPos(e);x.strokeStyle=color.value;x.lineWidth=+size.value;x.lineCap='round';x.lineTo(p.x,p.y);x.stroke()}
+function end(){drawing=false}
+c.addEventListener('mousedown',start);c.addEventListener('mousemove',move);window.addEventListener('mouseup',end);
+c.addEventListener('touchstart',e=>{e.preventDefault();start(e)});c.addEventListener('touchmove',e=>{e.preventDefault();move(e)});c.addEventListener('touchend',end);
+document.getElementById('clear').onclick=()=>x.clearRect(0,0,c.width,c.height);
+document.getElementById('save').onclick=()=>{const a=document.createElement('a');a.href=c.toDataURL('image/png');a.download='sketch.png';a.click()};
+
+document.getElementById('caption').onclick=async ()=>{
+  statusEl.textContent="Describing…";
+  try{
+    const imageBase64 = c.toDataURL('image/png'); // data URL
+    const r = await fetch('/api/caption',{method:'POST',body:JSON.stringify({imageBase64})});
+    const data = await r.json();
+    statusEl.textContent = data.caption ? `📝 ${data.caption}` : 'No description';
+  }catch(e){statusEl.textContent='Error: '+e.message}
+};
+
+document.getElementById('gen').onclick=async ()=>{
+  const prompt = document.getElementById('prompt').value.trim();
+  if(!prompt){document.getElementById('genStatus').textContent='Enter a prompt.';return;}
+  document.getElementById('genStatus').textContent='Generating…';
+  try{
+    const r = await fetch('/api/generate-image',{method:'POST',body:JSON.stringify({prompt})});
+    const data = await r.json();
+    if(data.imageBase64){
+      const img = new Image(); img.className='preview';
+      img.src = 'data:image/png;base64,'+data.imageBase64;
+      const out = document.getElementById('genOut'); out.innerHTML=''; out.appendChild(img);
+      document.getElementById('genStatus').textContent='Done';
+    }else{
+      document.getElementById('genStatus').textContent='No image returned';
+    }
+  }catch(e){document.getElementById('genStatus').textContent='Error: '+e.message}
+};
+</script>
 </body>
 </html>
