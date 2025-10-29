@@ -1,0 +1,31 @@
+<!doctype html><html lang="en"><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Draw Board</title>
+<style>
+  body{margin:0;display:flex;flex-direction:column;align-items:center;background:#fafafa;font-family:system-ui}
+  #toolbar{display:flex;gap:.75rem;margin:1rem}
+  canvas{border:2px solid #333;border-radius:10px;background:#fff;touch-action:none}
+  button,input{font-size:1rem}
+</style>
+<body>
+<h1 style="margin:1rem 0">🎨 Draw Board</h1>
+<div id="toolbar">
+  <input type="color" id="color" value="#000000">
+  <input type="range" id="size" min="1" max="24" value="4">
+  <button id="clear">Clear</button>
+  <button id="save">Save</button>
+</div>
+<canvas id="c" width="800" height="600"></canvas>
+<script>
+const c=document.getElementById('c'),x=c.getContext('2d');
+let d=false; const col=document.getElementById('color'),sz=document.getElementById('size');
+const P=e=>{const r=c.getBoundingClientRect();return{x:(e.clientX??e.touches[0].clientX)-r.left,y:(e.clientY??e.touches[0].clientY)-r.top}};
+const S=e=>{d=true;x.beginPath();const p=P(e);x.moveTo(p.x,p.y)};
+const M=e=>{if(!d)return;const p=P(e);x.strokeStyle=col.value;x.lineWidth=+sz.value;x.lineCap='round';x.lineTo(p.x,p.y);x.stroke()};
+const E=()=>{d=false};
+c.addEventListener('mousedown',S);c.addEventListener('mousemove',M);window.addEventListener('mouseup',E);
+c.addEventListener('touchstart',e=>{e.preventDefault();S(e)});c.addEventListener('touchmove',e=>{e.preventDefault();M(e)});c.addEventListener('touchend',E);
+document.getElementById('clear').onclick=()=>x.clearRect(0,0,c.width,c.height);
+document.getElementById('save').onclick=()=>{const a=document.createElement('a');a.href=c.toDataURL('image/png');a.download='drawing.png';a.click()};
+</script>
+</body></html>
