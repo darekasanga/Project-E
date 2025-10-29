@@ -1,204 +1,141 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>AI Draw – Emperor News</title>
-  <link rel="icon" href="/favicon.ico" type="image/x-icon" />
-  <style>
-    :root{--bg:#0b0c10;--card:#0f141a;--text:#eaecef;--muted:#9aa4af;--border:#30363d;--brand:#1f6feb;}
-    *{box-sizing:border-box}
-    body{margin:0;background:var(--bg);color:var(--text);font:16px/1.6 system-ui,Segoe UI,Roboto,Helvetica,Arial}
-    header{max-width:980px;margin:auto;padding:20px}
-    h1{margin:0 0 8px}
-    p{margin:.25rem 0}
-    .row{display:flex;gap:.75rem;flex-wrap:wrap;align-items:center}
-    .btn{background:var(--brand);color:#fff;border:0;border-radius:10px;padding:10px 14px;cursor:pointer}
-    .btn.ghost{background:#2d333b}
-    input[type="color"],input[type="range"],button,textarea{font:inherit}
-    #toolbar{margin:12px 0}
-    canvas{background:#fff;border-radius:12px;box-shadow:0 8px 30px rgba(0,0,0,.25);touch-action:none;max-width:100%;height:auto}
-    .card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:12px}
-    textarea{width:100%;min-height:72px;border-radius:10px;border:1px solid var(--border);background:#0e1116;color:var(--text);padding:10px}
-    #status,#genStatus{color:var(--muted)}
-    img.preview{max-width:min(100%,420px);border-radius:10px;border:1px solid var(--border)}
-    hr{border:0;border-top:1px solid var(--border);opacity:.5;margin:24px 0}
-    @media (max-width:600px){ header{padding:14px} }
-  </style>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Emperor News – Draw & Chat</title>
+<link rel="icon" href="/favicon.ico" type="image/x-icon" />
+<style>
+  :root {
+    --bg:#0b0c10; --panel:#0f141a; --text:#eaecef; --border:#30363d; --accent:#1f6feb;
+  }
+  *{box-sizing:border-box}
+  body {
+    margin:0; background:var(--bg); color:var(--text);
+    font:16px/1.6 system-ui,Segoe UI,Roboto,Helvetica,Arial;
+    display:flex; height:100vh; overflow:hidden;
+  }
+  #drawPanel, #chatPanel {
+    flex:1; padding:16px; display:flex; flex-direction:column;
+    background:var(--panel); border:1px solid var(--border);
+  }
+  #divider {
+    width:70px; background:var(--bg); display:flex;
+    align-items:center; justify-content:center;
+  }
+  button, input, textarea { font:inherit; }
+  .btn { background:var(--accent); color:#fff; border:0;
+         border-radius:10px; padding:8px 14px; cursor:pointer; }
+  .ghost { background:#2d333b; }
+  #toolbar { display:flex; flex-wrap:wrap; gap:.5rem; margin-bottom:10px; }
+  #drawCanvas {
+    flex:1; background:#fff; border-radius:10px; border:2px solid var(--border);
+    touch-action:none; max-width:100%;
+  }
+  #chatLog {
+    flex:1; overflow-y:auto; background:#0e1116;
+    border:1px solid var(--border); border-radius:10px;
+    padding:10px; white-space:pre-wrap;
+  }
+  #chatInput { width:100%; padding:8px; border-radius:8px;
+    border:1px solid var(--border); background:#0e1116; color:var(--text); }
+  #sendBtn { margin-top:6px; }
+  @media (max-width:900px){
+    body { flex-direction:column; }
+    #divider{height:70px;width:100%;}
+  }
+</style>
 </head>
 <body>
-  <header>
-    <h1>🎨 AI Draw</h1>
-    <p>Sketch, describe with AI, generate images, and chat — all on <strong>emperor.news</strong>.</p>
 
-    <!-- Drawing tools -->
-    <div id="toolbar" class="row">
-      <label>Color <input type="color" id="color" value="#000000"></label>
-      <label>Size <input type="range" id="size" min="1" max="24" value="4"></label>
-      <button class="btn ghost" id="clear">Clear</button>
-      <button class="btn ghost" id="save">Save PNG</button>
-      <button class="btn" id="caption">🧠 Describe Sketch</button>
-    </div>
+<!-- DRAW PANEL -->
+<section id="drawPanel">
+  <h2>🖌️ Draw Field</h2>
+  <div id="toolbar">
+    <input type="color" id="color" value="#000000">
+    <input type="range" id="size" min="1" max="24" value="4">
+    <button id="clear" class="ghost btn">Clear</button>
+    <button id="save" class="ghost btn">Save</button>
+  </div>
+  <canvas id="drawCanvas" width="800" height="600"></canvas>
+  <div style="margin-top:10px;display:flex;gap:8px;">
+    <button id="describe" class="btn ghost">Describe</button>
+    <button id="generate" class="btn">Generate</button>
+  </div>
+</section>
 
-    <canvas id="c" width="900" height="560" aria-label="Drawing canvas"></canvas>
-    <p id="status"></p>
+<!-- DIVIDER -->
+<div id="divider">
+  <button id="update" class="btn" title="Send drawing to chat">▶</button>
+</div>
 
-    <!-- Text-to-image -->
-    <h3 style="margin-top:18px">🖌️ Generate Image from Prompt</h3>
-    <div class="card">
-      <textarea id="prompt" placeholder="e.g., a serene temple on a hill at sunset, minimalist watercolor"></textarea>
-      <div class="row" style="margin-top:10px">
-        <button class="btn" id="gen">Generate</button>
-        <span id="genStatus"></span>
-      </div>
-      <div id="genOut" style="margin-top:10px"></div>
-    </div>
+<!-- CHAT PANEL -->
+<section id="chatPanel">
+  <h2>💬 Chat Window</h2>
+  <div id="chatLog"></div>
+  <textarea id="chatInput" placeholder="Write a comment or question..."></textarea>
+  <button id="sendBtn" class="btn">Comment</button>
+</section>
 
-    <!-- ChatGPT panel -->
-    <hr>
-    <h3>💬 ChatGPT</h3>
-    <div id="chat" class="card">
-      <div id="chatLog" style="min-height:140px;white-space:pre-wrap"></div>
-      <div class="row" style="margin-top:10px">
-        <input id="chatInput" type="text" placeholder="Ask anything…" style="flex:1;padding:10px;border-radius:8px;border:1px solid var(--border);background:#0e1116;color:var(--text)">
-        <button id="chatSend" class="btn">Send</button>
-        <button id="sendCanvas" class="btn ghost" title="Send current canvas as context">Send Canvas</button>
-      </div>
-    </div>
-  </header>
+<script>
+const canvas = document.getElementById('drawCanvas');
+const ctx = canvas.getContext('2d');
+let drawing=false;
+const color=document.getElementById('color'), size=document.getElementById('size');
+function pos(e){const r=canvas.getBoundingClientRect(),t=e.touches?e.touches[0]:e;
+  return{x:t.clientX-r.left,y:t.clientY-r.top};}
+function start(e){drawing=true;ctx.beginPath();const p=pos(e);ctx.moveTo(p.x,p.y);}
+function move(e){if(!drawing)return;const p=pos(e);
+  ctx.strokeStyle=color.value;ctx.lineWidth=+size.value;ctx.lineCap='round';
+  ctx.lineTo(p.x,p.y);ctx.stroke();}
+function end(){drawing=false;}
+canvas.addEventListener('mousedown',start);canvas.addEventListener('mousemove',move);
+window.addEventListener('mouseup',end);
+canvas.addEventListener('touchstart',e=>{e.preventDefault();start(e)});
+canvas.addEventListener('touchmove',e=>{e.preventDefault();move(e)});
+canvas.addEventListener('touchend',end);
 
-  <script>
-    // ---------- Drawing ----------
-    const c = document.getElementById('c'), x = c.getContext('2d');
-    let drawing = false;
-    const color = document.getElementById('color'), size = document.getElementById('size');
-    const statusEl = document.getElementById('status');
+document.getElementById('clear').onclick=()=>ctx.clearRect(0,0,canvas.width,canvas.height);
+document.getElementById('save').onclick=()=>{
+  const a=document.createElement('a');a.href=canvas.toDataURL('image/png');
+  a.download='sketch.png';a.click();
+};
 
-    function pos(e){
-      const r = c.getBoundingClientRect();
-      const t = e.touches ? e.touches[0] : e;
-      return { x: t.clientX - r.left, y: t.clientY - r.top };
-    }
-    function start(e){ drawing = true; x.beginPath(); const p=pos(e); x.moveTo(p.x,p.y); }
-    function move(e){
-      if(!drawing) return;
-      const p=pos(e);
-      x.strokeStyle = color.value;
-      x.lineWidth = +size.value;
-      x.lineCap = 'round';
-      x.lineTo(p.x,p.y); x.stroke();
-    }
-    function end(){ drawing = false; }
+// Chat logic
+const chatLog=document.getElementById('chatLog');
+const chatInput=document.getElementById('chatInput');
+const sendBtn=document.getElementById('sendBtn');
+const updateBtn=document.getElementById('update');
+const messages=[];
+function append(role,text){
+  const who=role==='user'?'👤 You':'🤖 AI';
+  const div=document.createElement('div');
+  div.innerHTML=`<strong>${who}:</strong> ${text}`;
+  chatLog.appendChild(div);
+  chatLog.scrollTop=chatLog.scrollHeight;
+}
+async function chatSend(text){
+  append('user',text);
+  try{
+    const r=await fetch('/api/chat',{method:'POST',
+      body:JSON.stringify({messages:[{role:'user',content:text}],
+      system:'You are a drawing assistant helping explain sketches.'})});
+    const d=await r.json();
+    append('assistant',d.reply||'No reply');
+  }catch(e){append('assistant','Error: '+e.message);}
+}
+sendBtn.onclick=()=>{const t=chatInput.value.trim();if(t){chatInput.value='';chatSend(t);}};
 
-    c.addEventListener('mousedown', start);
-    c.addEventListener('mousemove', move);
-    window.addEventListener('mouseup', end);
-    c.addEventListener('touchstart', e=>{e.preventDefault();start(e)});
-    c.addEventListener('touchmove',  e=>{e.preventDefault();move(e)});
-    c.addEventListener('touchend',   end);
+// Update (send current drawing to AI caption)
+updateBtn.onclick=async ()=>{
+  append('user','(Sending drawing...)');
+  const img=canvas.toDataURL('image/png');
+  const r=await fetch('/api/caption',{method:'POST',body:JSON.stringify({imageBase64:img})});
+  const d=await r.json();
+  const desc=d.caption||'No caption';
+  append('assistant','Sketch description: '+desc);
+};
 
-    document.getElementById('clear').onclick = () => x.clearRect(0,0,c.width,c.height);
-    document.getElementById('save').onclick  = () => {
-      const a=document.createElement('a'); a.href=c.toDataURL('image/png'); a.download='sketch.png'; a.click();
-    };
-
-    // ---------- Caption (vision) ----------
-    document.getElementById('caption').onclick = async () => {
-      statusEl.textContent = "Describing…";
-      try {
-        const imageBase64 = c.toDataURL('image/png'); // data URL
-        const r = await fetch('/api/caption', { method:'POST', body: JSON.stringify({ imageBase64 }) });
-        const data = await r.json();
-        statusEl.textContent = data.caption ? `📝 ${data.caption}` : 'No description';
-      } catch (e) {
-        statusEl.textContent = 'Error: ' + e.message;
-      }
-    };
-
-    // ---------- Text-to-Image ----------
-    document.getElementById('gen').onclick = async () => {
-      const prompt = document.getElementById('prompt').value.trim();
-      if(!prompt){ document.getElementById('genStatus').textContent='Enter a prompt.'; return; }
-      document.getElementById('genStatus').textContent='Generating…';
-      try{
-        const r = await fetch('/api/generate-image', { method:'POST', body: JSON.stringify({ prompt }) });
-        const data = await r.json();
-        const out = document.getElementById('genOut');
-        out.innerHTML = '';
-        if(data.imageBase64){
-          const img = new Image(); img.className='preview';
-          img.src = 'data:image/png;base64,' + data.imageBase64;
-          out.appendChild(img);
-          document.getElementById('genStatus').textContent='Done';
-        } else {
-          document.getElementById('genStatus').textContent='No image returned';
-        }
-      }catch(e){
-        document.getElementById('genStatus').textContent='Error: '+e.message;
-      }
-    };
-
-    // ---------- Chat ----------
-    const chatLog = document.getElementById('chatLog');
-    const chatInput = document.getElementById('chatInput');
-    const chatSend = document.getElementById('chatSend');
-    const sendCanvasBtn = document.getElementById('sendCanvas');
-    const history = [];
-
-    function append(role, text){
-      const who = role==='user' ? '👤 You' : role==='assistant' ? '🤖 ChatGPT' : '📝';
-      const div = document.createElement('div');
-      div.style.margin='6px 0';
-      div.innerHTML = `<strong>${who}:</strong> ${escapeHtml(text)}`;
-      chatLog.appendChild(div);
-      chatLog.scrollTop = chatLog.scrollHeight;
-    }
-    function escapeHtml(s){return s.replace(/[&<>"]/g,c=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;' }[c]))}
-
-    async function sendChat(text, imageDataUrl){
-      history.push({ role:'user', content: text });
-      append('user', text);
-      append('system', '…thinking…');
-      try{
-        const r = await fetch('/api/chat', {
-          method:'POST',
-          body: JSON.stringify({
-            system: 'You are a concise, friendly assistant for emperor.news.',
-            messages: history
-          })
-        });
-        const data = await r.json();
-        chatLog.lastChild.remove();
-        const reply = data.reply || 'No reply.';
-        history.push({ role:'assistant', content: reply });
-        append('assistant', reply);
-      }catch(e){
-        chatLog.lastChild.remove();
-        append('assistant','Error: ' + e.message);
-      }
-    }
-
-    chatSend.onclick = () => {
-      const text = chatInput.value.trim();
-      if(!text) return;
-      chatInput.value = '';
-      sendChat(text);
-    };
-    chatInput.addEventListener('keydown', e => (e.key === 'Enter') && chatSend.click());
-
-    // Optional: send the current canvas as a message (described by the model via caption endpoint first)
-    sendCanvasBtn.onclick = async () => {
-      try{
-        const imageBase64 = c.toDataURL('image/png');
-        // Reuse caption to summarize the image before chatting
-        const r = await fetch('/api/caption', { method:'POST', body: JSON.stringify({ imageBase64 }) });
-        const data = await r.json();
-        const desc = data.caption ? `Describe and improve this sketch: ${data.caption}` : 'Describe and improve this sketch.';
-        sendChat(desc);
-      }catch(e){
-        append('assistant','Error sending canvas: ' + e.message);
-      }
-    };
-  </script>
+</script>
 </body>
 </html>
