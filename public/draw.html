@@ -1,6 +1,22 @@
 <!doctype html>
 <html lang="en">
 <head>
+  // ▶ Update (caption)
+const r = await fetch('/api/caption', {
+  method:'POST',
+  headers:{ 'Content-Type':'application/json' },
+  body: JSON.stringify({ imageBase64 })
+});
+
+// Chat
+const r = await fetch('/api/chat', {
+  method:'POST',
+  headers:{ 'Content-Type':'application/json' },
+  body: JSON.stringify({
+    system: 'You are a concise assistant…',
+    messages: [{ role:'user', content: text }]
+  })
+});
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
 <title>Emperor News – Draw & Chat</title>
