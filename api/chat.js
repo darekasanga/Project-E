@@ -1,4 +1,3 @@
-// POST { messages: [{role, content}], system?: string }
 export default async function handler(req, res) {
   try {
     if (req.method !== "POST") return res.status(405).end();
@@ -20,11 +19,11 @@ export default async function handler(req, res) {
       })
     });
 
-    const text = await r.text();
-    if (!r.ok) return res.status(500).json({ error: text });
-    const data = JSON.parse(text);
+    const txt = await r.text();
+    if (!r.ok) return res.status(500).json({ error: txt });
+    const data = JSON.parse(txt);
     res.status(200).json({ reply: data.choices?.[0]?.message?.content ?? "" });
   } catch (e) { res.status(500).json({ error: e.message }); }
 }
-async function readJSON(req){ const chunks=[]; for await (const c of req) chunks.push(c);
-  const raw = Buffer.concat(chunks).toString("utf8") || "{}"; return JSON.parse(raw); }
+async function readJSON(req){const c=[];for await(const x of req)c.push(x);
+  return JSON.parse(Buffer.concat(c).toString("utf8")||"{}");}
