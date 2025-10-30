@@ -1,12 +1,14 @@
-// POST { imageBase64: "data:image/png;base64,..." } → { caption }
 export default async function handler(req, res) {
   try {
     if (req.method !== "POST") return res.status(405).end();
     const { imageBase64 } = await readJSON(req);
     if (!imageBase64) return res.status(400).json({ error: "imageBase64 required" });
 
+    // normalize
     let url = imageBase64.trim();
     if (!url.startsWith("data:image/")) url = `data:image/png;base64,${url}`;
+    if (!/^data:image\/(png|jpeg|jpg);base64,/.test(url))
+      return res.status(400).json({ error: "imageBase64 must be data:image/png;base64,..." });
 
     const payload = {
       model: "gpt-4o-mini",
@@ -30,18 +32,23 @@ export default async function handler(req, res) {
       body: JSON.stringify(payload)
     });
 
-    const txt = await r.text();
-    if (!r.ok) return res.status(500).json({ error: txt });
-    const data = JSON.parse(txt);
+    const text = await r.text();
+    if (!r.ok) return res.status(500).json({ error: text });
+    const data = JSON.parse(text);
 
-    const caption = data.output_text || 
+    const caption =
+      data.output_text ||
       data.output?.[0]?.content?.[0]?.text ||
-      data.output?.[0]?.message?.content || "";
+      data.output?.[0]?.message?.content ||
+      "";
 
     res.status(200).json({ caption: caption.trim() });
   } catch (e) {
     res.status(500).json({ error: e.message });
   }
 }
-async function readJSON(req){const chunks=[];for await(const c of req)chunks.push(c);
-  return JSON.parse(Buffer.concat(chunks).toString("utf8")||"{}");}
+async function readJSON(req) {
+  const chunks = [];
+  for await (const c of req) chunks.push(c);
+  return JSON.parse(Buffer.concat(chunks).toString("utf8") || "{}");
+}
