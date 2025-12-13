@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <title>チャット目次メーカー</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <script defer src="https://cdn.vercel-analytics.com/v1/script.js"></script>
 
   <style>
     :root {
@@ -888,7 +889,7 @@ Assistant: ...
       if (total === 0) {
         const empty = document.createElement('div');
         empty.className = 'empty-state';
-        empty.innerHTML = '<span>📜</span>まだ会話がありません。<br />解析後にここに全文が表示されます。';
+        empty.innerHTML = '<span>📜</span>まだ��話がありません。<br />解析後にここに全文が表示されます。';
         contentBodyEl.appendChild(empty);
         return;
       }
