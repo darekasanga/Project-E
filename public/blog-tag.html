@@ -236,13 +236,12 @@
 
     function cleanSavedText(raw) {
       if (typeof raw !== "string") return raw;
-      if (raw.includes("<<<<<<<") || raw.includes("=======") || raw.includes(">>>>>>>")) {
-        return raw
-          .split(/\r?\n/)
-          .filter(line => line && !line.startsWith("<<<<<<<") && !line.startsWith("=======") && !line.startsWith(">>>>>>>"))
-          .join("\n");
-      }
-      return raw;
+      const lines = raw.split(/\r?\n/).filter(Boolean);
+      const filtered = lines.filter(line => {
+        const trimmed = line.trim();
+        return trimmed && !trimmed.startsWith("<<<<<<<") && !trimmed.startsWith("=======") && !trimmed.startsWith(">>>>>>>");
+      });
+      return filtered.join("\n");
     }
 
     function tagLink(tag) {
@@ -254,23 +253,27 @@
       return `https://social-plugins.line.me/lineit/share?url=${encodeURIComponent(url)}&accountId=${encodeURIComponent(officialLineAccountId)}`;
     }
 
-  function storedArticles() {
-    const saved = cleanSavedText(localStorage.getItem("emperor_articles"));
-    if (!saved) return [...baseArticles];
-    try {
-      const parsed = JSON.parse(saved);
-      return Array.isArray(parsed) ? parsed : [...baseArticles];
-    } catch (err) {
-      console.warn("saved articles were corrupted, resetting", err);
-      return [...baseArticles];
+    function storedArticles() {
+      const raw = localStorage.getItem("emperor_articles");
+      const cleaned = cleanSavedText(raw);
+      if (cleaned && cleaned !== raw) {
+        localStorage.setItem("emperor_articles", cleaned);
+      }
+      if (!cleaned) return [...baseArticles];
+      try {
+        const parsed = JSON.parse(cleaned);
+        return Array.isArray(parsed) ? parsed : [...baseArticles];
+      } catch (err) {
+        console.warn("saved articles were corrupted, resetting", err);
+        return [...baseArticles];
+      }
     }
-  }
 
-  function loadArticles() {
-    const data = normalizeArticles(storedArticles());
-    localStorage.setItem("emperor_articles", JSON.stringify(data));
-    return data;
-  }
+    function loadArticles() {
+      const data = normalizeArticles(storedArticles());
+      localStorage.setItem("emperor_articles", JSON.stringify(data));
+      return data;
+    }
 
     function filterByTag(list, tag) {
       if (!tag) return [];
