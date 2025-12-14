@@ -1,0 +1,252 @@
+<!doctype html>
+<html lang="ja">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>記事ビュー | Emperor News</title>
+<style>
+  :root {
+    --bg: #050505;
+    --panel: #0b0b0b;
+    --text: #f7f7f7;
+    --muted: #9ca3af;
+    --line: #06c755;
+    --border: #1f1f1f;
+    --radius: 16px;
+    --shadow: 0 18px 50px rgba(0,0,0,0.45);
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: "SF Pro Display", "Inter", "Noto Sans JP", system-ui, sans-serif;
+    background: radial-gradient(120% 120% at 10% 10%, rgba(6,199,85,0.14), transparent),
+                radial-gradient(120% 120% at 90% 0%, rgba(6,199,85,0.08), transparent),
+                var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+  }
+  a { color: inherit; }
+  header {
+    position: sticky;
+    top: 0;
+    z-index: 8;
+    padding: 14px 18px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    background: rgba(5,5,5,0.92);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+  }
+  .brand { display: flex; align-items: center; gap: 10px; }
+  .logo {
+    width: 42px;
+    height: 42px;
+    border-radius: 14px;
+    display: grid;
+    place-items: center;
+    border: 1px solid var(--border);
+    background: linear-gradient(145deg, #0f0f0f, #0a0a0a);
+    color: var(--line);
+    font-weight: 700;
+  }
+  .brand h1 { margin: 0; font-size: 18px; letter-spacing: 0.01em; }
+  .brand p { margin: 4px 0 0; color: var(--muted); font-size: 12px; }
+  .pill {
+    padding: 8px 12px;
+    border-radius: 999px;
+    border: 1px solid var(--border);
+    background: var(--panel);
+    text-decoration: none;
+    font-size: 13px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .pill.primary { background: var(--line); color: #041902; font-weight: 700; border-color: #0f2f14; }
+
+  main { padding: 20px 18px 36px; display: grid; gap: 16px; }
+  .hero {
+    background: linear-gradient(130deg, rgba(6,199,85,0.16), rgba(6,199,85,0.05) 35%, rgba(8,8,8,0.95));
+    border: 1px solid var(--border);
+    border-radius: 24px;
+    padding: 18px;
+    display: grid;
+    gap: 12px;
+    box-shadow: var(--shadow);
+  }
+  .hero h2 { margin: 0; font-size: 24px; letter-spacing: 0.01em; }
+  .hero p { margin: 0; color: var(--muted); line-height: 1.7; }
+  .meta-row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; color: var(--muted); font-size: 12px; }
+  .chip { padding: 6px 10px; border-radius: 999px; border: 1px solid var(--border); background: rgba(255,255,255,0.04); }
+
+  .article-card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 16px;
+    display: grid;
+    gap: 14px;
+    box-shadow: var(--shadow);
+  }
+  .cover {
+    width: 100%;
+    border-radius: 16px;
+    aspect-ratio: 16 / 9;
+    object-fit: cover;
+    border: 1px solid var(--border);
+  }
+  .title-block h3 { margin: 0; font-size: 22px; }
+  .title-block p { margin: 6px 0 0; color: var(--muted); line-height: 1.6; }
+  .tag-row { display: flex; gap: 8px; flex-wrap: wrap; }
+  .tag { padding: 6px 10px; border-radius: 999px; border: 1px solid var(--border); background: #0f0f0f; font-size: 12px; }
+  .body { display: grid; gap: 12px; line-height: 1.7; color: #e5e7eb; }
+  .body p { margin: 0; }
+
+  .share-row { display: flex; gap: 10px; flex-wrap: wrap; }
+  .share { padding: 10px 14px; border-radius: 12px; border: 1px solid var(--border); background: #0f0f0f; text-decoration: none; font-size: 13px; display: inline-flex; align-items: center; gap: 8px; }
+  .share.line { background: var(--line); color: #041902; font-weight: 700; border-color: #0f2f14; }
+  .share:active { transform: translateY(1px); }
+
+  footer { padding: 0 18px 24px; color: var(--muted); font-size: 12px; }
+  @media (max-width: 720px) { header { flex-direction: column; align-items: flex-start; } .share-row { width: 100%; } }
+</style>
+<body>
+  <header>
+    <div class="brand">
+      <div class="logo">E</div>
+      <div>
+        <h1>Emperor News</h1>
+        <p>記事ビュー / 黒ベースのシンプル読書体験</p>
+      </div>
+    </div>
+    <div class="actions">
+      <a class="pill" href="/blog-public.html">公開一覧</a>
+      <a class="pill" href="/blog.html">アップロード</a>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="meta-row">
+        <span class="chip">公開記事</span>
+        <span class="chip">LINE公式シェア対応</span>
+      </div>
+      <h2 id="heroTitle">記事タイトル</h2>
+      <p id="heroLead">記事本文の冒頭をここに表示します。iPhone / iPadのダークモードに合わせた黒基調のレイアウトです。</p>
+      <div class="share-row">
+        <a class="share line" id="lineShare" target="_blank" rel="noreferrer">公式LINEで共有</a>
+        <a class="share" id="copyLink" href="#">リンクをコピー</a>
+      </div>
+    </section>
+
+    <article class="article-card" id="article">
+      <img class="cover" id="cover" alt="カバー画像">
+      <div class="title-block">
+        <h3 id="title">記事タイトル</h3>
+        <p id="excerpt">記事の概要テキストを表示します。</p>
+      </div>
+      <div class="tag-row" id="tags"></div>
+      <div class="body" id="body"></div>
+    </article>
+  </main>
+
+  <footer>
+    Emperor News — 公式LINEアカウント連携ビュー
+  </footer>
+
+<script>
+  const officialLineAccountId = "@projecte_official";
+  const officialLinePage = "https://page.line.me/projecte_official";
+  const baseArticles = [
+    {
+      title: "iPadスクロール特集 — 公式LINEで読む",
+      body: "黒背景とオーバースクロールを活かしたカードレイアウト。公式LINEアカウントへの配信リンクを同梱。",
+      tags: ["iPad", "Scroll", "LINE公式"],
+      image: "https://images.unsplash.com/photo-1472289065668-ce650ac443d2?auto=format&fit=crop&w=1200&q=80",
+    },
+    {
+      title: "ChatGPTから即公開",
+      body: "チャットで生成した原稿をそのまま貼り付け。タグとカバーを足すだけで読者向けカードを生成します。",
+      tags: ["ChatGPT", "Workflow"],
+      image: "https://images.unsplash.com/photo-1507138451611-3001135909a5?auto=format&fit=crop&w=1200&q=80",
+    },
+    {
+      title: "LINEシェアリンクをワンクリック",
+      body: "公式LINEアカウントと連動した共有ボタンを自動生成。外部ブラウザでも快適に閲覧できるOGP調整済み。",
+      tags: ["LINE", "Share", "OGP"],
+      image: "https://images.unsplash.com/photo-1508766206392-8bd5cf550d1b?auto=format&fit=crop&w=1200&q=80",
+    },
+  ];
+
+  function loadArticles() {
+    const saved = localStorage.getItem("emperor_articles");
+    return saved ? JSON.parse(saved) : baseArticles;
+  }
+
+  function findArticle() {
+    const params = new URLSearchParams(location.search);
+    const idx = parseInt(params.get("id"), 10);
+    const list = loadArticles();
+    const article = Number.isFinite(idx) && list[idx] ? list[idx] : list[0];
+    return { article, list, idx: Number.isFinite(idx) && list[idx] ? idx : 0 };
+  }
+
+  function paragraphize(text) {
+    if (!text) return ["本文が追加されていません。アップロードフォームから本文を入れてください。"]; 
+    return text.split(/\n{2,}/).map(chunk => chunk.trim()).filter(Boolean);
+  }
+
+  function buildOfficialLineShare(url) {
+    return `https://social-plugins.line.me/lineit/share?url=${encodeURIComponent(url)}&accountId=${encodeURIComponent(officialLineAccountId)}`;
+  }
+
+  function render(article, idx) {
+    const safeBody = paragraphize(article.body);
+    const cover = document.getElementById("cover");
+    const title = document.getElementById("title");
+    const heroTitle = document.getElementById("heroTitle");
+    const heroLead = document.getElementById("heroLead");
+    const excerpt = document.getElementById("excerpt");
+    const tags = document.getElementById("tags");
+    const body = document.getElementById("body");
+    const lineShare = document.getElementById("lineShare");
+
+    title.textContent = article.title || "無題の記事";
+    heroTitle.textContent = article.title || "無題の記事";
+    heroLead.textContent = safeBody[0] || "本文がありません。";
+    excerpt.textContent = safeBody[0] || "本文がありません。";
+
+    tags.innerHTML = (article.tags || []).length
+      ? article.tags.map(tag => `<span class="tag">#${tag}</span>`).join("")
+      : '<span class="tag">#untagged</span>';
+
+    body.innerHTML = safeBody.map(p => `<p>${p}</p>`).join("");
+
+    if (article.image) {
+      cover.src = article.image;
+      cover.alt = article.title;
+      cover.style.display = "block";
+    } else {
+      cover.style.display = "none";
+    }
+
+    const canonical = `${location.origin}${location.pathname}?id=${idx}`;
+    lineShare.href = buildOfficialLineShare(canonical);
+    lineShare.textContent = `${officialLineAccountId} で共有`;
+
+    document.getElementById("copyLink").addEventListener("click", (e) => {
+      e.preventDefault();
+      navigator.clipboard?.writeText(canonical).then(() => {
+        alert("記事リンクをコピーしました。LINEに貼り付けて共有できます。");
+      }).catch(() => alert("コピーに失敗しました"));
+    });
+  }
+
+  document.addEventListener("DOMContentLoaded", () => {
+    const { article, idx } = findArticle();
+    render(article, idx);
+  });
+</script>
+</body>
+</html>
