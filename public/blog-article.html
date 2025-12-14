@@ -81,9 +81,14 @@
   .chip { padding: 6px 10px; border-radius: 999px; border: 1px solid var(--border); background: rgba(255,255,255,0.04); }
 
   .article-card {
-    background: #ffffff;
-    color: #0a0a0a;
-    border: 1px solid #e5e7eb;
+    --card-bg: #ffffff;
+    --card-text: #0a0a0a;
+    --card-weak: #334155;
+    --card-border: #e5e7eb;
+    --card-accent: rgba(0,0,0,0.04);
+    background: var(--card-bg);
+    color: var(--card-text);
+    border: 1px solid var(--card-border);
     border-radius: 20px;
     padding: 16px;
     display: grid;
@@ -95,17 +100,17 @@
     border-radius: 16px;
     aspect-ratio: 16 / 9;
     object-fit: cover;
-    border: 1px solid #e5e7eb;
+    border: 1px solid var(--card-border, #e5e7eb);
   }
-  .title-block h3 { margin: 0; font-size: 22px; }
-  .title-block p { margin: 6px 0 0; color: #334155; line-height: 1.6; }
+  .title-block h3 { margin: 0; font-size: 22px; color: var(--card-text); }
+  .title-block p { margin: 6px 0 0; color: var(--card-weak); line-height: 1.6; }
   .tag-row { display: flex; gap: 8px; flex-wrap: wrap; }
-  .tag { padding: 6px 10px; border-radius: 999px; border: 1px solid #e5e7eb; background: #f5f7fb; font-size: 12px; color: #0f172a; text-decoration: none; }
-  .body { display: grid; gap: 12px; line-height: 1.7; color: #0a0a0a; }
+  .tag { padding: 6px 10px; border-radius: 999px; border: 1px solid var(--card-border, #e5e7eb); background: var(--card-accent, #f5f7fb); font-size: 12px; color: var(--card-text, #0f172a); text-decoration: none; }
+  .body { display: grid; gap: 12px; line-height: 1.7; color: var(--card-text); }
   .body p { margin: 0; }
 
   .share-row { display: grid; grid-template-columns: 1fr; gap: 10px; width: 100%; }
-  .share { padding: 12px 14px; border-radius: 12px; border: 1px solid var(--border); background: #0f0f0f; text-decoration: none; font-size: 13px; display: inline-flex; align-items: center; gap: 8px; justify-content: center; }
+  .share { padding: 12px 14px; min-height: 48px; border-radius: 12px; border: 1px solid var(--border); background: #0f0f0f; text-decoration: none; font-size: 13px; display: inline-flex; align-items: center; gap: 8px; justify-content: center; width: 100%; }
   .share.line { background: var(--line); color: #041902; font-weight: 700; border-color: #0f2f14; }
   .share:active { transform: translateY(1px); }
 
@@ -183,6 +188,72 @@
     },
   ];
 
+  const themeCache = new Map();
+  const fallbackTheme = { bg: "#ffffff", text: "#0a0a0a", weak: "#334155", border: "#e5e7eb", accent: "rgba(0,0,0,0.04)" };
+
+  function luminance(r, g, b) {
+    return (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+  }
+
+  function toTheme(r, g, b) {
+    const text = luminance(r, g, b) > 0.58 ? "#0a0a0a" : "#f7f7f7";
+    const weak = text === "#f7f7f7" ? "rgba(247,247,247,0.82)" : "rgba(10,10,10,0.72)";
+    return {
+      bg: `rgb(${r}, ${g}, ${b})`,
+      text,
+      weak,
+      border: `rgba(${r}, ${g}, ${b}, 0.38)`,
+      accent: text === "#f7f7f7" ? "rgba(255,255,255,0.12)" : "rgba(0,0,0,0.06)",
+    };
+  }
+
+  function extractThemeFromImage(src) {
+    if (!src) return Promise.resolve(fallbackTheme);
+    if (themeCache.has(src)) return Promise.resolve(themeCache.get(src));
+
+    return new Promise((resolve) => {
+      const img = new Image();
+      img.crossOrigin = "anonymous";
+      img.src = src;
+      img.onload = () => {
+        try {
+          const canvas = document.createElement("canvas");
+          canvas.width = canvas.height = 24;
+          const ctx = canvas.getContext("2d", { willReadFrequently: true });
+          ctx.drawImage(img, 0, 0, 24, 24);
+          const data = ctx.getImageData(0, 0, 24, 24).data;
+          let r = 0, g = 0, b = 0;
+          const count = data.length / 4;
+          for (let i = 0; i < data.length; i += 4) {
+            r += data[i];
+            g += data[i + 1];
+            b += data[i + 2];
+          }
+          const theme = toTheme(Math.round(r / count), Math.round(g / count), Math.round(b / count));
+          themeCache.set(src, theme);
+          resolve(theme);
+        } catch (err) {
+          themeCache.set(src, fallbackTheme);
+          resolve(fallbackTheme);
+        }
+      };
+      img.onerror = () => {
+        themeCache.set(src, fallbackTheme);
+        resolve(fallbackTheme);
+      };
+    });
+  }
+
+  function applyCardTheme(el, image) {
+    extractThemeFromImage(image).then((theme) => {
+      el.style.setProperty("--card-bg", theme.bg);
+      el.style.setProperty("--card-text", theme.text);
+      el.style.setProperty("--card-weak", theme.weak);
+      el.style.setProperty("--card-border", theme.border);
+      el.style.setProperty("--card-accent", theme.accent);
+    });
+  }
+
   function uid() {
     return crypto.randomUUID?.() || `post-${Date.now()}-${Math.random().toString(16).slice(2)}`;
   }
@@ -249,6 +320,8 @@
     const tags = document.getElementById("tags");
     const body = document.getElementById("body");
     const lineShare = document.getElementById("lineShare");
+    const articleCard = document.getElementById("article");
+    const hero = document.querySelector(".hero");
 
     title.textContent = article.title || "無題の記事";
     heroTitle.textContent = article.title || "無題の記事";
@@ -268,6 +341,19 @@
     } else {
       cover.style.display = "none";
     }
+
+    applyCardTheme(articleCard, article.image);
+    extractThemeFromImage(article.image).then((theme) => {
+      hero.style.setProperty("--card-bg", theme.bg);
+      hero.style.setProperty("--card-text", theme.text);
+      hero.style.setProperty("--card-weak", theme.weak);
+      hero.style.borderColor = theme.border;
+      hero.style.background = `linear-gradient(135deg, ${theme.bg}, rgba(0,0,0,0.75))`;
+      heroTitle.style.color = theme.text;
+      heroLead.style.color = theme.weak;
+      title.style.color = theme.text;
+      excerpt.style.color = theme.weak;
+    });
 
     const canonicalId = article.id;
     const canonical = `${location.origin}${location.pathname}?id=${canonicalId}`;
