@@ -273,6 +273,17 @@
     return list.map(item => ({ ...item, id: isValidId(item.id) ? item.id : uid() }));
   }
 
+  function cleanSavedText(raw) {
+    if (typeof raw !== "string") return raw;
+    if (raw.includes("<<<<<<<") || raw.includes("=======") || raw.includes(">>>>>>>")) {
+      return raw
+        .split(/\r?\n/)
+        .filter(line => line && !line.startsWith("<<<<<<<") && !line.startsWith("=======") && !line.startsWith(">>>>>>>"))
+        .join("\n");
+    }
+    return raw;
+  }
+
   function tagLink(tag) {
     const safe = encodeURIComponent(tag);
     return `<a class="tag" href="/blog-tag.html?tag=${safe}">#${tag}</a>`;
@@ -283,7 +294,7 @@
   }
 
   function storedArticles() {
-    const saved = localStorage.getItem("emperor_articles");
+    const saved = cleanSavedText(localStorage.getItem("emperor_articles"));
     if (!saved) return [...baseArticles];
     try {
       const parsed = JSON.parse(saved);
