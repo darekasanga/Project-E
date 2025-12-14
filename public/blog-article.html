@@ -81,8 +81,9 @@
   .chip { padding: 6px 10px; border-radius: 999px; border: 1px solid var(--border); background: rgba(255,255,255,0.04); }
 
   .article-card {
-    background: var(--panel);
-    border: 1px solid var(--border);
+    background: #ffffff;
+    color: #0a0a0a;
+    border: 1px solid #e5e7eb;
     border-radius: 20px;
     padding: 16px;
     display: grid;
@@ -94,13 +95,13 @@
     border-radius: 16px;
     aspect-ratio: 16 / 9;
     object-fit: cover;
-    border: 1px solid var(--border);
+    border: 1px solid #e5e7eb;
   }
   .title-block h3 { margin: 0; font-size: 22px; }
-  .title-block p { margin: 6px 0 0; color: var(--muted); line-height: 1.6; }
+  .title-block p { margin: 6px 0 0; color: #334155; line-height: 1.6; }
   .tag-row { display: flex; gap: 8px; flex-wrap: wrap; }
-  .tag { padding: 6px 10px; border-radius: 999px; border: 1px solid var(--border); background: #0f0f0f; font-size: 12px; }
-  .body { display: grid; gap: 12px; line-height: 1.7; color: #e5e7eb; }
+  .tag { padding: 6px 10px; border-radius: 999px; border: 1px solid #e5e7eb; background: #f5f7fb; font-size: 12px; color: #0f172a; text-decoration: none; }
+  .body { display: grid; gap: 12px; line-height: 1.7; color: #0a0a0a; }
   .body p { margin: 0; }
 
   .share-row { display: grid; grid-template-columns: 1fr; gap: 10px; width: 100%; }
@@ -194,6 +195,11 @@
     return list.map(item => ({ ...item, id: isValidId(item.id) ? item.id : uid() }));
   }
 
+  function tagLink(tag) {
+    const safe = encodeURIComponent(tag);
+    return `<a class="tag" href="/blog-tag.html?tag=${safe}">#${tag}</a>`;
+  }
+
   function loadArticles() {
     const saved = localStorage.getItem("emperor_articles");
     const raw = saved ? JSON.parse(saved) : baseArticles;
@@ -250,7 +256,7 @@
     excerpt.textContent = safeBody[0] || "本文がありません。";
 
     tags.innerHTML = (article.tags || []).length
-      ? article.tags.map(tag => `<span class="tag">#${tag}</span>`).join("")
+      ? article.tags.map(tagLink).join("")
       : '<span class="tag">#untagged</span>';
 
     body.innerHTML = safeBody.map(p => `<p>${p}</p>`).join("");

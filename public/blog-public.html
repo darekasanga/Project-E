@@ -80,8 +80,9 @@
 
   .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 14px; }
   .card {
-    background: var(--panel);
-    border: 1px solid var(--border);
+    background: #ffffff;
+    color: #0a0a0a;
+    border: 1px solid #e5e7eb;
     border-radius: var(--radius);
     padding: 14px;
     display: grid;
@@ -90,11 +91,11 @@
     transition: transform 220ms ease, border-color 200ms ease;
   }
   .card:hover { transform: translateY(-4px); border-color: rgba(6,199,85,0.4); }
-  .card h3 { margin: 0; font-size: 17px; letter-spacing: 0.01em; }
-  .card p { margin: 0; color: var(--muted); line-height: 1.6; }
-  .meta { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; color: var(--muted); font-size: 12px; }
-  .tag { padding: 6px 10px; border-radius: 999px; border: 1px solid var(--border); background: #0c0c0c; }
-  .hero-img { width: 100%; border-radius: 14px; aspect-ratio: 16 / 9; object-fit: cover; border: 1px solid var(--border); }
+  .card h3 { margin: 0; font-size: 17px; letter-spacing: 0.01em; color: #0a0a0a; }
+  .card p { margin: 0; color: #334155; line-height: 1.6; }
+  .meta { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; color: #4b5563; font-size: 12px; }
+  .tag { padding: 6px 10px; border-radius: 999px; border: 1px solid #e5e7eb; background: #f5f7fb; color: #0f172a; text-decoration: none; }
+  .hero-img { width: 100%; border-radius: 14px; aspect-ratio: 16 / 9; object-fit: cover; border: 1px solid #e5e7eb; }
 
   .share-row { display: grid; grid-template-columns: 1fr; gap: 8px; width: 100%; }
   .share { padding: 10px 12px; border-radius: 10px; border: 1px solid var(--border); background: #0c0c0c; text-decoration: none; font-size: 13px; display: inline-flex; align-items: center; gap: 6px; justify-content: center; }
@@ -102,7 +103,18 @@
 
   .ticker { display: flex; gap: 10px; overflow: hidden; border: 1px solid var(--border); border-radius: 14px; background: #080808; padding: 8px 10px; }
   .ticker-track { display: flex; gap: 10px; animation: marquee 26s linear infinite; }
-  .chip { padding: 7px 12px; border-radius: 999px; border: 1px solid var(--border); background: #0d0d0d; color: var(--muted); white-space: nowrap; }
+  .chip {
+    padding: 7px 12px;
+    border-radius: 999px;
+    border: 1px solid var(--border);
+    background: #0d0d0d;
+    color: var(--muted);
+    white-space: nowrap;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
 
   @keyframes marquee { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
   @media (max-width: 680px) {
@@ -188,6 +200,11 @@
     return list.map(item => ({ ...item, id: isValidId(item.id) ? item.id : uid() }));
   }
 
+  function tagLink(tag) {
+    const safe = encodeURIComponent(tag);
+    return `<a class="tag" href="/blog-tag.html?tag=${safe}">#${tag}</a>`;
+  }
+
   function buildOfficialLineShare(url) {
     return `https://social-plugins.line.me/lineit/share?url=${encodeURIComponent(url)}&accountId=@projecte_official`;
   }
@@ -202,7 +219,7 @@
 
   function renderTicker(tags) {
     const unique = Array.from(new Set(tags.length ? tags : ["iPhone", "iPad", "公式LINE", "黒ベース", "ChatGPTアップロード"]));
-    const chips = unique.map(tag => `<div class="chip">#${tag}</div>`).join("");
+    const chips = unique.map(tag => `<a class="chip" href="/blog-tag.html?tag=${encodeURIComponent(tag)}">#${tag} ▶</a>`).join("");
     ticker.innerHTML = chips;
     tickerClone.innerHTML = chips;
   }
@@ -227,7 +244,7 @@
         <h3>${item.title}</h3>
         <p>${item.body}</p>
         <div class="meta">
-          ${(item.tags || []).map(t => `<span class="tag">#${t}</span>`).join("") || '<span class="tag">#untagged</span>'}
+          ${(item.tags || []).map(tagLink).join("") || '<span class="tag">#untagged</span>'}
         </div>
         <div class="share-row">
           <a class="share line" href="${shareUrl}" target="_blank" rel="noreferrer">公式LINEで共有</a>

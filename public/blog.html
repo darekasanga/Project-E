@@ -107,8 +107,9 @@
   .scroll-track::-webkit-scrollbar-thumb { background: #1f1f1f; border-radius: 999px; }
 
   .card {
-    background: #0f0f0f;
-    border: 1px solid var(--border);
+    background: #fdfdfd;
+    color: #0a0a0a;
+    border: 1px solid #e5e7eb;
     border-radius: var(--radius-lg);
     padding: 14px;
     scroll-snap-align: start;
@@ -121,14 +122,16 @@
     gap: 6px;
     padding: 6px 10px;
     border-radius: 999px;
-    background: #121212;
-    border: 1px solid var(--border);
-    color: #cbd5e1;
+    background: #0f172a;
+    border: 1px solid #e5e7eb;
+    color: #e2e8f0;
+    font-weight: 600;
     font-size: 12px;
   }
-  .card h3 { margin: 0; font-size: 17px; }
-  .card p { margin: 0; color: var(--muted); font-size: 14px; line-height: 1.5; }
-  .meta { display: flex; gap: 6px; align-items: center; color: var(--muted); font-size: 12px; }
+  .card h3 { margin: 0; font-size: 17px; color: #0a0a0a; }
+  .card p { margin: 0; color: #334155; font-size: 14px; line-height: 1.5; }
+  .meta { display: flex; gap: 6px; align-items: center; color: #4b5563; font-size: 12px; }
+  .meta a { color: inherit; text-decoration: none; font-weight: 600; }
   .hero-img {
     width: 100%;
     border-radius: var(--radius);
@@ -169,23 +172,26 @@
   }
   .feed { display: grid; gap: 12px; margin-top: 10px; }
   .feed-card {
-    border: 1px solid var(--border);
+    border: 1px solid #e5e7eb;
     border-radius: var(--radius);
-    background: #0f0f0f;
+    background: #ffffff;
+    color: #0a0a0a;
     padding: 12px;
     display: grid;
     gap: 8px;
   }
   .feed-card .top { display: grid; gap: 10px; align-items: flex-start; justify-content: flex-start; }
-  .feed-card h4 { margin: 0; font-size: 16px; }
-  .feed-card p { margin: 0; color: var(--muted); line-height: 1.5; }
+  .feed-card h4 { margin: 0; font-size: 16px; color: #0a0a0a; }
+  .feed-card p { margin: 0; color: #334155; line-height: 1.5; }
   .tag-row { display: flex; gap: 8px; flex-wrap: wrap; }
   .tag {
     padding: 6px 10px;
     border-radius: 999px;
-    border: 1px solid var(--border);
-    background: #0b0b0b;
+    border: 1px solid #e5e7eb;
+    background: #f5f7fb;
     font-size: 12px;
+    color: #0f172a;
+    text-decoration: none;
   }
   .empty { text-align: center; color: var(--muted); padding: 20px; }
   .share-buttons { display: grid; grid-template-columns: 1fr; gap: 8px; width: 100%; }
@@ -212,6 +218,10 @@
     border: 1px solid var(--border);
     color: var(--muted);
     white-space: nowrap;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
   }
   @keyframes slide { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
   @media (max-width: 720px) { header { grid-template-columns: 1fr; } .scroll-track { grid-auto-columns: 88%; } }
@@ -359,11 +369,17 @@
     observer.observe(el);
   }
 
+  function tagLink(tag) {
+    const safe = encodeURIComponent(tag);
+    return `<a class="tag" href="/blog-tag.html?tag=${safe}">#${tag}</a>`;
+  }
+
   function renderFeatures(list) {
     featureTrack.innerHTML = "";
     list.forEach((item, idx) => {
       const div = document.createElement("article");
       div.className = "card";
+      const tags = (item.tags || []).map(tagLink).join("");
       div.innerHTML = `
         <div class="badge">特集 ${idx + 1}</div>
         <h3>${item.title}</h3>
@@ -372,8 +388,9 @@
         <div class="meta">
           <span>iOS向けスナップビュー</span>
           <span>｜</span>
-          <span>${item.tags?.slice(0,3).join(" / ") || "タグなし"}</span>
+          <span>タグ</span>
         </div>
+        <div class="tag-row">${tags || '<span class="tag">#untagged</span>'}</div>
       `;
       featureTrack.appendChild(div);
       observeCard(div);
@@ -405,7 +422,7 @@
         </div>
         ${item.image ? `<img class="hero-img" src="${item.image}" alt="${item.title}">` : ""}
         <p>${item.body}</p>
-        <div class="tag-row">${(item.tags || []).map(t => `<span class="tag">#${t}</span>`).join("")}</div>
+        <div class="tag-row">${(item.tags || []).map(tagLink).join("")}</div>
       `;
       feed.appendChild(card);
       observeCard(card);
@@ -415,7 +432,7 @@
 
   function buildTagMarquee(tags) {
     const unique = Array.from(new Set(tags.length ? tags : ["iPhone", "iPad", "LINE配信", "ChatGPTアップロード", "スクロールビュー"]));
-    const chips = unique.map(tag => `<div class="chip">#${tag}</div>`).join("");
+    const chips = unique.map(tag => `<a class="chip" href="/blog-tag.html?tag=${encodeURIComponent(tag)}">#${tag} ▶</a>`).join("");
     tagMarquee.innerHTML = chips;
     tagMarqueeClone.innerHTML = chips;
   }
