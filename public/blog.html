@@ -176,7 +176,7 @@
     display: grid;
     gap: 8px;
   }
-  .feed-card .top { display: flex; gap: 10px; align-items: center; justify-content: space-between; flex-wrap: wrap; }
+  .feed-card .top { display: grid; gap: 10px; align-items: flex-start; justify-content: flex-start; }
   .feed-card h4 { margin: 0; font-size: 16px; }
   .feed-card p { margin: 0; color: var(--muted); line-height: 1.5; }
   .tag-row { display: flex; gap: 8px; flex-wrap: wrap; }
@@ -188,9 +188,9 @@
     font-size: 12px;
   }
   .empty { text-align: center; color: var(--muted); padding: 20px; }
-  .share-buttons { display: flex; gap: 8px; flex-wrap: wrap; }
+  .share-buttons { display: grid; grid-template-columns: 1fr; gap: 8px; width: 100%; }
   .share-btn {
-    padding: 8px 12px;
+    padding: 10px 12px;
     border-radius: 10px;
     border: 1px solid var(--border);
     background: #0b0b0b;
@@ -200,6 +200,7 @@
     display: inline-flex;
     align-items: center;
     gap: 6px;
+    justify-content: center;
   }
   .share-btn.line { background: var(--line); color: #041902; border-color: #0f2f14; font-weight: 700; }
   .marquee { display: flex; gap: 10px; overflow: hidden; position: relative; }
@@ -301,21 +302,21 @@
 
   const baseArticles = [
     {
-      id: "feature-ipad",
+      id: "post-101",
       title: "スクロールスナップで魅せるiPad特集",
       body: "iPadOSのオーバースクロールに合わせた柔らかなカードUI。モバイルファーストの編集フローを紹介。",
       tags: ["iPad", "UI", "ScrollSnap"],
       image: "https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?auto=format&fit=crop&w=900&q=80",
     },
     {
-      id: "feature-line",
+      id: "post-102",
       title: "LINE配信テンプレート付き記事運用",
       body: "配信用のOGPとLINEシェアURLをワンクリック生成。チャット経由での下書きアップロードにも対応。",
       tags: ["LINE", "OGP", "Automation"],
       image: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=900&q=80",
     },
     {
-      id: "feature-workflow",
+      id: "post-103",
       title: "ChatGPT→ブログ 直貼りワークフロー",
       body: "ChatGPTで生成した文章をそのままペースト。カバー画像とタグを加えて即公開。",
       tags: ["ChatGPT", "Workflow", "Creator"],
@@ -327,8 +328,12 @@
     return crypto.randomUUID?.() || `post-${Date.now()}-${Math.random().toString(16).slice(2)}`;
   }
 
+  function isValidId(id) {
+    return typeof id === "string" && (/^post-[a-z0-9-]{8,}$/i.test(id) || /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(id));
+  }
+
   function normalizeArticles(list) {
-    return list.map(item => ({ ...item, id: item.id || uid() }));
+    return list.map(item => ({ ...item, id: isValidId(item.id) ? item.id : uid() }));
   }
 
   function loadArticles() {
@@ -395,7 +400,7 @@
           </div>
           <div class="share-buttons">
             <a class="share-btn line" href="${shareUrl}" target="_blank" rel="noreferrer">公式LINEで共有</a>
-            <a class="share-btn" href="${url}" target="_blank">リンクを開く</a>
+            <a class="share-btn" href="${url}" target="_blank">もっと読む</a>
           </div>
         </div>
         ${item.image ? `<img class="hero-img" src="${item.image}" alt="${item.title}">` : ""}

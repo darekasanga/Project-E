@@ -103,8 +103,8 @@
   .body { display: grid; gap: 12px; line-height: 1.7; color: #e5e7eb; }
   .body p { margin: 0; }
 
-  .share-row { display: flex; gap: 10px; flex-wrap: wrap; }
-  .share { padding: 10px 14px; border-radius: 12px; border: 1px solid var(--border); background: #0f0f0f; text-decoration: none; font-size: 13px; display: inline-flex; align-items: center; gap: 8px; }
+  .share-row { display: grid; grid-template-columns: 1fr; gap: 10px; width: 100%; }
+  .share { padding: 12px 14px; border-radius: 12px; border: 1px solid var(--border); background: #0f0f0f; text-decoration: none; font-size: 13px; display: inline-flex; align-items: center; gap: 8px; justify-content: center; }
   .share.line { background: var(--line); color: #041902; font-weight: 700; border-color: #0f2f14; }
   .share:active { transform: translateY(1px); }
 
@@ -160,21 +160,21 @@
   const officialLinePage = "https://page.line.me/projecte_official";
   const baseArticles = [
     {
-      id: "public-ipad",
+      id: "post-201",
       title: "iPadスクロール特集 — 公式LINEで読む",
       body: "黒背景とオーバースクロールを活かしたカードレイアウト。公式LINEアカウントへの配信リンクを同梱。",
       tags: ["iPad", "Scroll", "LINE公式"],
       image: "https://images.unsplash.com/photo-1472289065668-ce650ac443d2?auto=format&fit=crop&w=1200&q=80",
     },
     {
-      id: "public-chatgpt",
+      id: "post-202",
       title: "ChatGPTから即公開",
       body: "チャットで生成した原稿をそのまま貼り付け。タグとカバーを足すだけで読者向けカードを生成します。",
       tags: ["ChatGPT", "Workflow"],
       image: "https://images.unsplash.com/photo-1507138451611-3001135909a5?auto=format&fit=crop&w=1200&q=80",
     },
     {
-      id: "public-line",
+      id: "post-203",
       title: "LINEシェアリンクをワンクリック",
       body: "公式LINEアカウントと連動した共有ボタンを自動生成。外部ブラウザでも快適に閲覧できるOGP調整済み。",
       tags: ["LINE", "Share", "OGP"],
@@ -186,8 +186,12 @@
     return crypto.randomUUID?.() || `post-${Date.now()}-${Math.random().toString(16).slice(2)}`;
   }
 
+  function isValidId(id) {
+    return typeof id === "string" && (/^post-[a-z0-9-]{8,}$/i.test(id) || /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(id));
+  }
+
   function normalizeArticles(list) {
-    return list.map(item => ({ ...item, id: item.id || uid() }));
+    return list.map(item => ({ ...item, id: isValidId(item.id) ? item.id : uid() }));
   }
 
   function loadArticles() {
@@ -259,7 +263,7 @@
       cover.style.display = "none";
     }
 
-    const canonicalId = article.id || idx;
+    const canonicalId = article.id;
     const canonical = `${location.origin}${location.pathname}?id=${canonicalId}`;
     lineShare.href = buildOfficialLineShare(canonical);
     lineShare.textContent = `${officialLineAccountId} で共有`;
