@@ -110,8 +110,8 @@
   .body p { margin: 0; }
 
   .share-row { display: grid; grid-template-columns: 1fr; gap: 10px; width: 100%; }
-  .share { padding: 12px 14px; min-height: 48px; border-radius: 12px; border: 1px solid var(--border); background: #0f0f0f; text-decoration: none; font-size: 13px; display: inline-flex; align-items: center; gap: 8px; justify-content: center; width: 100%; }
-  .share.line { background: var(--line); color: #041902; font-weight: 700; border-color: #0f2f14; }
+  .share { padding: 12px 14px; min-height: 48px; border-radius: 12px; border: none; background: #0f0f0f; text-decoration: none; font-size: 13px; display: inline-flex; align-items: center; gap: 8px; justify-content: center; width: 100%; }
+  .share.line { background: var(--line); color: #041902; font-weight: 700; }
   .share:active { transform: translateY(1px); }
 
   footer { padding: 0 18px 24px; color: var(--muted); font-size: 12px; }
@@ -196,6 +196,8 @@
   }
 
   function toTheme(r, g, b) {
+    const soften = (v) => (v > 128 ? Math.round(v * 0.5) : v);
+    r = soften(r); g = soften(g); b = soften(b);
     const text = luminance(r, g, b) > 0.58 ? "#0a0a0a" : "#f7f7f7";
     const weak = text === "#f7f7f7" ? "rgba(247,247,247,0.82)" : "rgba(10,10,10,0.72)";
     return {
