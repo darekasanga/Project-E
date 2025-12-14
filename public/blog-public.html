@@ -199,7 +199,7 @@
   function renderFeed(list) {
     feedEl.innerHTML = "";
     list.forEach((item, idx) => {
-      const articleUrl = `${location.origin}${location.pathname}#post-${idx}`;
+      const articleUrl = `${location.origin}/blog-article.html?id=${idx}`;
       const shareUrl = buildOfficialLineShare(articleUrl);
       const card = document.createElement("article");
       card.className = "card";

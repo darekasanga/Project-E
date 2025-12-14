@@ -371,7 +371,7 @@
     list.forEach((item, idx) => {
       const card = document.createElement("article");
       card.className = "feed-card";
-      const url = `${location.origin}${location.pathname}#post-${idx}`;
+      const url = `${location.origin}/blog-article.html?id=${idx}`;
       const shareUrl = buildOfficialLineShare(url);
       card.id = `post-${idx}`;
       card.innerHTML = `
