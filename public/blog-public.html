@@ -1,0 +1,434 @@
+<!doctype html>
+<html lang="ja">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Emperor News — 公開ビュー</title>
+<style>
+  :root {
+    --bg: #050505;
+    --panel: #0a0a0a;
+    --text: #f6f6f6;
+    --muted: #a1a1aa;
+    --line: #06c755;
+    --accent: #1a1a1a;
+    --border: #1f1f1f;
+    --radius: 18px;
+    --shadow: 0 18px 50px rgba(0,0,0,0.45);
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: "SF Pro Display", "Inter", "Noto Sans JP", system-ui, sans-serif;
+    background: radial-gradient(160% 140% at 20% 20%, rgba(6,199,85,0.12), transparent),
+                radial-gradient(120% 120% at 80% 0%, rgba(6,199,85,0.08), transparent),
+                var(--bg);
+    color: var(--text);
+  }
+  a { color: inherit; }
+  header {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    backdrop-filter: blur(12px);
+    background: rgba(5,5,5,0.9);
+    border-bottom: 1px solid var(--border);
+    padding: 14px 18px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+  }
+  .brand { display: flex; align-items: center; gap: 10px; }
+  .logo {
+    width: 40px; height: 40px;
+    border-radius: 14px;
+    border: 1px solid var(--border);
+    display: grid; place-items: center;
+    background: linear-gradient(145deg, #0d0d0d, #0a0a0a);
+    color: var(--line);
+    font-weight: 700;
+  }
+  .brand h1 { margin: 0; font-size: 18px; letter-spacing: 0.01em; }
+  .brand p { margin: 2px 0 0; color: var(--muted); font-size: 12px; }
+  .pill {
+    padding: 9px 14px;
+    border-radius: 999px;
+    border: none;
+    background: var(--accent);
+    text-decoration: none;
+    font-size: 13px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .pill.primary { background: var(--line); color: #041902; font-weight: 700; }
+
+  main { padding: 22px 18px 48px; display: grid; gap: 20px; }
+  .hero {
+    background: linear-gradient(135deg, rgba(6,199,85,0.18), rgba(6,199,85,0.05) 32%, rgba(12,12,12,0.9) 100%);
+    border: 1px solid var(--border);
+    border-radius: 26px;
+    padding: 20px;
+    display: grid;
+    gap: 12px;
+    box-shadow: var(--shadow);
+  }
+  .hero h2 { margin: 0; font-size: 22px; }
+  .hero p { margin: 0; color: var(--muted); line-height: 1.6; }
+  .hero .cta-row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+  .mini-pill { font-size: 12px; padding: 6px 10px; border-radius: 999px; background: rgba(255,255,255,0.05); border: none; color: var(--muted); }
+
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 14px; }
+  .card {
+    --card-bg: #ffffff;
+    --card-text: #0a0a0a;
+    --card-weak: #334155;
+    --card-border: #e5e7eb;
+    --card-accent: rgba(0,0,0,0.04);
+    background: var(--card-bg);
+    color: var(--card-text);
+    border: 1px solid var(--card-border);
+    border-radius: var(--radius);
+    padding: 14px;
+    display: grid;
+    gap: 10px;
+    box-shadow: 0 12px 32px rgba(0,0,0,0.3);
+    transition: transform 220ms ease, border-color 200ms ease;
+  }
+  .card:hover { transform: translateY(-4px); border-color: rgba(6,199,85,0.4); }
+  .card h3 { margin: 0; font-size: 17px; letter-spacing: 0.01em; color: var(--card-text); }
+  .card p { margin: 0; color: var(--card-weak); line-height: 1.6; }
+  .meta { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; color: var(--card-weak); font-size: 12px; }
+  .tag { padding: 6px 10px; border-radius: 999px; border: 1px solid var(--card-border, #e5e7eb); background: var(--card-accent, #f5f7fb); color: var(--card-text, #0f172a); text-decoration: none; }
+  .hero-img { width: 100%; border-radius: 14px; aspect-ratio: 16 / 9; object-fit: cover; border: 1px solid var(--card-border, #e5e7eb); }
+
+  .share-row { display: grid; grid-template-columns: 1fr; gap: 8px; width: 100%; }
+  .share { padding: 12px 14px; min-height: 48px; border-radius: 10px; border: none; background: #0c0c0c; text-decoration: none; font-size: 13px; display: inline-flex; align-items: center; gap: 6px; justify-content: center; width: 100%; }
+  .share.line { background: var(--line); color: #041902; font-weight: 700; }
+
+  .lightbox {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.82);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+    z-index: 999;
+  }
+  .lightbox.open { display: flex; }
+  .lightbox img {
+    max-width: min(960px, 94vw);
+    max-height: 88vh;
+    border-radius: 16px;
+    border: 1px solid rgba(255,255,255,0.18);
+    box-shadow: 0 22px 80px rgba(0,0,0,0.6);
+    object-fit: contain;
+    background: #000;
+  }
+  .lightbox button {
+    position: absolute;
+    top: 14px;
+    right: 14px;
+    border: none;
+    background: rgba(0,0,0,0.6);
+    color: #f7f7f7;
+    padding: 10px 12px;
+    border-radius: 12px;
+    cursor: pointer;
+    font-weight: 700;
+  }
+
+  .ticker { display: flex; gap: 10px; overflow: hidden; border: 1px solid var(--border); border-radius: 14px; background: #080808; padding: 8px 10px; }
+  .ticker-track { display: flex; gap: 10px; animation: marquee 26s linear infinite; }
+  .chip {
+    padding: 7px 12px;
+    border-radius: 999px;
+    border: none;
+    background: #0d0d0d;
+    color: var(--muted);
+    white-space: nowrap;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  @keyframes marquee { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
+  @media (max-width: 680px) {
+    header { flex-direction: column; align-items: flex-start; }
+    .brand { width: 100%; }
+  }
+</style>
+<body>
+  <div class="lightbox" id="lightbox" aria-hidden="true">
+    <button type="button" aria-label="閉じる">閉じる</button>
+    <img id="lightboxImg" alt="拡大表示" />
+  </div>
+  <header>
+    <div class="brand">
+      <div class="logo">E</div>
+      <div>
+        <h1>Emperor News</h1>
+        <p>公開ビュー / LINE公式アカウント向け</p>
+      </div>
+    </div>
+    <div class="actions">
+      <a class="pill" href="/">トップ</a>
+      <a class="pill primary" href="/blog.html">編集・アップロード</a>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="mini-pill">公開ページ</div>
+      <h2>読者向けのシンプル配信ビュー</h2>
+      <p>ChatGPTからアップロードした記事をそのまま公開。黒基調のモバイル最適化カードで、公式LINEアカウントにもシェアできます。リンクだけで友だち追加と記事閲覧を両立。</p>
+      <div class="cta-row">
+        <a class="pill primary" id="openLine" target="_blank" rel="noreferrer">公式LINEで読む</a>
+        <a class="pill" href="/blog.html#upload">記事を投稿する</a>
+      </div>
+      <div class="cta-row" id="metaInfo"></div>
+    </section>
+
+    <div class="ticker" aria-hidden="true">
+      <div class="ticker-track" id="ticker"></div>
+      <div class="ticker-track" id="tickerClone"></div>
+    </div>
+
+    <section class="grid" id="feed"></section>
+  </main>
+
+<script>
+  const officialLinePage = "https://page.line.me/projecte_official";
+  const feedEl = document.getElementById("feed");
+  const ticker = document.getElementById("ticker");
+  const tickerClone = document.getElementById("tickerClone");
+  const metaInfo = document.getElementById("metaInfo");
+  const lightbox = document.getElementById("lightbox");
+  const lightboxImg = document.getElementById("lightboxImg");
+
+  const baseArticles = [
+    {
+      id: "post-201",
+      title: "iPadスクロール特集 — 公式LINEで読む",
+      body: "黒背景とオーバースクロールを活かしたカードレイアウト。公式LINEアカウントへの配信リンクを同梱。",
+      tags: ["iPad", "Scroll", "LINE公式"],
+      image: "https://images.unsplash.com/photo-1472289065668-ce650ac443d2?auto=format&fit=crop&w=1200&q=80",
+    },
+    {
+      id: "post-202",
+      title: "ChatGPTから即公開",
+      body: "チャットで生成した原稿をそのまま貼り付け。タグとカバーを足すだけで読者向けカードを生成します。",
+      tags: ["ChatGPT", "Workflow"],
+      image: "https://images.unsplash.com/photo-1507138451611-3001135909a5?auto=format&fit=crop&w=1200&q=80",
+    },
+    {
+      id: "post-203",
+      title: "LINEシェアリンクをワンクリック",
+      body: "公式LINEアカウントと連動した共有ボタンを自動生成。外部ブラウザでも快適に閲覧できるOGP調整済み。",
+      tags: ["LINE", "Share", "OGP"],
+      image: "https://images.unsplash.com/photo-1508766206392-8bd5cf550d1b?auto=format&fit=crop&w=1200&q=80",
+    }
+  ];
+
+  const themeCache = new Map();
+  const fallbackTheme = { bg: "#ffffff", text: "#0a0a0a", weak: "#334155", border: "#e5e7eb", accent: "rgba(0,0,0,0.04)" };
+
+  function luminance(r, g, b) {
+    return (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+  }
+
+  function toTheme(r, g, b) {
+    const soften = (v) => (v > 128 ? Math.round(v * 0.5) : v);
+    r = soften(r); g = soften(g); b = soften(b);
+    const text = luminance(r, g, b) > 0.58 ? "#0a0a0a" : "#f7f7f7";
+    const weak = text === "#f7f7f7" ? "rgba(247,247,247,0.82)" : "rgba(10,10,10,0.72)";
+    return {
+      bg: `rgb(${r}, ${g}, ${b})`,
+      text,
+      weak,
+      border: `rgba(${r}, ${g}, ${b}, 0.38)`,
+      accent: text === "#f7f7f7" ? "rgba(255,255,255,0.12)" : "rgba(0,0,0,0.06)",
+    };
+  }
+
+  function extractThemeFromImage(src) {
+    if (!src) return Promise.resolve(fallbackTheme);
+    if (themeCache.has(src)) return Promise.resolve(themeCache.get(src));
+
+    return new Promise((resolve) => {
+      const img = new Image();
+      img.crossOrigin = "anonymous";
+      img.src = src;
+      img.onload = () => {
+        try {
+          const canvas = document.createElement("canvas");
+          canvas.width = canvas.height = 24;
+          const ctx = canvas.getContext("2d", { willReadFrequently: true });
+          ctx.drawImage(img, 0, 0, 24, 24);
+          const data = ctx.getImageData(0, 0, 24, 24).data;
+          let r = 0, g = 0, b = 0;
+          const count = data.length / 4;
+          for (let i = 0; i < data.length; i += 4) {
+            r += data[i];
+            g += data[i + 1];
+            b += data[i + 2];
+          }
+          const theme = toTheme(Math.round(r / count), Math.round(g / count), Math.round(b / count));
+          themeCache.set(src, theme);
+          resolve(theme);
+        } catch (err) {
+          themeCache.set(src, fallbackTheme);
+          resolve(fallbackTheme);
+        }
+      };
+      img.onerror = () => {
+        themeCache.set(src, fallbackTheme);
+        resolve(fallbackTheme);
+      };
+    });
+  }
+
+  function applyCardTheme(el, image) {
+    extractThemeFromImage(image).then((theme) => {
+      el.style.setProperty("--card-bg", theme.bg);
+      el.style.setProperty("--card-text", theme.text);
+      el.style.setProperty("--card-weak", theme.weak);
+      el.style.setProperty("--card-border", theme.border);
+      el.style.setProperty("--card-accent", theme.accent);
+    });
+  }
+
+  function openLightbox(src, alt) {
+    if (!src) return;
+    lightboxImg.src = src;
+    lightboxImg.alt = alt || "拡大表示";
+    lightbox.classList.add("open");
+    lightbox.setAttribute("aria-hidden", "false");
+  }
+
+  function closeLightbox() {
+    lightbox.classList.remove("open");
+    lightbox.setAttribute("aria-hidden", "true");
+  }
+
+  function registerPreview(img) {
+    if (!img) return;
+    img.style.cursor = "zoom-in";
+    img.addEventListener("click", () => openLightbox(img.src, img.alt));
+  }
+
+  function uid() {
+    return crypto.randomUUID?.() || `post-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+  }
+
+  function isValidId(id) {
+    return typeof id === "string" && (/^post-[a-z0-9-]{8,}$/i.test(id) || /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(id));
+  }
+
+  function normalizeArticles(list) {
+    return list.map(item => ({ ...item, id: isValidId(item.id) ? item.id : uid() }));
+  }
+
+  function cleanSavedText(raw) {
+    if (typeof raw !== "string") return raw;
+    const lines = raw.split(/\r?\n/).filter(Boolean);
+    const filtered = lines.filter(line => {
+      const trimmed = line.trim();
+      return trimmed && !trimmed.startsWith("<<<<<<<") && !trimmed.startsWith("=======") && !trimmed.startsWith(">>>>>>>");
+    });
+    return filtered.join("\n");
+  }
+
+  function tagLink(tag) {
+    const safe = encodeURIComponent(tag);
+    return `<a class="tag" href="/blog-tag.html?tag=${safe}">#${tag}</a>`;
+  }
+
+  function buildOfficialLineShare(url) {
+    return `https://social-plugins.line.me/lineit/share?url=${encodeURIComponent(url)}&accountId=@projecte_official`;
+  }
+
+  function storedArticles() {
+    const raw = localStorage.getItem("emperor_articles");
+    const cleaned = cleanSavedText(raw);
+    if (cleaned && cleaned !== raw) {
+      localStorage.setItem("emperor_articles", cleaned);
+    }
+    if (!cleaned) return [...baseArticles];
+    try {
+      const parsed = JSON.parse(cleaned);
+      return Array.isArray(parsed) ? parsed : [...baseArticles];
+    } catch (err) {
+      console.warn("saved articles were corrupted, resetting", err);
+      return [...baseArticles];
+    }
+  }
+
+  function loadArticles() {
+    const data = normalizeArticles(storedArticles());
+    localStorage.setItem("emperor_articles", JSON.stringify(data));
+    return data;
+  }
+
+  function renderTicker(tags) {
+    const unique = Array.from(new Set(tags.length ? tags : ["iPhone", "iPad", "公式LINE", "黒ベース", "ChatGPTアップロード"]));
+    const chips = unique.map(tag => `<a class="chip" href="/blog-tag.html?tag=${encodeURIComponent(tag)}">#${tag} ▶</a>`).join("");
+    ticker.innerHTML = chips;
+    tickerClone.innerHTML = chips;
+  }
+
+  function renderMeta(count) {
+    metaInfo.innerHTML = `
+      <span class="mini-pill">公開中 ${count} 件</span>
+      <span class="mini-pill">LINE連携中</span>
+    `;
+  }
+
+  function renderFeed(list) {
+    feedEl.innerHTML = "";
+    list.forEach((item, idx) => {
+      const articleUrl = `${location.origin}/blog-article.html?id=${item.id}`;
+      const shareUrl = buildOfficialLineShare(articleUrl);
+      const card = document.createElement("article");
+      card.className = "card";
+      card.id = `post-${item.id}`;
+      card.innerHTML = `
+        ${item.image ? `<img class="hero-img" src="${item.image}" alt="${item.title}">` : ""}
+        <h3>${item.title}</h3>
+        <p>${item.body}</p>
+        <div class="meta">
+          ${(item.tags || []).map(tagLink).join("") || '<span class="tag">#untagged</span>'}
+        </div>
+        <div class="share-row">
+          <a class="share line" href="${shareUrl}" target="_blank" rel="noreferrer">公式LINEで共有</a>
+          <a class="share" href="${articleUrl}" target="_blank">もっと読む</a>
+        </div>
+      `;
+      feedEl.appendChild(card);
+      applyCardTheme(card, item.image);
+      registerPreview(card.querySelector(".hero-img"));
+    });
+  }
+
+  document.addEventListener("DOMContentLoaded", () => {
+    document.getElementById("openLine").href = officialLinePage;
+    const articles = loadArticles();
+    renderFeed(articles);
+    renderTicker(articles.flatMap(a => a.tags || []));
+    renderMeta(articles.length);
+  });
+
+  lightbox.addEventListener("click", (e) => {
+    if (e.target === lightbox || e.target.tagName === "BUTTON") {
+      closeLightbox();
+    }
+  });
+
+  document.addEventListener("keyup", (e) => {
+    if (e.key === "Escape") closeLightbox();
+  });
+</script>
+</body>
+</html>
