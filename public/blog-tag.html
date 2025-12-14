@@ -243,13 +243,23 @@
       return `https://social-plugins.line.me/lineit/share?url=${encodeURIComponent(url)}&accountId=${encodeURIComponent(officialLineAccountId)}`;
     }
 
-    function loadArticles() {
-      const saved = localStorage.getItem("emperor_articles");
-      const raw = saved ? JSON.parse(saved) : baseArticles;
-      const data = normalizeArticles(raw);
-      localStorage.setItem("emperor_articles", JSON.stringify(data));
-      return data;
+  function storedArticles() {
+    const saved = localStorage.getItem("emperor_articles");
+    if (!saved) return [...baseArticles];
+    try {
+      const parsed = JSON.parse(saved);
+      return Array.isArray(parsed) ? parsed : [...baseArticles];
+    } catch (err) {
+      console.warn("saved articles were corrupted, resetting", err);
+      return [...baseArticles];
     }
+  }
+
+  function loadArticles() {
+    const data = normalizeArticles(storedArticles());
+    localStorage.setItem("emperor_articles", JSON.stringify(data));
+    return data;
+  }
 
     function filterByTag(list, tag) {
       if (!tag) return [];
