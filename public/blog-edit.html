@@ -472,9 +472,9 @@
 
     element.addEventListener("pointermove", (event) => {
       if (!dragging) return;
-      deltaX = Math.max(0, event.clientX - startX);
+      deltaX = Math.max(0, startX - event.clientX);
       if (!body) return;
-      body.style.transform = `translateX(${Math.min(deltaX, 120)}px)`;
+      body.style.transform = `translateX(${-Math.min(deltaX, 120)}px)`;
       element.dataset.swipeReady = deltaX > 80 ? "true" : "";
     });
 
