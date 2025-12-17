@@ -100,7 +100,7 @@
   async function findArticle() {
     const params = new URLSearchParams(location.search);
     const idx = parseInt(params.get("id"), 10);
-    const list = await fetchArticles();
+    const list = loadArticles();
     const isValidIdx = Number.isFinite(idx) && list[idx];
     const article = isValidIdx ? list[idx] : list[0];
     return { article, list, idx: isValidIdx ? idx : 0 };

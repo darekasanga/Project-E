@@ -51,16 +51,6 @@
   @media (max-width: 680px) { .scroll-track { grid-auto-columns: 88%; } }
 </style>
 <body>
-  <script>
-    (function enforceAdminSession() {
-      const SESSION_KEY = "emperor_admin_token";
-      const authed = sessionStorage.getItem(SESSION_KEY) === "active";
-      if (!authed) {
-        const destination = encodeURIComponent(location.pathname + location.search + location.hash);
-        window.location.replace(`/admin.html?redirect=${destination}`);
-      }
-    })();
-  </script>
   <header>
     <div class="brand">
       <div class="logo">E</div>
@@ -72,6 +62,7 @@
     <div class="actions">
       <a class="pill" href="/">トップ</a>
       <a class="pill" id="openLine" target="_blank" rel="noreferrer">公式LINEで読む</a>
+      <a class="pill" href="/blog-edit.html" data-requires-auth="true">記事を編集</a>
     </div>
   </header>
 
@@ -105,6 +96,7 @@
   const tickerClone = document.getElementById("tickerClone");
   const featureTrack = document.getElementById("featureTrack");
   const metaInfo = document.getElementById("metaInfo");
+  const adminSessionKey = "emperor_admin_token";
 
   function renderTicker(tags) {
     const unique = Array.from(new Set(tags.length ? tags : ["iPhone", "iPad", "公式LINE", "黒ベース", "ChatGPTアップロード"]));
@@ -130,7 +122,7 @@
         ${item.image ? `<img class="hero-img" src="${item.image}" alt="${item.title}">` : ""}
         <h3>${item.title}</h3>
         <p>${item.body}</p>
-        <div class="meta">${(item.tags || []).map(t => `<span class="tag">#${t}</span>`).join("") || '<span class="tag">#untagged</span>'}</div>
+        <div class="meta">${(item.tags || []).map(t => `<span class=\"tag\">#${t}</span>`).join("") || '<span class="tag">#untagged</span>'}</div>
       `;
       featureTrack.appendChild(card);
     });
@@ -148,7 +140,7 @@
         ${item.image ? `<img class="hero-img" src="${item.image}" alt="${item.title}">` : ""}
         <h3>${item.title}</h3>
         <p>${item.body}</p>
-        <div class="meta">${(item.tags || []).map(t => `<span class="tag">#${t}</span>`).join("") || '<span class="tag">#untagged</span>'}</div>
+        <div class="meta">${(item.tags || []).map(t => `<span class=\"tag\">#${t}</span>`).join("") || '<span class="tag">#untagged</span>'}</div>
         <div class="share-row">
           <a class="share line" href="${shareUrl}" target="_blank" rel="noreferrer">公式LINEで共有</a>
           <a class="share" href="${articleUrl}" target="_blank">リンクを開く</a>
@@ -158,8 +150,25 @@
     });
   }
 
+  function enforceAdminLinks() {
+    const adminLinks = document.querySelectorAll('[data-requires-auth]');
+    adminLinks.forEach((link) => {
+      link.addEventListener("click", (event) => {
+        const authed = sessionStorage.getItem(adminSessionKey) === "active";
+        if (authed) return;
+
+        event.preventDefault();
+        const rawTarget = link.getAttribute("href") || "/blog-edit.html";
+        const normalized = rawTarget.startsWith("/") ? rawTarget : `/${rawTarget}`;
+        const redirect = encodeURIComponent(normalized);
+        location.href = `/admin.html?redirect=${redirect}`;
+      });
+    });
+  }
+
   document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("openLine").href = officialLinePage;
+    enforceAdminLinks();
     const articles = BlogData.loadArticles();
     renderFeed(articles);
     renderFeatures(articles);
