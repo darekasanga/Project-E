@@ -324,6 +324,16 @@
     });
   }
 
+  function delegatePreviewClicks() {
+    document.addEventListener("click", (e) => {
+      const img = e.target.closest(".cover, .hero-img");
+      if (img) {
+        e.preventDefault();
+        openLightbox(img.src, img.alt);
+      }
+    });
+  }
+
   function uid() {
     return crypto.randomUUID?.() || `post-${Date.now()}-${Math.random().toString(16).slice(2)}`;
   }
@@ -452,6 +462,7 @@
   document.addEventListener("DOMContentLoaded", () => {
     const { article, idx } = findArticle();
     render(article, idx);
+    delegatePreviewClicks();
   });
 
   lightbox.addEventListener("click", (e) => {
