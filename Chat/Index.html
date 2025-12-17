@@ -87,6 +87,8 @@
       color: var(--text-muted);
     }
 
+    /* --- PC View (default) --- */
+
     .main {
       display: grid;
       grid-template-columns: minmax(0, 1.1fr) minmax(0, 1.4fr);
@@ -509,9 +511,67 @@
       text-decoration: underline;
     }
 
-    @media (max-width: 880px) {
+    /* --- Tablet View (600px - 1100px) --- */
+    @media (max-width: 1100px) and (min-width: 601px) {
+      .app-shell {
+        margin: 12px;
+        max-width: 100%;
+      }
+
+      header {
+        padding: 14px 18px;
+      }
+
       .main {
         grid-template-columns: minmax(0, 1fr);
+        gap: 10px;
+      }
+
+      .panel {
+        border-right: none;
+        border-bottom: 1px solid rgba(148, 163, 184, 0.18);
+      }
+
+      .panel:last-child {
+        border-bottom: none;
+      }
+
+      .controls-row {
+        gap: 10px;
+      }
+
+      .layout {
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 10px;
+      }
+
+      .toc-panel,
+      .content-panel {
+        max-height: none;
+        min-height: 200px;
+      }
+    }
+
+    /* --- Smartphone View (max-width: 600px) --- */
+    @media (max-width: 600px) {
+      .app-shell {
+        margin: 8px;
+        max-width: 100%;
+      }
+
+      header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 4px;
+      }
+
+      .title {
+        font-size: 16px;
+      }
+
+      .main {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 8px;
       }
 
       .panel {
@@ -525,31 +585,26 @@
 
       .layout {
         grid-template-columns: minmax(0, 1fr);
-      }
-
-      .toc-panel {
-        max-height: 220px;
-      }
-
-      .content-panel {
-        max-height: 260px;
-      }
-    }
-
-    @media (max-width: 600px) {
-      .app-shell {
-        margin: 8px;
-      }
-
-      header {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 4px;
+        gap: 10px;
       }
 
       .controls-row {
         flex-direction: column;
-        align-items: flex-start;
+        align-items: stretch;
+        gap: 8px;
+      }
+
+      .left-controls,
+      .right-controls {
+        width: 100%;
+        justify-content: flex-start;
+        flex-wrap: wrap;
+      }
+
+      button.primary,
+      button.secondary {
+        width: 100%;
+        justify-content: center;
       }
 
       label.small {
@@ -558,8 +613,14 @@
       }
 
       label.small input {
-        width: 50%;
+        width: 55%;
         text-align: right;
+      }
+
+      .toc-panel,
+      .content-panel {
+        max-height: none;
+        min-height: 200px;
       }
     }
   </style>
