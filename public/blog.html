@@ -175,6 +175,19 @@
     color: var(--text);
     cursor: pointer;
   }
+  .ghost-btn {
+    border: none;
+    border-radius: 10px;
+    padding: 10px 12px;
+    background: rgba(0,0,0,0.16);
+    color: var(--card-text, #0a0a0a);
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .ghost-btn.danger { background: rgba(255,99,71,0.08); color: #b91c1c; }
+  .ghost-btn:disabled { opacity: 0.5; cursor: not-allowed; }
   .feed { display: grid; gap: 12px; margin-top: 10px; }
   .feed-card {
     --card-bg: #ffffff;
@@ -221,6 +234,33 @@
     width: 100%;
   }
   .share-btn.line { background: var(--line); color: #041902; font-weight: 700; }
+  .lock-note {
+    color: var(--muted);
+    font-size: 12px;
+    padding: 6px 0;
+  }
+  .admin-actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  .login-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 12px;
+  }
+  .status-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    border-radius: 12px;
+    background: #0b0b0b;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    font-size: 13px;
+  }
+  .status-chip.ok { color: #22c55e; border-color: rgba(34,197,94,0.4); }
   .marquee { display: flex; gap: 10px; overflow: hidden; position: relative; }
   .marquee-track { display: flex; gap: 10px; animation: slide 26s linear infinite; }
   .marquee .chip {
@@ -286,9 +326,33 @@
     </div>
     <div class="nav-actions">
       <a class="pill" href="/">トップへ</a>
-      <a class="pill primary" href="#upload">ChatGPTから貼り付け</a>
+      <a class="pill" href="/blog-public.html">公開ページを開く</a>
+      <a class="pill primary" href="#upload">管理ページ</a>
     </div>
   </header>
+
+  <section class="block" id="auth">
+    <h2>管理ログイン</h2>
+    <p class="desc">ここは管理ページです。ログインすると記事の作成・編集・削除ができます。公開ページは「公開ページを開く」から確認できます。</p>
+    <div class="login-grid">
+      <div class="field">
+        <label for="loginUser">ユーザー名</label>
+        <input id="loginUser" placeholder="admin" autocomplete="username" />
+      </div>
+      <div class="field">
+        <label for="loginPass">パスコード</label>
+        <input id="loginPass" placeholder="project-e" type="password" autocomplete="current-password" />
+      </div>
+    </div>
+    <div class="actions">
+      <button class="primary" id="loginBtn">ログイン</button>
+      <button class="secondary" id="logoutBtn">ログアウト</button>
+    </div>
+    <p class="desc">
+      デフォルトの管理ユーザーは <strong>admin / project-e</strong> です。必要に応じて入力欄を上書きしてください。
+    </p>
+    <div class="status-chip" id="loginStatus" aria-live="polite">ログインしてください。</div>
+  </section>
 
   <section class="block">
     <h2>おすすめ記事</h2>
@@ -305,10 +369,10 @@
   </section>
 
   <section class="block" id="upload">
-    <h2>ChatGPTから直接アップロード</h2>
-    <p class="desc">タイトルと本文をそのまま貼り付け。カバー画像を選べば、その場で記事カードを生成し、モバイル向けビューに反映します。</p>
+    <h2>記事の作成・編集</h2>
+    <p class="desc">ログインすると記事のアップロード、編集、削除ができます。公開ページへの配信は自動で反映されます。</p>
     <div class="grid">
-      <div class="form">
+      <div class="form" id="editorForm">
         <div class="field">
           <label for="title">タイトル</label>
           <input id="title" placeholder="例: Vision Proで作る没入型ブログ" />
@@ -327,8 +391,10 @@
         </div>
         <div class="actions">
           <button class="primary" id="addArticle">アップロードして追加</button>
+          <button class="secondary" id="cancelEdit" style="display:none;">編集をやめる</button>
           <button class="secondary" id="seedDemo">デモ記事を追加</button>
         </div>
+        <div class="lock-note" id="editorLockNotice">ログインすると作成・編集・削除が有効になります。</div>
       </div>
       <div>
         <div class="block" style="margin:0; background: #0b0b0b; border-style: dashed;">
@@ -346,13 +412,21 @@
 
   <section class="block">
     <h2>投稿済みフィード</h2>
-    <p class="desc">アップロードされた記事はモバイルファーストなカードとして配信。LINE公式アカウントのシェアボタン付きです。</p>
+    <p class="desc">アップロードされた記事はモバイルファーストなカードとして配信。管理ログイン後はその場で編集・削除ができます。</p>
     <div class="feed" id="feed"></div>
   </section>
 
 <script>
   const featureTrack = document.getElementById("featureTrack");
   const feed = document.getElementById("feed");
+  const loginUser = document.getElementById("loginUser");
+  const loginPass = document.getElementById("loginPass");
+  const loginBtn = document.getElementById("loginBtn");
+  const logoutBtn = document.getElementById("logoutBtn");
+  const loginStatus = document.getElementById("loginStatus");
+  const editorLockNotice = document.getElementById("editorLockNotice");
+  const editorForm = document.getElementById("editorForm");
+  const cancelEditBtn = document.getElementById("cancelEdit");
   const tagMarquee = document.getElementById("tagMarquee");
   const tagMarqueeClone = document.getElementById("tagMarqueeClone");
   const lightbox = document.getElementById("lightbox");
@@ -386,6 +460,9 @@
 
   const themeCache = new Map();
   const fallbackTheme = { bg: "#fdfdfd", text: "#0a0a0a", weak: "#334155", border: "#e5e7eb", accent: "rgba(0,0,0,0.04)" };
+  const adminDefault = { user: "admin", pass: "project-e" };
+  let authed = sessionStorage.getItem("emperor_admin_authed") === "yes";
+  let editingId = null;
 
   function luminance(r, g, b) {
     return (0.299 * r + 0.587 * g + 0.114 * b) / 255;
@@ -593,6 +670,7 @@
         ${item.image ? `<img class=\"hero-img\" src=\"${item.image}\" alt=\"${item.title}\">` : ""}
         <p>${item.body}</p>
         <div class="tag-row">${(item.tags || []).map(tagLink).join("")}</div>
+        ${authed ? `<div class="admin-actions"><button class=\"ghost-btn\" data-edit=\"${item.id}\">編集</button><button class=\"ghost-btn danger\" data-delete=\"${item.id}\">削除</button></div>` : `<div class="lock-note">ログインするとこのカードを管理できます。</div>`}
       `;
       feed.appendChild(card);
       observeCard(card);
@@ -618,6 +696,10 @@
   }
 
   document.getElementById("addArticle").addEventListener("click", async () => {
+    if (!authed) {
+      alert("管理ログインが必要です。");
+      return;
+    }
     const title = document.getElementById("title").value.trim();
     const body = document.getElementById("body").value.trim();
     const tags = document.getElementById("tags").value.split(",").map(t => t.trim()).filter(Boolean);
@@ -631,23 +713,39 @@
     const list = storedArticles();
     const image = imgFile ? await readFileAsDataURL(imgFile) : "";
 
+    if (editingId) {
+      const idx = list.findIndex(a => a.id === editingId);
+      if (idx !== -1) {
+        const prev = list[idx];
+        list[idx] = { ...prev, title, body, tags, image: image || prev.image };
+      }
+      persist(list);
+      renderFeatures(list);
+      renderFeed(list);
+      resetEditor();
+      return;
+    }
+
     const article = { id: uid(), title, body, tags, image };
     const updated = [article, ...list];
     persist(updated);
     renderFeatures(updated);
     renderFeed(updated);
 
-    document.getElementById("body").value = "";
-    document.getElementById("title").value = "";
-    document.getElementById("tags").value = "";
-    document.getElementById("image").value = "";
+    resetEditor();
   });
 
   document.getElementById("seedDemo").addEventListener("click", () => {
+    if (!authed) {
+      alert("管理ログインが必要です。");
+      return;
+    }
     persist(baseArticles);
     renderFeatures(baseArticles);
     renderFeed(baseArticles);
   });
+
+  cancelEditBtn.addEventListener("click", resetEditor);
 
   document.getElementById("copyLink").addEventListener("click", (e) => {
     e.preventDefault();
@@ -682,6 +780,100 @@
     document.getElementById("lineOfficial").textContent = `${officialLineAccountId} を開く`;
     loadArticles();
     delegatePreviewClicks();
+    updateAuthUI();
+  });
+
+  function resetEditor() {
+    editingId = null;
+    document.getElementById("body").value = "";
+    document.getElementById("title").value = "";
+    document.getElementById("tags").value = "";
+    document.getElementById("image").value = "";
+    document.getElementById("addArticle").textContent = "アップロードして追加";
+    cancelEditBtn.style.display = "none";
+  }
+
+  function handleEdit(id) {
+    if (!authed) {
+      alert("管理ログインが必要です。");
+      return;
+    }
+    const list = storedArticles();
+    const target = list.find(item => item.id === id);
+    if (!target) return;
+    editingId = id;
+    document.getElementById("title").value = target.title || "";
+    document.getElementById("body").value = target.body || "";
+    document.getElementById("tags").value = (target.tags || []).join(", ");
+    document.getElementById("addArticle").textContent = "記事を更新";
+    cancelEditBtn.style.display = "inline-flex";
+    editorForm.scrollIntoView({ behavior: "smooth" });
+  }
+
+  function handleDelete(id) {
+    if (!authed) {
+      alert("管理ログインが必要です。");
+      return;
+    }
+    if (!confirm("この記事を削除しますか？")) return;
+    const list = storedArticles().filter(item => item.id !== id);
+    persist(list);
+    renderFeatures(list);
+    renderFeed(list);
+    if (editingId === id) resetEditor();
+  }
+
+  feed.addEventListener("click", (e) => {
+    const editId = e.target.dataset.edit;
+    const delId = e.target.dataset.delete;
+    if (editId) {
+      handleEdit(editId);
+    } else if (delId) {
+      handleDelete(delId);
+    }
+  });
+
+  function setStatus(message, ok = false) {
+    loginStatus.textContent = message;
+    loginStatus.classList.toggle("ok", ok);
+  }
+
+  function updateAuthUI() {
+    document.body.classList.toggle("locked", !authed);
+    editorForm.style.opacity = authed ? 1 : 0.4;
+    Array.from(editorForm.querySelectorAll("input, textarea, button")).forEach(el => {
+      if (el.id === "seedDemo" || el.id === "addArticle" || el.id === "cancelEdit") {
+        el.disabled = !authed;
+      }
+    });
+    editorLockNotice.textContent = authed ? "ログイン中。作成・編集・削除が有効です。" : "ログインすると作成・編集・削除が有効になります。";
+    setStatus(authed ? "ログイン済みです。" : "ログインしてください。", authed);
+    renderFeed(normalizeArticles(storedArticles()));
+  }
+
+  function login() {
+    const user = loginUser.value.trim();
+    const pass = loginPass.value.trim();
+    if (user === adminDefault.user && pass === adminDefault.pass) {
+      authed = true;
+      sessionStorage.setItem("emperor_admin_authed", "yes");
+      setStatus("ログインしました。", true);
+      updateAuthUI();
+    } else {
+      setStatus("ユーザー名またはパスコードが違います。", false);
+    }
+  }
+
+  loginBtn.addEventListener("click", login);
+  loginPass.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") login();
+  });
+
+  logoutBtn.addEventListener("click", () => {
+    authed = false;
+    sessionStorage.removeItem("emperor_admin_authed");
+    resetEditor();
+    updateAuthUI();
   });
 </script>
 </body>
