@@ -59,6 +59,16 @@
           <select id="featuredSelect"></select>
         </div>
         <div class="form-row">
+          <label class="tiny" for="homeFeaturedSelect">トップページの注目記事（横スクロール枠 / 最大4件）</label>
+          <select id="homeFeaturedSelect" multiple size="5"></select>
+          <p class="tiny muted">Cmd/Ctrl + クリックで複数選択できます。最大4件まで優先表示します。</p>
+        </div>
+        <div class="form-row">
+          <label class="tiny" for="homeLatestSelect">トップページの最新記事（リスト表示 / 最大4件）</label>
+          <select id="homeLatestSelect" multiple size="5"></select>
+          <p class="tiny muted">選択されたID順で表示します（未選択の場合は先頭から4件）。</p>
+        </div>
+        <div class="form-row">
           <label class="tiny">固定記事（一覧の最下部に並べます）</label>
           <div id="pinnedChoices" class="stack" style="gap:8px;"></div>
         </div>
@@ -229,6 +239,8 @@
   const settingsForm = document.getElementById("settingsForm");
   const heroSelect = document.getElementById("heroSelect");
   const featuredSelect = document.getElementById("featuredSelect");
+  const homeFeaturedSelect = document.getElementById("homeFeaturedSelect");
+  const homeLatestSelect = document.getElementById("homeLatestSelect");
   const pinnedChoices = document.getElementById("pinnedChoices");
   const settingsStatus = document.getElementById("settingsStatus");
   const copyForm = document.getElementById("copyForm");
@@ -325,11 +337,15 @@
     const settings = BlogData.saveSettings(BlogData.loadSettings());
     heroSelect.innerHTML = "";
     featuredSelect.innerHTML = "";
+    homeFeaturedSelect.innerHTML = "";
+    homeLatestSelect.innerHTML = "";
     pinnedChoices.innerHTML = "";
 
     if (!articles.length) {
       heroSelect.innerHTML = '<option value="">記事がありません</option>';
       featuredSelect.innerHTML = '<option value="">記事がありません</option>';
+      homeFeaturedSelect.innerHTML = '<option value="">記事がありません</option>';
+      homeLatestSelect.innerHTML = '<option value="">記事がありません</option>';
       pinnedChoices.innerHTML = '<span class="tiny">記事追加後に設定できます。</span>';
       settingsStatus.textContent = "記事を追加すると設定できます。";
       return;
@@ -357,6 +373,18 @@
       opt.textContent = `ID ${idx}: ${article.title || "無題"}`;
       if (settings.featuredId === idx) opt.selected = true;
       featuredSelect.appendChild(opt);
+
+      const featuredOpt = document.createElement("option");
+      featuredOpt.value = String(idx);
+      featuredOpt.textContent = `ID ${idx}: ${article.title || "無題"}`;
+      featuredOpt.selected = settings.homeFeaturedIds.includes(idx);
+      homeFeaturedSelect.appendChild(featuredOpt);
+
+      const latestOpt = document.createElement("option");
+      latestOpt.value = String(idx);
+      latestOpt.textContent = `ID ${idx}: ${article.title || "無題"}`;
+      latestOpt.selected = settings.homeLatestIds.includes(idx);
+      homeLatestSelect.appendChild(latestOpt);
     });
 
     articles.forEach((article, idx) => {
@@ -374,7 +402,7 @@
       pinnedChoices.appendChild(row);
     });
 
-    settingsStatus.textContent = `ヒーロー: ${Number.isInteger(settings.heroId) ? `ID ${settings.heroId}` : "未指定"} / 注目: ${Number.isInteger(settings.featuredId) ? `ID ${settings.featuredId}` : "未指定"} / 固定 ${settings.footerIds.length} 件`;
+    settingsStatus.textContent = `ヒーロー: ${Number.isInteger(settings.heroId) ? `ID ${settings.heroId}` : "未指定"} / 注目: ${Number.isInteger(settings.featuredId) ? `ID ${settings.featuredId}` : "未指定"} / トップ注目 ${settings.homeFeaturedIds.length} 件 / トップ最新 ${settings.homeLatestIds.length} 件 / 固定 ${settings.footerIds.length} 件`;
   }
 
   function renderCopyForm() {
@@ -581,8 +609,14 @@
     const footerIds = Array.from(pinnedChoices.querySelectorAll('input[type="checkbox"]:checked'))
       .map((input) => parseInt(input.value, 10))
       .filter(Number.isInteger);
-    const normalized = BlogData.saveSettings({ heroId, featuredId, footerIds });
-    settingsStatus.textContent = `ヒーロー: ${Number.isInteger(normalized.heroId) ? `ID ${normalized.heroId}` : "未指定"} / 注目: ${Number.isInteger(normalized.featuredId) ? `ID ${normalized.featuredId}` : "未指定"} / 固定 ${normalized.footerIds.length} 件 保存しました`;
+    const homeFeaturedIds = Array.from(homeFeaturedSelect.selectedOptions)
+      .map((opt) => parseInt(opt.value, 10))
+      .filter(Number.isInteger);
+    const homeLatestIds = Array.from(homeLatestSelect.selectedOptions)
+      .map((opt) => parseInt(opt.value, 10))
+      .filter(Number.isInteger);
+    const normalized = BlogData.saveSettings({ heroId, featuredId, footerIds, homeFeaturedIds, homeLatestIds });
+    settingsStatus.textContent = `ヒーロー: ${Number.isInteger(normalized.heroId) ? `ID ${normalized.heroId}` : "未指定"} / 注目: ${Number.isInteger(normalized.featuredId) ? `ID ${normalized.featuredId}` : "未指定"} / トップ注目 ${normalized.homeFeaturedIds.length} 件 / トップ最新 ${normalized.homeLatestIds.length} 件 / 固定 ${normalized.footerIds.length} 件 保存しました`;
   }
 
   function handleCopySave(event) {

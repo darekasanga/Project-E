@@ -42,6 +42,19 @@
   function normalizeSettings(raw) {
     const articles = loadArticles();
     const limit = articles.length;
+    const buildSelection = (rawList, maxItems) => {
+      if (!limit) return [];
+      const normalized = [];
+      (Array.isArray(rawList) ? rawList : []).forEach((idx) => {
+        if (!Number.isInteger(idx) || idx < 0 || idx >= limit) return;
+        if (normalized.includes(idx)) return;
+        if (normalized.length >= maxItems) return;
+        normalized.push(idx);
+      });
+      if (normalized.length) return normalized;
+      const fallbackCount = Math.min(maxItems, limit);
+      return Array.from({ length: fallbackCount }, (_, i) => i);
+    };
     const heroId = Number.isInteger(raw?.heroId) && raw.heroId >= 0 && raw.heroId < limit
       ? raw.heroId
       : (limit ? 0 : null);
@@ -51,7 +64,9 @@
     const footerIds = Array.isArray(raw?.footerIds)
       ? [...new Set(raw.footerIds.filter((idx) => Number.isInteger(idx) && idx >= 0 && idx < limit))]
       : [];
-    return { heroId, featuredId, footerIds };
+    const homeLatestIds = buildSelection(raw?.homeLatestIds, 4);
+    const homeFeaturedIds = buildSelection(raw?.homeFeaturedIds, 4);
+    return { heroId, featuredId, footerIds, homeLatestIds, homeFeaturedIds };
   }
 
   function loadSettings() {
@@ -185,6 +200,24 @@
     return { list: pinned, settings };
   }
 
+  function getHomeLatestArticles() {
+    const settings = loadSettings();
+    const articles = loadArticles();
+    const list = settings.homeLatestIds
+      .map((idx) => ({ idx, article: articles[idx] }))
+      .filter((item) => item.article);
+    return { list, settings };
+  }
+
+  function getHomeFeaturedArticles() {
+    const settings = loadSettings();
+    const articles = loadArticles();
+    const list = settings.homeFeaturedIds
+      .map((idx) => ({ idx, article: articles[idx] }))
+      .filter((item) => item.article);
+    return { list, settings };
+  }
+
   function buildOfficialLineShare(url) {
     return `https://social-plugins.line.me/lineit/share?url=${encodeURIComponent(url)}&accountId=${encodeURIComponent(officialLineAccountId)}`;
   }
@@ -211,6 +244,8 @@
     getHeroArticle,
     getFeaturedArticle,
     getFooterArticles,
+    getHomeLatestArticles,
+    getHomeFeaturedArticles,
     buildOfficialLineShare,
   };
 })();
