@@ -49,28 +49,12 @@
     </section>
   </main>
 
+<script src="/assets/lightbox.js"></script>
 <script src="/assets/blog-data.js"></script>
 <script>
   const params = new URLSearchParams(location.search);
   const articleIdx = parseInt(params.get("id"), 10) || 0;
   const { article } = BlogData.findArticle(articleIdx);
-  const openLightbox = setupImageLightbox();
-
-  function setupImageLightbox() {
-    const wrap = document.createElement("div");
-    wrap.className = "image-lightbox";
-    wrap.innerHTML = `<div class="backdrop" aria-hidden="true"></div><img alt="拡大画像"><div class="hint">タップで閉じる / Esc</div>`;
-    document.body.appendChild(wrap);
-    const img = wrap.querySelector("img");
-    const close = () => wrap.classList.remove("visible");
-    wrap.addEventListener("click", close);
-    window.addEventListener("keydown", (event) => event.key === "Escape" && close());
-    return (src, alt = "") => {
-      img.src = src;
-      img.alt = alt;
-      wrap.classList.add("visible");
-    };
-  }
 
   function renderArticle() {
     const hero = document.getElementById("articleHero");
@@ -94,18 +78,8 @@
       img.src = article.image;
       img.alt = article.title;
       img.className = "hero-img";
-      img.setAttribute("role", "button");
-      img.setAttribute("tabindex", "0");
-      img.setAttribute("aria-label", `${article.title} を拡大表示`);
-      const open = () => openLightbox(article.image, article.title);
-      img.addEventListener("click", open);
-      img.addEventListener("keydown", (event) => {
-        if (event.key === "Enter" || event.key === " ") {
-          event.preventDefault();
-          open();
-        }
-      });
       hero.appendChild(img);
+      Lightbox.enhanceImages(hero);
     }
 
     bodyEl.classList.add("article-body");
