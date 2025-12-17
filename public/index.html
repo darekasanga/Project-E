@@ -40,7 +40,13 @@
         <h2>注目記事</h2>
         <span class="muted">横スクロールでチェック</span>
       </div>
-      <div class="scroll-row" id="featuredRow"></div>
+      <div class="scroll-shell">
+        <div class="scroll-row" id="featuredRow"></div>
+        <div class="scroll-controls" aria-hidden="true">
+          <button class="pill ghost" type="button" data-scroll="left">◀</button>
+          <button class="pill ghost" type="button" data-scroll="right">▶</button>
+        </div>
+      </div>
     </section>
 
     <section class="section">
@@ -58,38 +64,7 @@
         <h2>ページリンク</h2>
         <span class="muted">すべてレスポンシブ対応</span>
       </div>
-      <div class="card-grid">
-        <article class="card">
-          <h3>🎨 Draw Board</h3>
-          <p>新しいダークテーマとレスポンシブボタンで描画ツールも刷新。指でもマウスでも快適です。</p>
-          <a class="button primary" href="/draw.html">開く</a>
-        </article>
-        <article class="card">
-          <h3>🗂️ 管理ビュー</h3>
-          <p>ログイン後のナビゲーション、認証エラー表示を更新し、リダイレクト導線も整理しました。</p>
-          <a class="button ghost" href="/admin.html">開く</a>
-        </article>
-        <article class="card">
-          <h3>📑 Blog (一覧)</h3>
-          <p>スマホ1カラム、タブレット2カラム、PC2カラム＋サイドバー。新しい統計ウィジェット付き。</p>
-          <a class="button ghost" href="/blog-list.html">開く</a>
-        </article>
-        <article class="card">
-          <h3>✏️ Blog 編集</h3>
-          <p>フォームとリストを整理し、編集状態やタグ表示を強調。保存後のフィードバックも改善。</p>
-          <a class="button ghost" href="/blog-edit.html">開く</a>
-        </article>
-        <article class="card">
-          <h3>💬 Chat TOC Maker</h3>
-          <p>チャットの目次生成ツールを新レイアウトに刷新。レスポンシブでシンプルな入力に。</p>
-          <a class="button ghost" href="/chat-toc.html">開く</a>
-        </article>
-        <article class="card">
-          <h3>📰 記事ビュー</h3>
-          <p>個別記事ページは本文とタグ、共有ボタンを再配置。読みやすさを優先した新デザインです。</p>
-          <a class="button ghost" href="/blog-article.html">開く</a>
-        </article>
-      </div>
+      <div class="card-grid" id="pageLinks"></div>
     </section>
   </main>
 
@@ -110,6 +85,7 @@
     const heroBadge = document.getElementById("heroBadge");
     const heroMeta = document.getElementById("heroMeta");
     const featuredRow = document.getElementById("featuredRow");
+    const pageLinks = document.getElementById("pageLinks");
 
     const heroFallback = {
       title: "全ページをレスポンシブで作り直しました",
@@ -196,6 +172,37 @@
       });
     }
 
+    function attachHorizontalControls(track) {
+      const controls = track.parentElement?.querySelectorAll('[data-scroll]');
+      if (!controls?.length) return;
+      controls.forEach((btn) => {
+        btn.addEventListener("click", () => {
+          const direction = btn.dataset.scroll === "left" ? -1 : 1;
+          const distance = track.clientWidth * 0.8 * direction;
+          track.scrollBy({ left: distance, behavior: "smooth" });
+        });
+      });
+    }
+
+    function renderPageLinks() {
+      const links = BlogData.loadPageLinks();
+      pageLinks.innerHTML = "";
+      if (!links.length) {
+        pageLinks.innerHTML = '<p class="muted">ページリンクがまだ設定されていません。</p>';
+        return;
+      }
+      links.forEach((link) => {
+        const card = document.createElement("article");
+        card.className = "card";
+        card.innerHTML = `
+          <h3>${link.title}</h3>
+          <p>${link.description || ""}</p>
+          <a class="button ghost" href="${link.url}">開く</a>
+        `;
+        pageLinks.appendChild(card);
+      });
+    }
+
     function renderHeroFromArticle() {
       const { article, idx } = BlogData.getHeroArticle();
       const articles = BlogData.loadArticles();
@@ -251,6 +258,8 @@
       renderHeroFromArticle();
       renderLatestList();
       renderFeaturedRow();
+      renderPageLinks();
+      attachHorizontalControls(featuredRow);
     });
   </script>
 </body>

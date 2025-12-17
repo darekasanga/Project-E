@@ -84,6 +84,10 @@ header.site-header {
 .ticker-track { display: flex; gap: 10px; animation: marquee 26s linear infinite; }
 .chip { padding: 7px 12px; border-radius: 999px; border: 1px solid var(--border); background: #0d0d0d; color: var(--muted); white-space: nowrap; }
 
+.comment-card { gap: 6px; }
+.comment-header { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+.comment-body { margin: 0; color: var(--text); line-height: 1.6; }
+
 @keyframes marquee { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
 
 @media (min-width: 720px) { .scroll-track { grid-auto-columns: 64%; } }
