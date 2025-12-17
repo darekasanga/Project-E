@@ -70,6 +70,85 @@
     </section>
 
     <section class="panel stack">
+      <div class="section-title">
+        <h3>文言設定</h3>
+        <span class="tiny">一覧ページの各項目テキストを変更</span>
+      </div>
+      <form class="stack" id="copyForm">
+        <div class="grid-2" style="gap:12px;">
+          <div class="form-row">
+            <label class="tiny" for="heroTitle">ヒーロータイトル</label>
+            <input id="heroTitle" name="heroTitle" required>
+          </div>
+          <div class="form-row">
+            <label class="tiny" for="heroBody">ヒーロー本文</label>
+            <textarea id="heroBody" name="heroBody" required></textarea>
+          </div>
+          <div class="form-row">
+            <label class="tiny" for="mobileTitle">スマホ見出し</label>
+            <input id="mobileTitle" name="mobileTitle" required>
+          </div>
+          <div class="form-row">
+            <label class="tiny" for="mobileBody">スマホ本文</label>
+            <textarea id="mobileBody" name="mobileBody" required></textarea>
+          </div>
+          <div class="form-row">
+            <label class="tiny" for="tabletTitle">タブレット見出し</label>
+            <input id="tabletTitle" name="tabletTitle" required>
+          </div>
+          <div class="form-row">
+            <label class="tiny" for="tabletBody">タブレット本文</label>
+            <textarea id="tabletBody" name="tabletBody" required></textarea>
+          </div>
+          <div class="form-row">
+            <label class="tiny" for="pcTitle">PC見出し</label>
+            <input id="pcTitle" name="pcTitle" required>
+          </div>
+          <div class="form-row">
+            <label class="tiny" for="pcBody">PC本文</label>
+            <textarea id="pcBody" name="pcBody" required></textarea>
+          </div>
+          <div class="form-row">
+            <label class="tiny" for="shareTitle">共有セクション見出し</label>
+            <input id="shareTitle" name="shareTitle" required>
+          </div>
+          <div class="form-row">
+            <label class="tiny" for="shareBody">共有セクション本文</label>
+            <textarea id="shareBody" name="shareBody" required></textarea>
+          </div>
+          <div class="form-row">
+            <label class="tiny" for="listTitle">一覧セクション見出し</label>
+            <input id="listTitle" name="listTitle" required>
+          </div>
+          <div class="form-row">
+            <label class="tiny" for="listSubtitle">一覧セクション補足</label>
+            <textarea id="listSubtitle" name="listSubtitle" required></textarea>
+          </div>
+          <div class="form-row">
+            <label class="tiny" for="pinnedTitle">固定セクション見出し</label>
+            <input id="pinnedTitle" name="pinnedTitle" required>
+          </div>
+          <div class="form-row">
+            <label class="tiny" for="pinnedSubtitle">固定セクション補足</label>
+            <textarea id="pinnedSubtitle" name="pinnedSubtitle" required></textarea>
+          </div>
+          <div class="form-row">
+            <label class="tiny" for="tagTitle">タグクラウド見出し</label>
+            <input id="tagTitle" name="tagTitle" required>
+          </div>
+          <div class="form-row">
+            <label class="tiny" for="tagSubtitle">タグクラウド補足</label>
+            <textarea id="tagSubtitle" name="tagSubtitle" required></textarea>
+          </div>
+        </div>
+        <div class="actions" style="justify-content: space-between; align-items: center; flex-wrap: wrap;">
+          <button class="primary" type="submit">文言を保存</button>
+          <span class="tiny" id="copyStatus">一覧ページに即時反映されます。</span>
+        </div>
+      </form>
+    </section>
+
+    <section class="panel stack">
       <form class="stack" id="editorForm">
         <div class="form-row">
           <label for="title" class="tiny">タイトル</label>
@@ -134,6 +213,8 @@
   const featuredSelect = document.getElementById("featuredSelect");
   const pinnedChoices = document.getElementById("pinnedChoices");
   const settingsStatus = document.getElementById("settingsStatus");
+  const copyForm = document.getElementById("copyForm");
+  const copyStatus = document.getElementById("copyStatus");
   let editingIdx = null;
   let imageData = "";
 
@@ -162,7 +243,35 @@
     imageStatus.textContent = "保存後、公開ビューでタップ拡大できます。";
   }
 
-  function handleFileSelect(event) {
+  function downscaleImage(file) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        const img = new Image();
+        img.onload = () => {
+          const MAX_DIMENSION = 1200;
+          const scale = Math.min(1, MAX_DIMENSION / Math.max(img.width, img.height));
+          const targetWidth = Math.round(img.width * scale);
+          const targetHeight = Math.round(img.height * scale);
+          const canvas = document.createElement("canvas");
+          canvas.width = targetWidth;
+          canvas.height = targetHeight;
+          const ctx = canvas.getContext("2d");
+          ctx.drawImage(img, 0, 0, targetWidth, targetHeight);
+          const outputType = file.type === "image/png" ? "image/png" : "image/jpeg";
+          const quality = outputType === "image/png" ? 0.9 : 0.85;
+          const dataUrl = canvas.toDataURL(outputType, quality);
+          resolve(dataUrl);
+        };
+        img.onerror = () => reject(new Error("画像の読み込みに失敗しました。"));
+        img.src = reader.result;
+      };
+      reader.onerror = () => reject(new Error("画像の読み込みに失敗しました。"));
+      reader.readAsDataURL(file);
+    });
+  }
+
+  async function handleFileSelect(event) {
     const [file] = event.target.files || [];
     if (!file) return;
     if (!file.type.startsWith("image/")) {
@@ -173,12 +282,15 @@
       imageStatus.textContent = "3MB以下の画像をアップロードしてください。";
       return;
     }
-    const reader = new FileReader();
-    reader.onload = () => {
+    imageStatus.textContent = "画像を読み込み中です…";
+    try {
+      const scaled = await downscaleImage(file);
       imageInput.value = "";
-      setPreview(reader.result);
-    };
-    reader.readAsDataURL(file);
+      setPreview(scaled);
+      imageStatus.textContent = "長辺1200pxに自動リサイズして保存します。";
+    } catch (err) {
+      imageStatus.textContent = err?.message || "画像処理に失敗しました。";
+    }
   }
 
   function setSessionBadge() {
@@ -241,6 +353,17 @@
     });
 
     settingsStatus.textContent = `ヒーロー: ${Number.isInteger(settings.heroId) ? `ID ${settings.heroId}` : "未指定"} / 注目: ${Number.isInteger(settings.featuredId) ? `ID ${settings.featuredId}` : "未指定"} / 固定 ${settings.footerIds.length} 件`;
+  }
+
+  function renderCopyForm() {
+    const copy = BlogData.loadCopy();
+    Object.entries(copy).forEach(([key, value]) => {
+      const input = copyForm.querySelector(`[name="${key}"]`);
+      if (input) {
+        input.value = value;
+      }
+    });
+    copyStatus.textContent = "一覧ページに即時反映されます。";
   }
 
   function renderList() {
@@ -335,11 +458,27 @@
     settingsStatus.textContent = `ヒーロー: ${Number.isInteger(normalized.heroId) ? `ID ${normalized.heroId}` : "未指定"} / 注目: ${Number.isInteger(normalized.featuredId) ? `ID ${normalized.featuredId}` : "未指定"} / 固定 ${normalized.footerIds.length} 件 保存しました`;
   }
 
+  function handleCopySave(event) {
+    event.preventDefault();
+    const formData = new FormData(copyForm);
+    const payload = {};
+    for (const [key, value] of formData.entries()) {
+      payload[key] = value;
+    }
+    const normalized = BlogData.saveCopy(payload);
+    copyStatus.textContent = "保存しました。ブログ一覧で即座に反映されます。";
+    Object.entries(normalized).forEach(([key, value]) => {
+      const input = copyForm.querySelector(`[name="${key}"]`);
+      if (input) input.value = value;
+    });
+  }
+
   document.addEventListener("DOMContentLoaded", () => {
     setSessionBadge();
     renderList();
     fillForm({}, null);
     renderSettingsForm();
+    renderCopyForm();
   });
 
   form.addEventListener("submit", handleSave);
@@ -353,6 +492,7 @@
   });
   document.getElementById("newBtn").addEventListener("click", () => fillForm({}, null));
   settingsForm.addEventListener("submit", handleSettingsSave);
+  copyForm.addEventListener("submit", handleCopySave);
 </script>
 </body>
 </html>

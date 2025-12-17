@@ -1,6 +1,7 @@
 (() => {
   const storageKey = "emperor_articles";
   const settingsKey = "emperor_article_settings";
+  const copyKey = "emperor_article_copy";
   const officialLineAccountId = "@projecte_official";
   const baseArticles = [
     {
@@ -74,6 +75,44 @@
     return normalized;
   }
 
+  const defaultCopy = {
+    heroTitle: "幅に合わせて表情を変える一覧ビュー",
+    heroBody: "スマホでは縦にカードを並べ、タブレットはサムネイル横並び、PCではサイドバー付きの2カラムで統計とタグクラウドを固定。見やすさを保ちながら情報量を増やしました。",
+    mobileTitle: "スマホビュー",
+    mobileBody: "1カラムでサムネイルを上、本文とタグを下に配置。タップしやすい余白を確保しました。",
+    tabletTitle: "タブレットビュー",
+    tabletBody: "サムネイル横並び＋行間拡大。768px以上で自動適用されます。",
+    pcTitle: "PCビュー",
+    pcBody: "最大幅1200pxで2カラム＋サイドバーを固定。タグクラウドと統計を右側に表示します。",
+    shareTitle: "共有と導線",
+    shareBody: "各記事にLINE共有と記事リンクを配置。管理者リンクは認証が必要な場合のみ遷移します。",
+    listTitle: "最新の投稿",
+    listSubtitle: "ローカル保存された記事を時系列順に一覧表示します。",
+    pinnedTitle: "固定記事",
+    pinnedSubtitle: "管理ページで選択された記事を表示",
+    tagTitle: "タグクラウド",
+    tagSubtitle: "使用頻度順に表示",
+  };
+
+  function loadCopy() {
+    const saved = localStorage.getItem(copyKey);
+    if (!saved) return { ...defaultCopy };
+    try {
+      const parsed = JSON.parse(saved);
+      return { ...defaultCopy, ...(parsed && typeof parsed === "object" ? parsed : {}) };
+    } catch (err) {
+      console.warn("Failed to parse article copy", err);
+      return { ...defaultCopy };
+    }
+  }
+
+  function saveCopy(next) {
+    const copy = next && typeof next === "object" ? next : {};
+    const normalized = { ...defaultCopy, ...copy };
+    localStorage.setItem(copyKey, JSON.stringify(normalized));
+    return normalized;
+  }
+
   function upsertArticle(article, idx) {
     const list = loadArticles();
     if (Number.isInteger(idx) && idx >= 0 && idx < list.length) {
@@ -130,12 +169,16 @@
   window.BlogData = {
     storageKey,
     settingsKey,
+    copyKey,
     officialLineAccountId,
     baseArticles,
+    defaultCopy,
     loadArticles,
     saveArticles,
     loadSettings,
     saveSettings,
+    loadCopy,
+    saveCopy,
     upsertArticle,
     deleteArticle,
     findArticle,
