@@ -62,6 +62,19 @@
           <label for="image" class="tiny">カバー画像URL</label>
           <input id="image" name="image" type="url" placeholder="https://example.com/cover.jpg">
         </div>
+        <div class="form-row">
+          <label class="tiny" for="imageFile">画像アップロード (jpg / png)</label>
+          <div class="stack" style="gap:8px;">
+            <input id="imageFile" type="file" accept="image/*">
+            <div class="flex" style="align-items:flex-end; justify-content: space-between; gap:12px;">
+              <div id="imagePreview" class="thumb fallback" style="width: 140px; height: auto; aspect-ratio: 4/3; display: grid; place-items: center;">No image</div>
+              <div class="stack" style="align-items:flex-end; gap:6px;">
+                <button class="secondary" type="button" id="clearImage">画像をクリア</button>
+                <span class="tiny" id="imageStatus">URL入力かファイル選択でカバー画像を登録できます。</span>
+              </div>
+            </div>
+          </div>
+        </div>
         <div class="actions">
           <button class="primary" type="submit" id="saveBtn">保存する</button>
         </div>
@@ -85,7 +98,13 @@
   const statusLabel = document.getElementById("status");
   const helper = document.getElementById("helper");
   const saveBtn = document.getElementById("saveBtn");
+  const imageInput = document.getElementById("image");
+  const imageFile = document.getElementById("imageFile");
+  const imagePreview = document.getElementById("imagePreview");
+  const imageStatus = document.getElementById("imageStatus");
+  const clearImageBtn = document.getElementById("clearImage");
   let editingIdx = null;
+  let imageData = "";
 
   function parseTags(input) {
     return input.split(/[\,\n]/).map(t => t.trim()).filter(Boolean);
@@ -93,6 +112,42 @@
 
   function formatTags(tags) {
     return (tags || []).join(", ");
+  }
+
+  function setPreview(src) {
+    imageData = src || "";
+    if (!imageData) {
+      imagePreview.classList.add("fallback");
+      imagePreview.textContent = "No image";
+      imagePreview.style.backgroundImage = "";
+      imageStatus.textContent = "URL入力かファイル選択でカバー画像を登録できます。";
+      return;
+    }
+    imagePreview.classList.remove("fallback");
+    imagePreview.textContent = "";
+    imagePreview.style.backgroundImage = `url(${imageData})`;
+    imagePreview.style.backgroundSize = "cover";
+    imagePreview.style.backgroundPosition = "center";
+    imageStatus.textContent = "保存後、公開ビューでタップ拡大できます。";
+  }
+
+  function handleFileSelect(event) {
+    const [file] = event.target.files || [];
+    if (!file) return;
+    if (!file.type.startsWith("image/")) {
+      imageStatus.textContent = "画像ファイルを選択してください。";
+      return;
+    }
+    if (file.size > 3 * 1024 * 1024) {
+      imageStatus.textContent = "3MB以下の画像をアップロードしてください。";
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => {
+      imageInput.value = "";
+      setPreview(reader.result);
+    };
+    reader.readAsDataURL(file);
   }
 
   function setSessionBadge() {
@@ -136,7 +191,9 @@
     document.getElementById("title").value = article?.title || "";
     document.getElementById("body").value = article?.body || "";
     document.getElementById("tags").value = formatTags(article?.tags);
-    document.getElementById("image").value = article?.image || "";
+    imageInput.value = article?.image || "";
+    imageFile.value = "";
+    setPreview(article?.image || "");
     editingIdx = Number.isInteger(idx) ? idx : null;
     helper.textContent = editingIdx === null ? "新しい記事を作成します。" : `ID ${editingIdx} を編集中です。`;
     saveBtn.textContent = editingIdx === null ? "保存する" : "更新する";
@@ -148,7 +205,7 @@
       title: document.getElementById("title").value.trim(),
       body: document.getElementById("body").value.trim(),
       tags: parseTags(document.getElementById("tags").value),
-      image: document.getElementById("image").value.trim(),
+      image: imageData || imageInput.value.trim(),
     };
 
     BlogData.upsertArticle(payload, editingIdx);
@@ -185,6 +242,13 @@
 
   form.addEventListener("submit", handleSave);
   articleList.addEventListener("click", handleListClick);
+  imageFile.addEventListener("change", handleFileSelect);
+  imageInput.addEventListener("input", (event) => setPreview(event.target.value.trim()));
+  clearImageBtn.addEventListener("click", () => {
+    imageInput.value = "";
+    imageFile.value = "";
+    setPreview("");
+  });
   document.getElementById("newBtn").addEventListener("click", () => fillForm({}, null));
 </script>
 </body>

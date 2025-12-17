@@ -68,6 +68,40 @@
   const metaInfo = document.getElementById("metaInfo");
   const adminSessionKey = "emperor_admin_token";
   const mobileQuery = window.matchMedia("(max-width: 720px)");
+  const openLightbox = setupImageLightbox();
+
+  function setupImageLightbox() {
+    const wrap = document.createElement("div");
+    wrap.className = "image-lightbox";
+    wrap.innerHTML = `<div class="backdrop" aria-hidden="true"></div><img alt="拡大画像"><div class="hint">タップで閉じる / Esc</div>`;
+    document.body.appendChild(wrap);
+    const img = wrap.querySelector("img");
+    const close = () => wrap.classList.remove("visible");
+    wrap.addEventListener("click", close);
+    window.addEventListener("keydown", (event) => event.key === "Escape" && close());
+    return (src, alt = "") => {
+      img.src = src;
+      img.alt = alt;
+      wrap.classList.add("visible");
+    };
+  }
+
+  function enablePreview(card, item) {
+    const img = card.querySelector(".hero-img");
+    if (!img) return;
+    const label = `${item.title} を拡大表示`;
+    img.setAttribute("role", "button");
+    img.setAttribute("tabindex", "0");
+    img.setAttribute("aria-label", label);
+    const open = () => openLightbox(img.src, item.title);
+    img.addEventListener("click", open);
+    img.addEventListener("keydown", (event) => {
+      if (event.key === "Enter" || event.key === " ") {
+        event.preventDefault();
+        open();
+      }
+    });
+  }
 
   function syncMobileClass(event) {
     const isMobile = event ? event.matches : mobileQuery.matches;
@@ -101,6 +135,7 @@
         <p>${item.body}</p>
         <div class="meta">${(item.tags || []).map(t => `<span class=\"tag\">#${t}</span>`).join("") || '<span class="tag">#untagged</span>'}</div>
       `;
+      enablePreview(card, item);
       featureTrack.appendChild(card);
     });
   }
@@ -127,6 +162,7 @@
           <a class="share" href="${articleUrl}" target="_blank">記事ページを開く</a>
         </div>
       `;
+      enablePreview(card, item);
       feedEl.appendChild(card);
     });
   }
