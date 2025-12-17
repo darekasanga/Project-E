@@ -76,7 +76,7 @@ header.site-header {
   scroll-snap-align: start;
 }
 
-.hero-img { width: 100%; border-radius: 14px; aspect-ratio: 16 / 9; object-fit: cover; border: 1px solid var(--border); }
+.hero-img { width: 100%; border-radius: 14px; aspect-ratio: 16 / 9; object-fit: cover; border: 1px solid var(--border); cursor: zoom-in; }
 
 .article-body { display: grid; gap: 10px; line-height: 1.7; color: #e5e7eb; }
 
@@ -88,3 +88,9 @@ header.site-header {
 
 @media (min-width: 720px) { .scroll-track { grid-auto-columns: 64%; } }
 @media (min-width: 1024px) { .scroll-track { grid-auto-columns: 42%; } }
+
+.image-lightbox { position: fixed; inset: 0; display: none; align-items: center; justify-content: center; padding: 24px; z-index: 40; }
+.image-lightbox.visible { display: flex; }
+.image-lightbox .backdrop { position: absolute; inset: 0; background: rgba(0,0,0,0.78); backdrop-filter: blur(4px); }
+.image-lightbox img { position: relative; max-width: min(96vw, 1200px); max-height: 92vh; border-radius: var(--radius-lg); box-shadow: 0 24px 80px rgba(0,0,0,0.45); border: 1px solid var(--border); background: #050505; }
+.image-lightbox .hint { position: absolute; bottom: 18px; background: rgba(0,0,0,0.72); color: var(--muted); padding: 8px 12px; border-radius: 999px; font-size: 13px; border: 1px solid var(--border); }
