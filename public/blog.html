@@ -98,6 +98,12 @@
   const featureTrack = document.getElementById("featureTrack");
   const metaInfo = document.getElementById("metaInfo");
   const adminSessionKey = "emperor_admin_token";
+  const mobileQuery = window.matchMedia("(max-width: 720px)");
+
+  function syncMobileClass(event) {
+    const isMobile = event ? event.matches : mobileQuery.matches;
+    document.body.classList.toggle("is-mobile", isMobile);
+  }
 
   function renderTicker(tags) {
     const unique = Array.from(new Set(tags.length ? tags : ["iPhone", "iPad", "公式LINE", "黒ベース", "ChatGPTアップロード"]));
@@ -168,6 +174,12 @@
   }
 
   document.addEventListener("DOMContentLoaded", () => {
+    syncMobileClass();
+    if (typeof mobileQuery.addEventListener === "function") {
+      mobileQuery.addEventListener("change", syncMobileClass);
+    } else if (typeof mobileQuery.addListener === "function") {
+      mobileQuery.addListener(syncMobileClass);
+    }
     document.getElementById("openLine").href = officialLinePage;
     enforceAdminLinks();
     const articles = BlogData.loadArticles();

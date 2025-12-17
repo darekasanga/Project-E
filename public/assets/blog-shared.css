@@ -130,3 +130,28 @@ footer {
 @media (min-width: 740px) {
   header { gap: 16px; }
 }
+
+body.is-mobile {
+  align-items: stretch;
+}
+
+body.is-mobile header,
+body.is-mobile main,
+body.is-mobile footer {
+  width: 100%;
+  max-width: none;
+}
+
+body.is-mobile header {
+  padding: 12px 16px;
+  gap: 10px;
+}
+
+body.is-mobile .actions {
+  width: 100%;
+  justify-content: flex-start;
+}
+
+body.is-mobile .pill {
+  width: auto;
+}
