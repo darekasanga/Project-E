@@ -101,6 +101,13 @@
   const metaInfo = document.getElementById("metaInfo");
   const cacheKey = "emperor_articles_cache";
 
+  function normalizeArticles(list) {
+    return list.map((item, idx) => ({
+      ...item,
+      createdAt: item.createdAt || new Date(Date.now() - idx * 3600_000).toISOString(),
+    }));
+  }
+
   function buildOfficialLineShare(url) {
     return BlogData.buildOfficialLineShare(url);
   }
