@@ -1,0 +1,195 @@
+<!doctype html>
+<html lang="ja">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Emperor News — 管理UI</title>
+<link rel="stylesheet" href="/assets/blog-shared.css">
+<style>
+  main { padding: 22px 18px 42px; display: grid; gap: 16px; }
+  .page { background: var(--panel); border: 1px solid var(--border); border-radius: 20px; padding: 16px; box-shadow: var(--shadow); }
+  .page h2 { margin: 0 0 6px; font-size: 18px; }
+  .page p { margin: 0 0 12px; color: var(--muted); }
+
+  .form-grid { display: grid; gap: 12px; }
+  .field label { display: block; margin-bottom: 6px; font-size: 12px; color: var(--muted); }
+  .field input, .field textarea { width: 100%; border-radius: 12px; border: 1px solid var(--border); background: #0c0c0c; color: var(--text); padding: 10px 12px; font-size: 14px; }
+  .field textarea { min-height: 120px; resize: vertical; }
+
+  .actions { display: flex; gap: 10px; flex-wrap: wrap; }
+  button { cursor: pointer; }
+  .primary { border: none; border-radius: 12px; padding: 10px 14px; background: var(--line); color: #041902; font-weight: 700; }
+  .secondary { border: 1px solid var(--border); border-radius: 12px; padding: 10px 14px; background: #0c0c0c; color: var(--text); }
+
+  .list { display: grid; gap: 10px; }
+  .item { border: 1px solid var(--border); border-radius: 14px; padding: 12px; background: #0c0c0c; display: grid; gap: 6px; }
+  .item .top { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+  .item h3 { margin: 0; font-size: 16px; }
+  .item p { margin: 0; color: var(--muted); }
+  .badge-row { display: flex; gap: 6px; flex-wrap: wrap; }
+  .empty { padding: 18px; color: var(--muted); text-align: center; border: 1px dashed var(--border); border-radius: 14px; }
+</style>
+<body>
+  <header>
+    <div class="brand">
+      <div class="logo">E</div>
+      <div>
+        <h1>Emperor News 管理</h1>
+        <p>記事の作成・編集・削除を行う管理ビュー</p>
+      </div>
+    </div>
+    <div class="actions">
+      <a class="pill" href="/">トップ</a>
+      <a class="pill primary" href="/blog.html">公開ページを開く</a>
+    </div>
+  </header>
+
+  <main>
+    <section class="page">
+      <div class="badge-row">
+        <span class="badge">/admin</span>
+        <span class="badge" id="articleCount">記事数 0</span>
+      </div>
+      <h2>記事エディタ</h2>
+      <p>新規作成または既存記事の編集を行います。画像を選択しない場合は既存の画像を維持します。</p>
+      <form class="form-grid" id="articleForm">
+        <div class="field">
+          <label for="title">タイトル</label>
+          <input id="title" name="title" required placeholder="例: Vision Proで作る没入型ブログ" />
+        </div>
+        <div class="field">
+          <label for="body">本文または概要</label>
+          <textarea id="body" name="body" required placeholder="本文をそのままペースト"></textarea>
+        </div>
+        <div class="field">
+          <label for="tags">タグ (カンマ区切り)</label>
+          <input id="tags" name="tags" placeholder="AR, iPad, SwiftUI" />
+        </div>
+        <div class="field">
+          <label for="image">カバー画像 (オプション)</label>
+          <input id="image" name="image" type="file" accept="image/*" />
+        </div>
+        <div class="actions">
+          <button type="submit" class="primary" id="saveBtn">新規追加</button>
+          <button type="button" class="secondary" id="resetForm">リセット</button>
+          <button type="button" class="secondary" id="restoreBase">デモデータに戻す</button>
+        </div>
+      </form>
+    </section>
+
+    <section class="page">
+      <h2>記事一覧</h2>
+      <p>クリックで編集。削除すると公開ビューからも即座に消えます。</p>
+      <div class="list" id="articleList"></div>
+    </section>
+  </main>
+
+<script src="/assets/blog-data.js"></script>
+<script>
+  const form = document.getElementById("articleForm");
+  const listEl = document.getElementById("articleList");
+  const countEl = document.getElementById("articleCount");
+  const resetBtn = document.getElementById("resetForm");
+  const restoreBtn = document.getElementById("restoreBase");
+  let editingIndex = null;
+
+  function readFileAsDataURL(file) {
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result);
+      reader.readAsDataURL(file);
+    });
+  }
+
+  function tagsToArray(value) {
+    return value.split(",").map(t => t.trim()).filter(Boolean);
+  }
+
+  function updateCount(list) {
+    countEl.textContent = `記事数 ${list.length}`;
+  }
+
+  function renderList(list) {
+    listEl.innerHTML = "";
+    if (!list.length) {
+      listEl.innerHTML = '<div class="empty">まだ記事がありません。新規追加してください。</div>';
+      updateCount(list);
+      return;
+    }
+
+    list.forEach((item, idx) => {
+      const row = document.createElement("article");
+      row.className = "item";
+      row.innerHTML = `
+        <div class="top">
+          <div>
+            <div class="badge">#${idx}</div>
+            <h3>${item.title || "無題"}</h3>
+          </div>
+          <div class="actions">
+            <button class="secondary" data-edit="${idx}">編集</button>
+            <button class="secondary" data-delete="${idx}">削除</button>
+          </div>
+        </div>
+        <p>${item.body || "本文未入力"}</p>
+        <div class="badge-row">${(item.tags || []).map(t => `<span class="badge">#${t}</span>`).join("") || '<span class="badge">#untagged</span>'}</div>
+      `;
+      listEl.appendChild(row);
+    });
+
+    listEl.querySelectorAll("[data-edit]").forEach(btn => btn.addEventListener("click", (e) => {
+      const idx = Number(e.currentTarget.dataset.edit);
+      editingIndex = idx;
+      const article = list[idx];
+      form.title.value = article.title || "";
+      form.body.value = article.body || "";
+      form.tags.value = (article.tags || []).join(", ");
+      form.image.value = "";
+      document.getElementById("saveBtn").textContent = `上書き保存 (#${idx})`;
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }));
+
+    listEl.querySelectorAll("[data-delete]").forEach(btn => btn.addEventListener("click", (e) => {
+      const idx = Number(e.currentTarget.dataset.delete);
+      if (!confirm(`記事 #${idx} を削除しますか？`)) return;
+      const updated = BlogData.deleteArticle(idx);
+      renderList(updated);
+    }));
+
+    updateCount(list);
+  }
+
+  function resetForm() {
+    editingIndex = null;
+    form.reset();
+    document.getElementById("saveBtn").textContent = "新規追加";
+  }
+
+  async function handleSubmit(event) {
+    event.preventDefault();
+    const title = form.title.value.trim();
+    const body = form.body.value.trim();
+    const tags = tagsToArray(form.tags.value);
+    const imageFile = form.image.files[0];
+    const currentList = BlogData.loadArticles();
+    const baseImage = editingIndex !== null ? (currentList[editingIndex]?.image || "") : "";
+    const image = imageFile ? await readFileAsDataURL(imageFile) : baseImage;
+    const article = { title, body, tags, image };
+    const updated = BlogData.upsertArticle(article, editingIndex);
+    renderList(updated);
+    resetForm();
+  }
+
+  resetBtn.addEventListener("click", resetForm);
+  restoreBtn.addEventListener("click", () => {
+    BlogData.saveArticles(BlogData.baseArticles);
+    renderList(BlogData.loadArticles());
+    resetForm();
+  });
+  form.addEventListener("submit", handleSubmit);
+
+  document.addEventListener("DOMContentLoaded", () => {
+    renderList(BlogData.loadArticles());
+  });
+</script>
+</body>
+</html>

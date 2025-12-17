@@ -3,68 +3,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>記事ビュー | Emperor News</title>
+<link rel="stylesheet" href="/assets/blog-shared.css">
 <style>
-  :root {
-    --bg: #050505;
-    --panel: #0b0b0b;
-    --text: #f7f7f7;
-    --muted: #9ca3af;
-    --line: #06c755;
-    --border: #1f1f1f;
-    --radius: 16px;
-    --shadow: 0 18px 50px rgba(0,0,0,0.45);
-  }
-  * { box-sizing: border-box; }
-  body {
-    margin: 0;
-    font-family: "SF Pro Display", "Inter", "Noto Sans JP", system-ui, sans-serif;
-    background: radial-gradient(120% 120% at 10% 10%, rgba(6,199,85,0.14), transparent),
-                radial-gradient(120% 120% at 90% 0%, rgba(6,199,85,0.08), transparent),
-                var(--bg);
-    color: var(--text);
-    min-height: 100vh;
-  }
-  a { color: inherit; }
-  header {
-    position: sticky;
-    top: 0;
-    z-index: 8;
-    padding: 14px 18px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-    background: rgba(5,5,5,0.92);
-    backdrop-filter: blur(12px);
-    border-bottom: 1px solid var(--border);
-  }
-  .brand { display: flex; align-items: center; gap: 10px; }
-  .logo {
-    width: 42px;
-    height: 42px;
-    border-radius: 14px;
-    display: grid;
-    place-items: center;
-    border: 1px solid var(--border);
-    background: linear-gradient(145deg, #0f0f0f, #0a0a0a);
-    color: var(--line);
-    font-weight: 700;
-  }
-  .brand h1 { margin: 0; font-size: 18px; letter-spacing: 0.01em; }
-  .brand p { margin: 4px 0 0; color: var(--muted); font-size: 12px; }
-  .pill {
-    padding: 8px 12px;
-    border-radius: 999px;
-    border: 1px solid var(--border);
-    background: var(--panel);
-    text-decoration: none;
-    font-size: 13px;
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-  }
-  .pill.primary { background: var(--line); color: #041902; font-weight: 700; border-color: #0f2f14; }
-
   main { padding: 20px 18px 36px; display: grid; gap: 16px; }
   .hero {
     background: linear-gradient(130deg, rgba(6,199,85,0.16), rgba(6,199,85,0.05) 35%, rgba(8,8,8,0.95));
@@ -99,17 +39,13 @@
   .title-block h3 { margin: 0; font-size: 22px; }
   .title-block p { margin: 6px 0 0; color: var(--muted); line-height: 1.6; }
   .tag-row { display: flex; gap: 8px; flex-wrap: wrap; }
-  .tag { padding: 6px 10px; border-radius: 999px; border: 1px solid var(--border); background: #0f0f0f; font-size: 12px; }
   .body { display: grid; gap: 12px; line-height: 1.7; color: #e5e7eb; }
   .body p { margin: 0; }
 
   .share-row { display: flex; gap: 10px; flex-wrap: wrap; }
-  .share { padding: 10px 14px; border-radius: 12px; border: 1px solid var(--border); background: #0f0f0f; text-decoration: none; font-size: 13px; display: inline-flex; align-items: center; gap: 8px; }
-  .share.line { background: var(--line); color: #041902; font-weight: 700; border-color: #0f2f14; }
   .share:active { transform: translateY(1px); }
 
   footer { padding: 0 18px 24px; color: var(--muted); font-size: 12px; }
-  @media (max-width: 720px) { header { flex-direction: column; align-items: flex-start; } .share-row { width: 100%; } }
 </style>
 <body>
   <header>
@@ -121,8 +57,8 @@
       </div>
     </div>
     <div class="actions">
-      <a class="pill" href="/blog-public.html">公開一覧</a>
-      <a class="pill" href="/blog.html">アップロード</a>
+      <a class="pill" href="/blog.html">公開一覧</a>
+      <a class="pill" href="/">トップ</a>
     </div>
   </header>
 
@@ -155,45 +91,10 @@
     Emperor News — 公式LINEアカウント連携ビュー
   </footer>
 
+<script src="/assets/blog-data.js"></script>
 <script>
-  const officialLineAccountId = "@projecte_official";
-  const officialLinePage = "https://page.line.me/projecte_official";
-  const cacheKey = "emperor_articles_cache";
-  const baseArticles = [
-    {
-      title: "スクロールスナップで魅せるiPad特集",
-      body: "iPadOSのオーバースクロールに合わせた柔らかなカードUI。モバイルファーストの編集フローを紹介。",
-      tags: ["iPad", "UI", "ScrollSnap"],
-      image: "https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?auto=format&fit=crop&w=900&q=80",
-    },
-    {
-      title: "LINE配信テンプレート付き記事運用",
-      body: "配信用のOGPとLINEシェアURLをワンクリック生成。チャット経由での下書きアップロードにも対応。",
-      tags: ["LINE", "OGP", "Automation"],
-      image: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=900&q=80",
-    },
-    {
-      title: "ChatGPT→ブログ 直貼りワークフロー",
-      body: "ChatGPTで生成した文章をそのままペースト。カバー画像とタグを加えて即公開。",
-      tags: ["ChatGPT", "Workflow", "Creator"],
-      image: "https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=900&q=80",
-    },
-  ];
-
-  async function fetchArticles() {
-    try {
-      const res = await fetch("/api/articles");
-      if (!res.ok) throw new Error("failed to fetch articles");
-      const payload = await res.json();
-      const articles = Array.isArray(payload.articles) ? payload.articles : [];
-      if (!articles.length) throw new Error("no articles available");
-      localStorage.setItem(cacheKey, JSON.stringify(articles));
-      return articles;
-    } catch (err) {
-      const cached = localStorage.getItem(cacheKey);
-      if (cached) return JSON.parse(cached);
-      return baseArticles;
-    }
+  function loadArticles() {
+    return BlogData.loadArticles();
   }
 
   async function findArticle() {
@@ -206,12 +107,8 @@
   }
 
   function paragraphize(text) {
-    if (!text) return ["本文が追加されていません。アップロードフォームから本文を入れてください。"]; 
+    if (!text) return ["本文が追加されていません。管理画面から本文を入れてください。"];
     return text.split(/\n{2,}/).map(chunk => chunk.trim()).filter(Boolean);
-  }
-
-  function buildOfficialLineShare(url) {
-    return `https://social-plugins.line.me/lineit/share?url=${encodeURIComponent(url)}&accountId=${encodeURIComponent(officialLineAccountId)}`;
   }
 
   function render(article, idx) {
@@ -245,8 +142,8 @@
     }
 
     const canonical = `${location.origin}${location.pathname}?id=${idx}`;
-    lineShare.href = buildOfficialLineShare(canonical);
-    lineShare.textContent = `${officialLineAccountId} で共有`;
+    lineShare.href = BlogData.buildOfficialLineShare(canonical);
+    lineShare.textContent = `${BlogData.officialLineAccountId} で共有`;
 
     document.getElementById("copyLink").addEventListener("click", (e) => {
       e.preventDefault();
