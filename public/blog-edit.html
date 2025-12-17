@@ -85,6 +85,14 @@
         <span class="tiny">一覧ページの各項目テキストを変更</span>
       </div>
       <form class="stack" id="copyForm">
+        <div class="form-row" style="align-items: flex-start;">
+          <div style="flex:1;">
+            <label class="tiny" for="copySourceSelect">記事IDから文言を読み込む</label>
+            <select id="copySourceSelect"></select>
+            <p class="tiny muted" id="copySourceStatus">固定記事・ヒーロー・各見出し・共有/一覧/固定セクションもIDから選択できます。</p>
+          </div>
+          <button class="secondary" type="button" id="applyCopySource">反映</button>
+        </div>
         <div class="grid-2" style="gap:12px;">
           <div class="form-row">
             <label class="tiny" for="heroTitle">ヒーロータイトル</label>
@@ -249,6 +257,9 @@
   const copyExtraForm = document.getElementById("copyExtraForm");
   const copyExtraInput = document.getElementById("copyExtraInput");
   const copyExtraStatus = document.getElementById("copyExtraStatus");
+  const copySourceSelect = document.getElementById("copySourceSelect");
+  const copySourceStatus = document.getElementById("copySourceStatus");
+  const applyCopySourceBtn = document.getElementById("applyCopySource");
   let editingIdx = null;
   let imageData = "";
 
@@ -347,6 +358,7 @@
       homeFeaturedSelect.innerHTML = '<option value="">記事がありません</option>';
       homeLatestSelect.innerHTML = '<option value="">記事がありません</option>';
       pinnedChoices.innerHTML = '<span class="tiny">記事追加後に設定できます。</span>';
+      copySourceSelect.innerHTML = '<option value="">記事がありません</option>';
       settingsStatus.textContent = "記事を追加すると設定できます。";
       return;
     }
@@ -387,6 +399,14 @@
       homeLatestSelect.appendChild(latestOpt);
     });
 
+    copySourceSelect.innerHTML = '<option value="">文言を読み込む記事を選択</option>';
+    articles.forEach((article, idx) => {
+      const opt = document.createElement("option");
+      opt.value = String(idx);
+      opt.textContent = `ID ${idx}: ${article.title || "無題"}`;
+      copySourceSelect.appendChild(opt);
+    });
+
     articles.forEach((article, idx) => {
       const row = document.createElement("label");
       row.className = "flex";
@@ -414,6 +434,47 @@
       }
     });
     copyStatus.textContent = "一覧ページに即時反映されます。";
+  }
+
+  function applyCopySource() {
+    const idx = parseInt(copySourceSelect.value, 10);
+    if (!Number.isInteger(idx)) {
+      copySourceStatus.textContent = "記事IDを選択してください。";
+      return;
+    }
+    const { article } = BlogData.findArticle(idx);
+    if (!article) {
+      copySourceStatus.textContent = "記事が見つかりませんでした。";
+      return;
+    }
+
+    const title = article.title?.trim() || `記事ID ${idx}`;
+    const body = (article.body || "").split(/\n+/)[0].trim();
+    const excerpt = body.slice(0, 120);
+
+    const setters = {
+      heroTitle: title,
+      mobileTitle: title,
+      tabletTitle: title,
+      pcTitle: title,
+      shareTitle: `${title} — 共有`,
+      listTitle: title,
+      pinnedTitle: title,
+      heroBody: excerpt,
+      mobileBody: excerpt,
+      tabletBody: excerpt,
+      pcBody: excerpt,
+      shareBody: excerpt,
+      listSubtitle: excerpt,
+      pinnedSubtitle: excerpt,
+    };
+
+    Object.entries(setters).forEach(([key, value]) => {
+      const input = copyForm.querySelector(`[name="${key}"]`);
+      if (input) input.value = value;
+    });
+
+    copySourceStatus.textContent = `ID ${idx} の記事から文言を反映しました。`;
   }
 
   function renderCopyExtras() {
@@ -663,6 +724,7 @@
       removeCopyExtra(target.dataset.id);
     }
   });
+  applyCopySourceBtn.addEventListener("click", applyCopySource);
 </script>
 </body>
 </html>
