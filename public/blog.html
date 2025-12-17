@@ -298,6 +298,8 @@
   const tagMarqueeClone = document.getElementById("tagMarqueeClone");
   const officialLineAccountId = "@projecte_official";
   const officialLinePage = "https://page.line.me/projecte_official";
+  const cacheKey = "emperor_articles_cache";
+  let currentArticles = [];
 
   const baseArticles = [
     {
@@ -320,15 +322,30 @@
     }
   ];
 
-  function loadArticles() {
-    const saved = localStorage.getItem("emperor_articles");
-    const data = saved ? JSON.parse(saved) : baseArticles;
-    renderFeatures(data);
-    renderFeed(data);
+  async function fetchArticles() {
+    try {
+      const res = await fetch("/api/articles");
+      if (!res.ok) throw new Error("failed to fetch articles");
+      const payload = await res.json();
+      const articles = Array.isArray(payload.articles) ? payload.articles : [];
+      if (!articles.length) throw new Error("no articles in payload");
+      localStorage.setItem(cacheKey, JSON.stringify(articles));
+      return articles;
+    } catch (e) {
+      const cached = localStorage.getItem(cacheKey);
+      if (cached) return JSON.parse(cached);
+      return baseArticles;
+    }
   }
 
-  function persist(articles) {
-    localStorage.setItem("emperor_articles", JSON.stringify(articles));
+  async function saveArticles(articles) {
+    const res = await fetch("/api/articles", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ articles }),
+    });
+    if (!res.ok) throw new Error("failed to persist articles");
+    localStorage.setItem(cacheKey, JSON.stringify(articles));
   }
 
   function buildOfficialLineShare(url) {
@@ -421,15 +438,20 @@
       return;
     }
 
-    const saved = localStorage.getItem("emperor_articles");
-    const list = saved ? JSON.parse(saved) : [...baseArticles];
     const image = imgFile ? await readFileAsDataURL(imgFile) : "";
 
     const article = { title, body, tags, image };
-    const updated = [article, ...list];
-    persist(updated);
-    renderFeatures(updated);
-    renderFeed(updated);
+    const updated = [article, ...currentArticles];
+
+    try {
+      await saveArticles(updated);
+      currentArticles = updated;
+      renderFeatures(updated);
+      renderFeed(updated);
+    } catch (err) {
+      alert("保存に失敗しました。時間をおいて再度お試しください。");
+      return;
+    }
 
     document.getElementById("body").value = "";
     document.getElementById("title").value = "";
@@ -437,10 +459,15 @@
     document.getElementById("image").value = "";
   });
 
-  document.getElementById("seedDemo").addEventListener("click", () => {
-    persist(baseArticles);
-    renderFeatures(baseArticles);
-    renderFeed(baseArticles);
+  document.getElementById("seedDemo").addEventListener("click", async () => {
+    try {
+      await saveArticles(baseArticles);
+      currentArticles = baseArticles;
+      renderFeatures(baseArticles);
+      renderFeed(baseArticles);
+    } catch (err) {
+      alert("デモ記事の同期に失敗しました");
+    }
   });
 
   document.getElementById("copyLink").addEventListener("click", (e) => {
@@ -461,10 +488,12 @@
     });
   }, { threshold: 0.2 });
 
-  document.addEventListener("DOMContentLoaded", () => {
+  document.addEventListener("DOMContentLoaded", async () => {
     document.getElementById("lineOfficial").href = officialLinePage;
     document.getElementById("lineOfficial").textContent = `${officialLineAccountId} を開く`;
-    loadArticles();
+    currentArticles = await fetchArticles();
+    renderFeatures(currentArticles);
+    renderFeed(currentArticles);
   });
 </script>
 </body>

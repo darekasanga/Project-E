@@ -158,38 +158,51 @@
 <script>
   const officialLineAccountId = "@projecte_official";
   const officialLinePage = "https://page.line.me/projecte_official";
+  const cacheKey = "emperor_articles_cache";
   const baseArticles = [
     {
-      title: "iPadスクロール特集 — 公式LINEで読む",
-      body: "黒背景とオーバースクロールを活かしたカードレイアウト。公式LINEアカウントへの配信リンクを同梱。",
-      tags: ["iPad", "Scroll", "LINE公式"],
-      image: "https://images.unsplash.com/photo-1472289065668-ce650ac443d2?auto=format&fit=crop&w=1200&q=80",
+      title: "スクロールスナップで魅せるiPad特集",
+      body: "iPadOSのオーバースクロールに合わせた柔らかなカードUI。モバイルファーストの編集フローを紹介。",
+      tags: ["iPad", "UI", "ScrollSnap"],
+      image: "https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?auto=format&fit=crop&w=900&q=80",
     },
     {
-      title: "ChatGPTから即公開",
-      body: "チャットで生成した原稿をそのまま貼り付け。タグとカバーを足すだけで読者向けカードを生成します。",
-      tags: ["ChatGPT", "Workflow"],
-      image: "https://images.unsplash.com/photo-1507138451611-3001135909a5?auto=format&fit=crop&w=1200&q=80",
+      title: "LINE配信テンプレート付き記事運用",
+      body: "配信用のOGPとLINEシェアURLをワンクリック生成。チャット経由での下書きアップロードにも対応。",
+      tags: ["LINE", "OGP", "Automation"],
+      image: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=900&q=80",
     },
     {
-      title: "LINEシェアリンクをワンクリック",
-      body: "公式LINEアカウントと連動した共有ボタンを自動生成。外部ブラウザでも快適に閲覧できるOGP調整済み。",
-      tags: ["LINE", "Share", "OGP"],
-      image: "https://images.unsplash.com/photo-1508766206392-8bd5cf550d1b?auto=format&fit=crop&w=1200&q=80",
+      title: "ChatGPT→ブログ 直貼りワークフロー",
+      body: "ChatGPTで生成した文章をそのままペースト。カバー画像とタグを加えて即公開。",
+      tags: ["ChatGPT", "Workflow", "Creator"],
+      image: "https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=900&q=80",
     },
   ];
 
-  function loadArticles() {
-    const saved = localStorage.getItem("emperor_articles");
-    return saved ? JSON.parse(saved) : baseArticles;
+  async function fetchArticles() {
+    try {
+      const res = await fetch("/api/articles");
+      if (!res.ok) throw new Error("failed to fetch articles");
+      const payload = await res.json();
+      const articles = Array.isArray(payload.articles) ? payload.articles : [];
+      if (!articles.length) throw new Error("no articles available");
+      localStorage.setItem(cacheKey, JSON.stringify(articles));
+      return articles;
+    } catch (err) {
+      const cached = localStorage.getItem(cacheKey);
+      if (cached) return JSON.parse(cached);
+      return baseArticles;
+    }
   }
 
-  function findArticle() {
+  async function findArticle() {
     const params = new URLSearchParams(location.search);
     const idx = parseInt(params.get("id"), 10);
-    const list = loadArticles();
-    const article = Number.isFinite(idx) && list[idx] ? list[idx] : list[0];
-    return { article, list, idx: Number.isFinite(idx) && list[idx] ? idx : 0 };
+    const list = await fetchArticles();
+    const isValidIdx = Number.isFinite(idx) && list[idx];
+    const article = isValidIdx ? list[idx] : list[0];
+    return { article, list, idx: isValidIdx ? idx : 0 };
   }
 
   function paragraphize(text) {
@@ -243,8 +256,8 @@
     });
   }
 
-  document.addEventListener("DOMContentLoaded", () => {
-    const { article, idx } = findArticle();
+  document.addEventListener("DOMContentLoaded", async () => {
+    const { article, idx } = await findArticle();
     render(article, idx);
   });
 </script>
