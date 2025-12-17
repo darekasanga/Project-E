@@ -286,7 +286,7 @@
           <h2 style="display:flex;align-items:center;gap:8px;">LINE掲載・配信リンク</h2>
           <p class="desc">公式LINEアカウント向けのシェアURLを生成。友だち追加ページを経由して配信できます。</p>
           <div class="share-buttons">
-            <a class="share-btn line" id="lineOfficial" href="https://page.line.me/projecte_official" target="_blank" rel="noreferrer">公式LINEを開く</a>
+              <a class="share-btn line" id="lineOfficial" href="https://page.line.me/projecte_official" rel="noreferrer">公式LINEを開く</a>
             <a class="share-btn" id="copyLink" href="#">ページURLをコピー</a>
           </div>
           <p class="desc" style="margin-top:12px;">LINEブラウザやiOS Safariでのスクロールに最適化。公式アカウントの友だち追加リンク（page.line.me）を採用しています。</p>
@@ -391,8 +391,8 @@
             <h4>${item.title}</h4>
           </div>
           <div class="share-buttons">
-            <a class="share-btn line" href="${shareUrl}" target="_blank" rel="noreferrer">公式LINEで共有</a>
-            <a class="share-btn" href="${url}" target="_blank">リンクを開く</a>
+            <a class="share-btn line" href="${shareUrl}" rel="noreferrer">公式LINEで共有</a>
+            <a class="share-btn" href="${url}">リンクを開く</a>
           </div>
         </div>
         ${item.image ? `<img class="hero-img" src="${item.image}" alt="${item.title}">` : ""}
