@@ -89,7 +89,7 @@
           <div style="flex:1;">
             <label class="tiny" for="copySourceSelect">記事IDから文言を読み込む</label>
             <select id="copySourceSelect"></select>
-            <p class="tiny muted" id="copySourceStatus">固定記事・ヒーロー・各見出し・共有/一覧/固定セクションもIDから選択できます。</p>
+            <p class="tiny muted" id="copySourceStatus">固定記事・ヒーロー・各見出し・一覧/固定セクションもIDから選択できます。</p>
           </div>
           <button class="secondary" type="button" id="applyCopySource">反映</button>
         </div>
@@ -125,14 +125,6 @@
           <div class="form-row">
             <label class="tiny" for="pcBody">PC本文</label>
             <textarea id="pcBody" name="pcBody"></textarea>
-          </div>
-          <div class="form-row">
-            <label class="tiny" for="shareTitle">共有セクション見出し</label>
-            <input id="shareTitle" name="shareTitle">
-          </div>
-          <div class="form-row">
-            <label class="tiny" for="shareBody">共有セクション本文</label>
-            <textarea id="shareBody" name="shareBody"></textarea>
           </div>
           <div class="form-row">
             <label class="tiny" for="listTitle">一覧セクション見出し</label>
@@ -457,14 +449,12 @@
       mobileTitle: title,
       tabletTitle: title,
       pcTitle: title,
-      shareTitle: `${title} — 共有`,
       listTitle: title,
       pinnedTitle: title,
       heroBody: excerpt,
       mobileBody: excerpt,
       tabletBody: excerpt,
       pcBody: excerpt,
-      shareBody: excerpt,
       listSubtitle: excerpt,
       pinnedSubtitle: excerpt,
     };
