@@ -274,9 +274,20 @@
     }
 
     function registerPreview(img) {
-      if (!img) return;
+      if (!img || img.dataset.previewBound) return;
+      img.dataset.previewBound = "true";
       img.style.cursor = "zoom-in";
-      img.addEventListener("click", () => openLightbox(img.src, img.alt));
+      img.setAttribute("role", "button");
+      img.setAttribute("tabindex", "0");
+      img.setAttribute("aria-label", "画像を拡大表示");
+      const show = () => openLightbox(img.src, img.alt);
+      img.addEventListener("click", show);
+      img.addEventListener("keydown", (e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          show();
+        }
+      });
     }
 
     function uid() {
