@@ -40,13 +40,16 @@
   function normalizeSettings(raw) {
     const articles = loadArticles();
     const limit = articles.length;
+    const heroId = Number.isInteger(raw?.heroId) && raw.heroId >= 0 && raw.heroId < limit
+      ? raw.heroId
+      : (limit ? 0 : null);
     const featuredId = Number.isInteger(raw?.featuredId) && raw.featuredId >= 0 && raw.featuredId < limit
       ? raw.featuredId
       : (limit ? 0 : null);
     const footerIds = Array.isArray(raw?.footerIds)
       ? [...new Set(raw.footerIds.filter((idx) => Number.isInteger(idx) && idx >= 0 && idx < limit))]
       : [];
-    return { featuredId, footerIds };
+    return { heroId, featuredId, footerIds };
   }
 
   function loadSettings() {
@@ -97,6 +100,13 @@
     return { article: list[safeIdx], list, idx: safeIdx };
   }
 
+  function getHeroArticle() {
+    const settings = loadSettings();
+    if (!Number.isInteger(settings.heroId)) return { article: null, idx: null, settings };
+    const { article, idx } = findArticle(settings.heroId);
+    return { article, idx, settings };
+  }
+
   function getFeaturedArticle() {
     const settings = loadSettings();
     if (!Number.isInteger(settings.featuredId)) return { article: null, idx: null, settings };
@@ -129,6 +139,7 @@
     upsertArticle,
     deleteArticle,
     findArticle,
+    getHeroArticle,
     getFeaturedArticle,
     getFooterArticles,
     buildOfficialLineShare,

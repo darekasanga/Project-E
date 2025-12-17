@@ -21,10 +21,14 @@
 
   <main class="container">
     <section class="hero">
-      <div class="badge">New UI</div>
-      <h2>全ページをレスポンシブで作り直しました</h2>
-      <p>スマホは片手で読みやすく、タブレットは横幅を活かし、PCはサイド情報付きで一覧性を高めました。すべてのページで共通のナビゲーションとダークテーマを採用しています。</p>
-      <div class="actions">
+      <div class="inline-chips">
+        <div class="badge" id="heroBadge">New UI</div>
+        <div class="badge" id="heroMeta">レスポンシブ更新</div>
+      </div>
+      <h2 id="heroTitle">全ページをレスポンシブで作り直しました</h2>
+      <p id="heroBody">スマホは片手で読みやすく、タブレットは横幅を活かし、PCはサイド情報付きで一覧性を高めました。すべてのページで共通のナビゲーションとダークテーマを採用しています。</p>
+      <div class="tag-row" id="heroTags"></div>
+      <div class="actions" id="heroActions">
         <a class="button primary" href="/blog-list.html">ブログ一覧ビュー</a>
         <a class="button ghost" href="/blog-article.html">単体記事</a>
         <a class="button ghost" href="/blog-edit.html">記事編集</a>
@@ -206,5 +210,73 @@
     </div>
   </footer>
   <script src="/assets/lightbox.js"></script>
+  <script src="/assets/blog-data.js"></script>
+  <script>
+    const heroTitle = document.getElementById("heroTitle");
+    const heroBody = document.getElementById("heroBody");
+    const heroTags = document.getElementById("heroTags");
+    const heroActions = document.getElementById("heroActions");
+    const heroBadge = document.getElementById("heroBadge");
+    const heroMeta = document.getElementById("heroMeta");
+
+    const heroFallback = {
+      title: "全ページをレスポンシブで作り直しました",
+      body: "スマホは片手で読みやすく、タブレットは横幅を活かし、PCはサイド情報付きで一覧性を高めました。すべてのページで共通のナビゲーションとダークテーマを採用しています。",
+      tags: ["スマホ対応", "タブレット", "PC"]
+    };
+
+    function renderHeroFromArticle() {
+      const { article, idx } = BlogData.getHeroArticle();
+      const articles = BlogData.loadArticles();
+      heroTags.innerHTML = "";
+      heroActions.innerHTML = "";
+
+      if (!articles.length || !article) {
+        heroBadge.textContent = "New UI";
+        heroMeta.textContent = "レスポンシブ更新";
+        heroTitle.textContent = heroFallback.title;
+        heroBody.textContent = heroFallback.body;
+        heroFallback.tags.forEach((tag) => {
+          const chip = document.createElement("span");
+          chip.className = "badge";
+          chip.textContent = tag;
+          heroTags.appendChild(chip);
+        });
+        heroActions.innerHTML = `
+          <a class="button primary" href="/blog-list.html">ブログ一覧ビュー</a>
+          <a class="button ghost" href="/blog-article.html">単体記事</a>
+          <a class="button ghost" href="/blog-edit.html">記事編集</a>
+        `;
+        return;
+      }
+
+      heroBadge.textContent = "トップおすすめ";
+      heroMeta.textContent = `ID ${idx}`;
+      heroTitle.textContent = article.title || "無題の記事";
+      heroBody.textContent = article.body || "本文がありません";
+
+      if (article.tags?.length) {
+        article.tags.forEach((tag) => {
+          const link = document.createElement("a");
+          link.className = "tag";
+          link.href = `/tag.html?tag=${encodeURIComponent(tag)}`;
+          link.textContent = `#${tag}`;
+          heroTags.appendChild(link);
+        });
+      } else {
+        heroTags.innerHTML = '<span class="badge">#untagged</span>';
+      }
+
+      const articleUrl = `${location.origin}/blog-article.html?id=${idx}`;
+      const shareUrl = BlogData.buildOfficialLineShare(articleUrl);
+      heroActions.innerHTML = `
+        <a class="button primary" href="/blog-list.html">ブログ一覧ビュー</a>
+        <a class="button ghost" href="${articleUrl}">この記事を読む</a>
+        <a class="button ghost" href="${shareUrl}" target="_blank" rel="noreferrer">LINEで共有</a>
+      `;
+    }
+
+    document.addEventListener("DOMContentLoaded", renderHeroFromArticle);
+  </script>
 </body>
 </html>
