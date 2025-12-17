@@ -67,7 +67,7 @@
     </div>
     <div class="actions">
       <a class="pill" href="/">トップ</a>
-      <a class="pill primary" href="/blog.html">新しい公開ページ</a>
+      <a class="pill primary" href="/blog.html" data-requires-auth="true">編集・アップロード</a>
     </div>
   </header>
 
@@ -77,8 +77,8 @@
       <h2>読者向けのシンプル配信ビュー</h2>
       <p>管理画面やチャットから登録した記事をそのまま公開。黒基調のモバイル最適化カードで、公式LINEアカウントにもシェアできます。リンクだけで友だち追加と記事閲覧を両立。</p>
       <div class="cta-row">
-        <a class="pill primary" id="openLine" target="_blank" rel="noreferrer">公式LINEで読む</a>
-        <a class="pill" href="/blog.html">新しい公開フィードへ</a>
+        <a class="pill primary" id="openLine" rel="noreferrer">公式LINEで読む</a>
+        <a class="pill" href="/blog.html#upload" data-requires-auth="true">記事を投稿する</a>
       </div>
       <div class="cta-row" id="metaInfo"></div>
     </section>
@@ -94,6 +94,7 @@
 <script src="/assets/blog-data.js"></script>
 <script>
   const officialLinePage = "https://page.line.me/projecte_official";
+  const adminSessionKey = "emperor_admin_token";
   const feedEl = document.getElementById("feed");
   const ticker = document.getElementById("ticker");
   const tickerClone = document.getElementById("tickerClone");
@@ -118,6 +119,22 @@
     `;
   }
 
+  function enforceAdminLinks() {
+    const adminLinks = document.querySelectorAll('[data-requires-auth]');
+    adminLinks.forEach((link) => {
+      link.addEventListener("click", (event) => {
+        const authed = sessionStorage.getItem(adminSessionKey) === "active";
+        if (authed) return;
+
+        event.preventDefault();
+        const rawTarget = link.getAttribute("href") || "/blog.html";
+        const normalized = rawTarget.startsWith("/") ? rawTarget : `/${rawTarget}`;
+        const redirect = encodeURIComponent(normalized);
+        location.href = `/admin.html?redirect=${redirect}`;
+      });
+    });
+  }
+
   function renderFeed(list) {
     feedEl.innerHTML = "";
     list.forEach((item, idx) => {
@@ -134,8 +151,8 @@
           ${(item.tags || []).map(t => `<span class="tag">#${t}</span>`).join("") || '<span class="tag">#untagged</span>'}
         </div>
         <div class="share-row">
-          <a class="share line" href="${shareUrl}" target="_blank" rel="noreferrer">公式LINEで共有</a>
-          <a class="share" href="${articleUrl}" target="_blank">リンクを開く</a>
+          <a class="share line" href="${shareUrl}" rel="noreferrer">公式LINEで共有</a>
+          <a class="share" href="${articleUrl}">リンクを開く</a>
         </div>
       `;
       feedEl.appendChild(card);
@@ -144,7 +161,8 @@
 
   document.addEventListener("DOMContentLoaded", async () => {
     document.getElementById("openLine").href = officialLinePage;
-    const articles = BlogData.loadArticles();
+    enforceAdminLinks();
+    const articles = loadArticles();
     renderFeed(articles);
     renderTicker(articles.flatMap(a => a.tags || []));
     renderMeta(articles.length);

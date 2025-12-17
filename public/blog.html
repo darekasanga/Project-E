@@ -51,6 +51,16 @@
   @media (max-width: 680px) { .scroll-track { grid-auto-columns: 88%; } }
 </style>
 <body>
+  <script>
+    (function enforceAdminSession() {
+      const SESSION_KEY = "emperor_admin_token";
+      const authed = sessionStorage.getItem(SESSION_KEY) === "active";
+      if (!authed) {
+        const destination = encodeURIComponent(location.pathname + location.search + location.hash);
+        window.location.replace(`/admin.html?redirect=${destination}`);
+      }
+    })();
+  </script>
   <header>
     <div class="brand">
       <div class="logo">E</div>
