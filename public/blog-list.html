@@ -40,21 +40,6 @@
       </div>
     </section>
 
-    <section class="grid-2">
-      <article class="card">
-        <h3 id="mobileTitle">スマホビュー</h3>
-        <p class="mobile-hint" id="mobileBody">1カラムでサムネイルを上、本文とタグを下に配置。タップしやすい余白を確保しました。</p>
-      </article>
-      <article class="card">
-        <h3 id="tabletTitle">タブレットビュー</h3>
-        <p class="tablet-hint" id="tabletBody">サムネイル横並び＋行間拡大。768px以上で自動適用されます。</p>
-      </article>
-      <article class="card">
-        <h3 id="pcTitle">PCビュー</h3>
-        <p class="pc-hint" id="pcBody">最大幅1200pxで2カラム＋サイドバーを固定。タグクラウドと統計を右側に表示します。</p>
-      </article>
-    </section>
-
     <section class="split-layout">
       <div class="list-shell">
         <div class="list-head">
@@ -107,12 +92,6 @@
       const safeText = (value, fallback) => (value ?? fallback);
       document.getElementById("heroTitle").textContent = safeText(copyTexts.heroTitle, "");
       document.getElementById("heroBody").textContent = safeText(copyTexts.heroBody, "");
-      document.getElementById("mobileTitle").textContent = safeText(copyTexts.mobileTitle, "");
-      document.getElementById("mobileBody").textContent = safeText(copyTexts.mobileBody, "");
-      document.getElementById("tabletTitle").textContent = safeText(copyTexts.tabletTitle, "");
-      document.getElementById("tabletBody").textContent = safeText(copyTexts.tabletBody, "");
-      document.getElementById("pcTitle").textContent = safeText(copyTexts.pcTitle, "");
-      document.getElementById("pcBody").textContent = safeText(copyTexts.pcBody, "");
       document.getElementById("listTitle").textContent = safeText(copyTexts.listTitle, "");
       document.getElementById("listSubtitle").textContent = safeText(copyTexts.listSubtitle, "");
       document.getElementById("pinnedTitle").textContent = safeText(copyTexts.pinnedTitle, "");
