@@ -89,7 +89,7 @@
           <div style="flex:1;">
             <label class="tiny" for="copySourceSelect">記事IDから文言を読み込む</label>
             <select id="copySourceSelect"></select>
-            <p class="tiny muted" id="copySourceStatus">固定記事・ヒーロー・各見出し・一覧/固定セクションもIDから選択できます。</p>
+            <p class="tiny muted" id="copySourceStatus">固定記事・ヒーロー・一覧/固定セクションもIDから選択できます。</p>
           </div>
           <button class="secondary" type="button" id="applyCopySource">反映</button>
         </div>
@@ -101,30 +101,6 @@
           <div class="form-row">
             <label class="tiny" for="heroBody">ヒーロー本文</label>
             <textarea id="heroBody" name="heroBody"></textarea>
-          </div>
-          <div class="form-row">
-            <label class="tiny" for="mobileTitle">スマホ見出し</label>
-            <input id="mobileTitle" name="mobileTitle">
-          </div>
-          <div class="form-row">
-            <label class="tiny" for="mobileBody">スマホ本文</label>
-            <textarea id="mobileBody" name="mobileBody"></textarea>
-          </div>
-          <div class="form-row">
-            <label class="tiny" for="tabletTitle">タブレット見出し</label>
-            <input id="tabletTitle" name="tabletTitle">
-          </div>
-          <div class="form-row">
-            <label class="tiny" for="tabletBody">タブレット本文</label>
-            <textarea id="tabletBody" name="tabletBody"></textarea>
-          </div>
-          <div class="form-row">
-            <label class="tiny" for="pcTitle">PC見出し</label>
-            <input id="pcTitle" name="pcTitle">
-          </div>
-          <div class="form-row">
-            <label class="tiny" for="pcBody">PC本文</label>
-            <textarea id="pcBody" name="pcBody"></textarea>
           </div>
           <div class="form-row">
             <label class="tiny" for="listTitle">一覧セクション見出し</label>
@@ -446,15 +422,9 @@
 
     const setters = {
       heroTitle: title,
-      mobileTitle: title,
-      tabletTitle: title,
-      pcTitle: title,
       listTitle: title,
       pinnedTitle: title,
       heroBody: excerpt,
-      mobileBody: excerpt,
-      tabletBody: excerpt,
-      pcBody: excerpt,
       listSubtitle: excerpt,
       pinnedSubtitle: excerpt,
     };
