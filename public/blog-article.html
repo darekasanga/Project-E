@@ -97,12 +97,13 @@
     return BlogData.loadArticles();
   }
 
-  function findArticle() {
+  async function findArticle() {
     const params = new URLSearchParams(location.search);
     const idx = parseInt(params.get("id"), 10);
-    const list = loadArticles();
-    const article = Number.isFinite(idx) && list[idx] ? list[idx] : list[0];
-    return { article, list, idx: Number.isFinite(idx) && list[idx] ? idx : 0 };
+    const list = await fetchArticles();
+    const isValidIdx = Number.isFinite(idx) && list[idx];
+    const article = isValidIdx ? list[idx] : list[0];
+    return { article, list, idx: isValidIdx ? idx : 0 };
   }
 
   function paragraphize(text) {
@@ -152,8 +153,8 @@
     });
   }
 
-  document.addEventListener("DOMContentLoaded", () => {
-    const { article, idx } = findArticle();
+  document.addEventListener("DOMContentLoaded", async () => {
+    const { article, idx } = await findArticle();
     render(article, idx);
   });
 </script>

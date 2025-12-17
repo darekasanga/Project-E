@@ -98,6 +98,7 @@
   const ticker = document.getElementById("ticker");
   const tickerClone = document.getElementById("tickerClone");
   const metaInfo = document.getElementById("metaInfo");
+  const cacheKey = "emperor_articles_cache";
 
   function buildOfficialLineShare(url) {
     return BlogData.buildOfficialLineShare(url);
@@ -141,7 +142,7 @@
     });
   }
 
-  document.addEventListener("DOMContentLoaded", () => {
+  document.addEventListener("DOMContentLoaded", async () => {
     document.getElementById("openLine").href = officialLinePage;
     const articles = BlogData.loadArticles();
     renderFeed(articles);
