@@ -2,6 +2,7 @@
   const storageKey = "emperor_articles";
   const settingsKey = "emperor_article_settings";
   const copyKey = "emperor_article_copy";
+  const copyExtrasKey = "emperor_article_copy_extras";
   const officialLineAccountId = "@projecte_official";
   const baseArticles = [
     {
@@ -113,6 +114,28 @@
     return normalized;
   }
 
+  function loadCopyExtras() {
+    const saved = localStorage.getItem(copyExtrasKey);
+    if (!saved) return [];
+    try {
+      const parsed = JSON.parse(saved);
+      return Array.isArray(parsed) ? parsed.filter((item) => item?.id && item?.text) : [];
+    } catch (err) {
+      console.warn("Failed to parse extra copy", err);
+      return [];
+    }
+  }
+
+  function saveCopyExtras(list) {
+    const normalized = Array.isArray(list)
+      ? list
+          .map((item) => ({ id: item?.id ?? crypto.randomUUID?.() ?? String(Date.now()), text: item?.text ?? "" }))
+          .filter((item) => item.text.trim().length)
+      : [];
+    localStorage.setItem(copyExtrasKey, JSON.stringify(normalized));
+    return normalized;
+  }
+
   function upsertArticle(article, idx) {
     const list = loadArticles();
     if (Number.isInteger(idx) && idx >= 0 && idx < list.length) {
@@ -170,6 +193,7 @@
     storageKey,
     settingsKey,
     copyKey,
+    copyExtrasKey,
     officialLineAccountId,
     baseArticles,
     defaultCopy,
@@ -179,6 +203,8 @@
     saveSettings,
     loadCopy,
     saveCopy,
+    loadCopyExtras,
+    saveCopyExtras,
     upsertArticle,
     deleteArticle,
     findArticle,

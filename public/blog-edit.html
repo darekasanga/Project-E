@@ -146,6 +146,24 @@
           <span class="tiny" id="copyStatus">一覧ページに即時反映されます。</span>
         </div>
       </form>
+
+      <div class="stack" style="gap:12px;">
+        <div class="section-title" style="align-items: flex-end;">
+          <div>
+            <h4 style="margin:0;">追加の文言項目</h4>
+            <p class="tiny" style="margin:4px 0 0;">右からスワイプで削除できます。必要に応じて新規追加してください。</p>
+          </div>
+          <form class="stack" id="copyExtraForm" style="gap:6px; width:min(360px, 100%);">
+            <label class="tiny" for="copyExtraInput" style="color: var(--muted);">追記事項</label>
+            <div class="flex" style="gap:8px; align-items: center;">
+              <input id="copyExtraInput" name="copyExtra" placeholder="例: スマホは右スワイプで削除" style="flex:1;">
+              <button class="secondary" type="submit" id="copyAddBtn">追加</button>
+            </div>
+            <span class="tiny" id="copyExtraStatus">Enterキーでも追加できます。</span>
+          </form>
+        </div>
+        <div class="stack" id="copyList" style="gap:12px;"></div>
+      </div>
     </section>
 
     <section class="panel stack">
@@ -215,6 +233,10 @@
   const settingsStatus = document.getElementById("settingsStatus");
   const copyForm = document.getElementById("copyForm");
   const copyStatus = document.getElementById("copyStatus");
+  const copyList = document.getElementById("copyList");
+  const copyExtraForm = document.getElementById("copyExtraForm");
+  const copyExtraInput = document.getElementById("copyExtraInput");
+  const copyExtraStatus = document.getElementById("copyExtraStatus");
   let editingIdx = null;
   let imageData = "";
 
@@ -366,6 +388,100 @@
     copyStatus.textContent = "一覧ページに即時反映されます。";
   }
 
+  function renderCopyExtras() {
+    const extras = BlogData.loadCopyExtras();
+    copyList.innerHTML = "";
+    if (!extras.length) {
+      copyList.innerHTML = '<p class="muted">追加された文言はありません。右上のフォームから追加できます。</p>';
+      return;
+    }
+
+    extras.forEach((item) => {
+      const row = document.createElement("div");
+      row.className = "swipeable";
+      row.dataset.id = item.id;
+      row.innerHTML = `
+        <div class="swipe-delete">削除</div>
+        <div class="card swipe-body">
+          <div class="actions" style="justify-content: space-between; align-items: flex-start;">
+            <div class="stack" style="gap:4px;">
+              <div class="badge">追記</div>
+              <span class="tiny">右からスワイプで消せます</span>
+            </div>
+            <button class="secondary" data-action="delete" data-id="${item.id}">削除</button>
+          </div>
+          <p style="margin:0; color: var(--text);">${item.text}</p>
+        </div>
+      `;
+      attachSwipeHandler(row, () => removeCopyExtra(item.id));
+      copyList.appendChild(row);
+    });
+  }
+
+  function removeCopyExtra(id) {
+    const extras = BlogData.loadCopyExtras();
+    const next = extras.filter((item) => item.id !== id);
+    BlogData.saveCopyExtras(next);
+    renderCopyExtras();
+    copyExtraStatus.textContent = "削除しました。";
+  }
+
+  function handleCopyExtraAdd(event) {
+    event.preventDefault();
+    const text = copyExtraInput.value.trim();
+    if (!text) {
+      copyExtraStatus.textContent = "文言を入力してください。";
+      return;
+    }
+    const extras = BlogData.loadCopyExtras();
+    const next = BlogData.saveCopyExtras([
+      ...extras,
+      { id: crypto.randomUUID?.() ?? `copy-${Date.now()}`, text },
+    ]);
+    copyExtraInput.value = "";
+    copyExtraStatus.textContent = `${next.length}件の文言を保存しました。`;
+    renderCopyExtras();
+  }
+
+  function attachSwipeHandler(element, onCommit) {
+    const body = element.querySelector(".swipe-body");
+    let startX = 0;
+    let deltaX = 0;
+    let dragging = false;
+
+    function reset() {
+      deltaX = 0;
+      dragging = false;
+      element.dataset.swipeReady = "";
+      body.style.transform = "";
+    }
+
+    function handleEnd(event) {
+      if (!dragging) return;
+      element.releasePointerCapture?.(event.pointerId);
+      const shouldCommit = deltaX > 110;
+      reset();
+      if (shouldCommit) onCommit?.();
+    }
+
+    element.addEventListener("pointerdown", (event) => {
+      startX = event.clientX;
+      dragging = true;
+      element.setPointerCapture?.(event.pointerId);
+    });
+
+    element.addEventListener("pointermove", (event) => {
+      if (!dragging) return;
+      deltaX = Math.max(0, event.clientX - startX);
+      if (!body) return;
+      body.style.transform = `translateX(${Math.min(deltaX, 120)}px)`;
+      element.dataset.swipeReady = deltaX > 80 ? "true" : "";
+    });
+
+    element.addEventListener("pointerup", handleEnd);
+    element.addEventListener("pointercancel", handleEnd);
+  }
+
   function renderList() {
     const articles = BlogData.loadArticles();
     articleList.innerHTML = "";
@@ -410,8 +526,19 @@
     saveBtn.textContent = editingIdx === null ? "保存する" : "更新する";
   }
 
-  function handleSave(event) {
+  async function handleSave(event) {
     event.preventDefault();
+    if (imageFile.files?.length && !imageData) {
+      imageStatus.textContent = "画像をリサイズ中です…";
+      try {
+        const scaled = await downscaleImage(imageFile.files[0]);
+        setPreview(scaled);
+        imageStatus.textContent = "長辺1200pxに自動リサイズして保存します。";
+      } catch (err) {
+        imageStatus.textContent = err?.message || "画像処理に失敗ました。";
+        return;
+      }
+    }
     const payload = {
       title: document.getElementById("title").value.trim(),
       body: document.getElementById("body").value.trim(),
@@ -479,6 +606,7 @@
     fillForm({}, null);
     renderSettingsForm();
     renderCopyForm();
+    renderCopyExtras();
   });
 
   form.addEventListener("submit", handleSave);
@@ -493,6 +621,14 @@
   document.getElementById("newBtn").addEventListener("click", () => fillForm({}, null));
   settingsForm.addEventListener("submit", handleSettingsSave);
   copyForm.addEventListener("submit", handleCopySave);
+  copyExtraForm.addEventListener("submit", handleCopyExtraAdd);
+  copyList.addEventListener("click", (event) => {
+    const target = event.target;
+    if (!(target instanceof HTMLElement)) return;
+    if (target.dataset.action === "delete" && target.dataset.id) {
+      removeCopyExtra(target.dataset.id);
+    }
+  });
 </script>
 </body>
 </html>

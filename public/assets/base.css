@@ -298,6 +298,33 @@ textarea { resize: vertical; min-height: 140px; }
   gap: 6px;
 }
 
+.swipeable {
+  position: relative;
+  overflow: hidden;
+  border-radius: var(--radius);
+}
+
+.swipeable .swipe-body {
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.swipeable .swipe-delete {
+  position: absolute;
+  inset: 0;
+  width: 120px;
+  margin-left: auto;
+  background: linear-gradient(135deg, #dc2626, #7f1d1d);
+  color: #fff;
+  display: grid;
+  place-items: center;
+  font-weight: 700;
+  text-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+}
+
+.swipeable[data-swipe-ready="true"] .swipe-body {
+  box-shadow: 0 16px 30px rgba(220, 38, 38, 0.25);
+}
+
 .tablet-hint, .pc-hint, .mobile-hint {
   font-size: 13px;
   color: var(--muted);
