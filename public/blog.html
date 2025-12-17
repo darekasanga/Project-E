@@ -5,7 +5,7 @@
 <title>Emperor News — 公開ビュー</title>
 <link rel="stylesheet" href="/assets/blog-shared.css">
 <style>
-  main { padding: 22px 18px 48px; display: grid; gap: 20px; }
+  main { padding: 24px var(--page-inline) 56px; display: grid; gap: 20px; width: 100%; }
   .hero {
     background: linear-gradient(135deg, rgba(6, 199, 85, 0.18), rgba(6, 199, 85, 0.05) 32%, rgba(12, 12, 12, 0.9) 100%);
     border: 1px solid var(--border);
@@ -21,7 +21,7 @@
   .mini-pill { font-size: 12px; padding: 6px 10px; border-radius: 999px; background: rgba(255,255,255,0.05); border: 1px solid var(--border); color: var(--muted); }
 
   .scroll-shell { overflow: hidden; border-radius: 24px; border: 1px solid var(--border); background: #0b0b0b; }
-  .scroll-track { display: grid; grid-auto-flow: column; grid-auto-columns: 78%; gap: 12px; overflow-x: auto; padding: 12px; scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch; }
+  .scroll-track { display: grid; grid-auto-flow: column; grid-auto-columns: 88%; gap: 12px; overflow-x: auto; padding: 12px; scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch; }
   .scroll-track::-webkit-scrollbar { height: 6px; }
   .scroll-track::-webkit-scrollbar-thumb { background: #1f1f1f; border-radius: 999px; }
 
@@ -39,7 +39,7 @@
   .card p { margin: 0; color: var(--muted); line-height: 1.6; }
   .hero-img { width: 100%; border-radius: 14px; aspect-ratio: 16 / 9; object-fit: cover; border: 1px solid var(--border); }
 
-  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 14px; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px; }
 
   .share-row { display: flex; gap: 8px; flex-wrap: wrap; }
 
@@ -48,7 +48,8 @@
   .chip { padding: 7px 12px; border-radius: 999px; border: 1px solid var(--border); background: #0d0d0d; color: var(--muted); white-space: nowrap; }
 
   @keyframes marquee { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
-  @media (max-width: 680px) { .scroll-track { grid-auto-columns: 88%; } }
+  @media (min-width: 720px) { .scroll-track { grid-auto-columns: 64%; } }
+  @media (min-width: 1024px) { .scroll-track { grid-auto-columns: 42%; } }
 </style>
 <body>
   <header>
