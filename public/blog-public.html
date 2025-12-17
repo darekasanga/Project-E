@@ -330,6 +330,16 @@
     });
   }
 
+  function delegatePreviewClicks() {
+    document.addEventListener("click", (e) => {
+      const img = e.target.closest(".hero-img");
+      if (img) {
+        e.preventDefault();
+        openLightbox(img.src, img.alt);
+      }
+    });
+  }
+
   function uid() {
     return crypto.randomUUID?.() || `post-${Date.now()}-${Math.random().toString(16).slice(2)}`;
   }
@@ -415,6 +425,7 @@
     renderFeed(articles);
     renderTicker(articles.flatMap(a => a.tags || []));
     renderMeta(articles.length);
+    delegatePreviewClicks();
   });
 
   lightbox.addEventListener("click", (e) => {

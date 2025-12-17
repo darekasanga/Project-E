@@ -260,11 +260,11 @@
       });
     }
 
-    function openLightbox(src, alt) {
-      if (!src) return;
-      lightboxImg.src = src;
-      lightboxImg.alt = alt || "拡大表示";
-      lightbox.classList.add("open");
+  function openLightbox(src, alt) {
+    if (!src) return;
+    lightboxImg.src = src;
+    lightboxImg.alt = alt || "拡大表示";
+    lightbox.classList.add("open");
       lightbox.setAttribute("aria-hidden", "false");
     }
 
@@ -273,11 +273,11 @@
       lightbox.setAttribute("aria-hidden", "true");
     }
 
-    function registerPreview(img) {
-      if (!img || img.dataset.previewBound) return;
-      img.dataset.previewBound = "true";
-      img.style.cursor = "zoom-in";
-      img.setAttribute("role", "button");
+  function registerPreview(img) {
+    if (!img || img.dataset.previewBound) return;
+    img.dataset.previewBound = "true";
+    img.style.cursor = "zoom-in";
+    img.setAttribute("role", "button");
       img.setAttribute("tabindex", "0");
       img.setAttribute("aria-label", "画像を拡大表示");
       const show = () => openLightbox(img.src, img.alt);
@@ -285,10 +285,20 @@
       img.addEventListener("keydown", (e) => {
         if (e.key === "Enter" || e.key === " ") {
           e.preventDefault();
-          show();
-        }
-      });
-    }
+        show();
+      }
+    });
+  }
+
+  function delegatePreviewClicks() {
+    document.addEventListener("click", (e) => {
+      const img = e.target.closest(".hero-img");
+      if (img) {
+        e.preventDefault();
+        openLightbox(img.src, img.alt);
+      }
+    });
+  }
 
     function uid() {
       return crypto.randomUUID?.() || `post-${Date.now()}-${Math.random().toString(16).slice(2)}`;
@@ -380,6 +390,7 @@
       }
 
       renderFeed(filtered, tag);
+      delegatePreviewClicks();
     });
 
     lightbox.addEventListener("click", (e) => {
