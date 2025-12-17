@@ -1,6 +1,8 @@
 export default async function handler(req, res) {
   try {
     if (req.method !== "POST") return res.status(405).end();
+    if (!process.env.OPENAI_API_KEY)
+      return res.status(400).json({ error: "OPENAI_API_KEY is not set" });
     const { messages = [], system = "" } = await readJSON(req);
 
     const r = await fetch("https://api.openai.com/v1/chat/completions", {
