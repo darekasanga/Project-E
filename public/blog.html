@@ -217,6 +217,16 @@
 </style>
 
 <body>
+  <script>
+    (function enforceAdminSession() {
+      const SESSION_KEY = "emperor_admin_token";
+      const authed = sessionStorage.getItem(SESSION_KEY) === "active";
+      if (!authed) {
+        const destination = encodeURIComponent(location.pathname + location.search + location.hash);
+        window.location.replace(`/admin.html?redirect=${destination}`);
+      }
+    })();
+  </script>
   <header>
     <div class="logo-wrap">
       <div class="logo">E</div>

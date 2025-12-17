@@ -121,7 +121,7 @@
     </div>
     <div class="actions">
       <a class="pill" href="/">トップ</a>
-      <a class="pill primary" href="/blog.html">編集・アップロード</a>
+      <a class="pill primary" href="/blog.html" data-requires-auth="true">編集・アップロード</a>
     </div>
   </header>
 
@@ -132,7 +132,7 @@
       <p>ChatGPTからアップロードした記事をそのまま公開。黒基調のモバイル最適化カードで、公式LINEアカウントにもシェアできます。リンクだけで友だち追加と記事閲覧を両立。</p>
       <div class="cta-row">
         <a class="pill primary" id="openLine" target="_blank" rel="noreferrer">公式LINEで読む</a>
-        <a class="pill" href="/blog.html#upload">記事を投稿する</a>
+        <a class="pill" href="/blog.html#upload" data-requires-auth="true">記事を投稿する</a>
       </div>
       <div class="cta-row" id="metaInfo"></div>
     </section>
@@ -147,6 +147,7 @@
 
 <script>
   const officialLinePage = "https://page.line.me/projecte_official";
+  const adminSessionKey = "emperor_admin_token";
   const feedEl = document.getElementById("feed");
   const ticker = document.getElementById("ticker");
   const tickerClone = document.getElementById("tickerClone");
@@ -196,6 +197,22 @@
     `;
   }
 
+  function enforceAdminLinks() {
+    const adminLinks = document.querySelectorAll('[data-requires-auth]');
+    adminLinks.forEach((link) => {
+      link.addEventListener("click", (event) => {
+        const authed = sessionStorage.getItem(adminSessionKey) === "active";
+        if (authed) return;
+
+        event.preventDefault();
+        const rawTarget = link.getAttribute("href") || "/blog.html";
+        const normalized = rawTarget.startsWith("/") ? rawTarget : `/${rawTarget}`;
+        const redirect = encodeURIComponent(normalized);
+        location.href = `/admin.html?redirect=${redirect}`;
+      });
+    });
+  }
+
   function renderFeed(list) {
     feedEl.innerHTML = "";
     list.forEach((item, idx) => {
@@ -222,6 +239,7 @@
 
   document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("openLine").href = officialLinePage;
+    enforceAdminLinks();
     const articles = loadArticles();
     renderFeed(articles);
     renderTicker(articles.flatMap(a => a.tags || []));

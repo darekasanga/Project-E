@@ -1,0 +1,248 @@
+<!doctype html>
+<html lang="ja">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Emperor News Admin</title>
+<style>
+  :root {
+    --bg: #05070c;
+    --panel: #0c0f1a;
+    --accent: #38bdf8;
+    --accent-strong: #0ea5e9;
+    --text: #e5e7eb;
+    --muted: #9ca3af;
+    --border: #1f2937;
+    --success: #22c55e;
+    --danger: #f87171;
+    --radius: 14px;
+    --shadow: 0 20px 60px rgba(8, 15, 35, 0.45);
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+    background: radial-gradient(circle at top, rgba(56,189,248,0.14), transparent 38%),
+                radial-gradient(circle at 20% 20%, rgba(34,197,94,0.08), transparent 30%),
+                var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    display: grid;
+    place-items: center;
+    padding: 24px;
+  }
+  .shell {
+    width: min(980px, 100%);
+    background: linear-gradient(145deg, rgba(12,15,26,0.96), rgba(8,10,18,0.92));
+    border: 1px solid rgba(148, 163, 184, 0.14);
+    border-radius: 22px;
+    box-shadow: var(--shadow);
+    overflow: hidden;
+  }
+  header {
+    padding: 18px 22px;
+    border-bottom: 1px solid rgba(148, 163, 184, 0.16);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    background: radial-gradient(circle at 14% 10%, rgba(56,189,248,0.15), transparent 40%);
+  }
+  .brand { display: flex; align-items: center; gap: 12px; }
+  .logo {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #0ea5e9, #0f172a);
+    display: grid;
+    place-items: center;
+    color: #e0f2fe;
+    font-weight: 800;
+    border: 1px solid rgba(148, 163, 184, 0.4);
+  }
+  .brand h1 { margin: 0; font-size: 20px; letter-spacing: 0.01em; }
+  .brand p { margin: 2px 0 0; color: var(--muted); font-size: 13px; }
+  .pill {
+    padding: 9px 14px;
+    border-radius: 999px;
+    border: 1px solid rgba(148, 163, 184, 0.2);
+    background: rgba(56, 189, 248, 0.1);
+    color: var(--text);
+    text-decoration: none;
+    font-size: 13px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+  main { padding: 22px; display: grid; gap: 14px; }
+  .panel {
+    background: rgba(10, 12, 20, 0.9);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 18px;
+    display: grid;
+    gap: 10px;
+  }
+  h2 { margin: 0; font-size: 17px; letter-spacing: 0.01em; }
+  p { margin: 0; color: var(--muted); }
+  label { display: block; font-size: 12px; color: var(--muted); margin-bottom: 6px; }
+  input[type="text"], input[type="password"] {
+    width: 100%;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    padding: 12px;
+    background: #070911;
+    color: var(--text);
+    font-size: 15px;
+  }
+  button {
+    border: none;
+    border-radius: 12px;
+    padding: 12px 14px;
+    background: var(--accent-strong);
+    color: #e0f2fe;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: 0 8px 20px rgba(14,165,233,0.35);
+  }
+  button.secondary {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text);
+    box-shadow: none;
+  }
+  .hint { font-size: 13px; color: var(--muted); }
+  .stack { display: grid; gap: 10px; }
+  .badge { padding: 6px 10px; border-radius: 10px; background: rgba(34,197,94,0.12); border: 1px solid rgba(34,197,94,0.4); color: #bbf7d0; font-size: 12px; width: fit-content; }
+  .danger { background: rgba(248,113,113,0.12); border-color: rgba(248,113,113,0.4); color: #fecdd3; }
+  .actions { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+  .hidden { display: none; }
+</style>
+<body>
+  <div class="shell">
+    <header>
+      <div class="brand">
+        <div class="logo">E</div>
+        <div>
+          <h1>Emperor News Admin</h1>
+          <p>管理者ログインと管理UI</p>
+        </div>
+      </div>
+      <a class="pill" href="/">公開サイトへ戻る</a>
+    </header>
+
+    <main>
+      <section class="panel" id="loginPanel">
+        <h2>ログイン</h2>
+        <p>ユーザー名とパスワードを入力してください。</p>
+        <form class="stack" id="loginForm">
+          <div>
+            <label for="username">ユーザー名</label>
+            <input id="username" name="username" type="text" autocomplete="username" placeholder="admin" required>
+          </div>
+          <div>
+            <label for="password">パスワード</label>
+            <input id="password" name="password" type="password" autocomplete="current-password" placeholder="admin" required>
+          </div>
+          <div class="actions">
+            <button type="submit">ログイン</button>
+            <p class="hint">初期認証情報: <strong>admin / admin</strong></p>
+          </div>
+        </form>
+        <div class="badge danger hidden" id="errorMessage">ユーザー名またはパスワードが違います。</div>
+      </section>
+
+      <section class="panel hidden" id="adminPanel">
+        <div class="actions" style="justify-content: space-between; align-items: flex-start; flex-wrap: wrap;">
+          <div class="stack">
+            <div class="badge" id="statusBadge">ログイン中</div>
+            <h2 style="margin-top:-4px;">管理UI</h2>
+            <p>ログイン済みの管理者のみが閲覧できます。記事編集やアップロードに進めます。</p>
+          </div>
+          <button class="secondary" id="logoutBtn">ログアウト</button>
+        </div>
+        <div class="stack">
+          <div class="actions">
+            <a class="pill" href="/blog.html" id="openManager">記事管理を開く</a>
+            <a class="pill" href="/blog-public.html">公開ビューを見る</a>
+          </div>
+          <p class="hint">管理リンクは認証済みセッションでのみ利用できます。</p>
+        </div>
+      </section>
+    </main>
+  </div>
+
+<script>
+  const SESSION_KEY = "emperor_admin_token";
+  const loginPanel = document.getElementById("loginPanel");
+  const adminPanel = document.getElementById("adminPanel");
+  const errorMessage = document.getElementById("errorMessage");
+  const statusBadge = document.getElementById("statusBadge");
+  const redirectParam = new URLSearchParams(location.search).get("redirect");
+  const redirectTarget = redirectParam && redirectParam.startsWith("/") ? redirectParam : null;
+
+  function isAuthenticated() {
+    return sessionStorage.getItem(SESSION_KEY) === "active";
+  }
+
+  function setSession() {
+    sessionStorage.setItem(SESSION_KEY, "active");
+  }
+
+  function clearSession() {
+    sessionStorage.removeItem(SESSION_KEY);
+  }
+
+  function toggleView(authenticated) {
+    if (authenticated) {
+      loginPanel.classList.add("hidden");
+      adminPanel.classList.remove("hidden");
+      statusBadge.textContent = "ログイン中: admin";
+    } else {
+      adminPanel.classList.add("hidden");
+      loginPanel.classList.remove("hidden");
+    }
+  }
+
+  function handleRedirectIfNeeded() {
+    if (redirectTarget) {
+      location.href = redirectTarget;
+    }
+  }
+
+  document.getElementById("loginForm").addEventListener("submit", (event) => {
+    event.preventDefault();
+    const username = document.getElementById("username").value.trim();
+    const password = document.getElementById("password").value.trim();
+
+    if (username === "admin" && password === "admin") {
+      setSession();
+      errorMessage.classList.add("hidden");
+      toggleView(true);
+      handleRedirectIfNeeded();
+    } else {
+      errorMessage.classList.remove("hidden");
+    }
+  });
+
+  document.getElementById("logoutBtn").addEventListener("click", () => {
+    clearSession();
+    toggleView(false);
+  });
+
+  document.getElementById("openManager").addEventListener("click", (e) => {
+    if (!isAuthenticated()) {
+      e.preventDefault();
+      location.href = "/admin.html";
+    }
+  });
+
+  document.addEventListener("DOMContentLoaded", () => {
+    const authed = isAuthenticated();
+    toggleView(authed);
+    if (authed && redirectTarget) {
+      handleRedirectIfNeeded();
+    }
+  });
+</script>
+</body>
+</html>
