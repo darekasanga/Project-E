@@ -21,17 +21,22 @@
   </header>
 
   <main class="container">
-    <section class="hero">
+    <section class="hero" id="featuredHero">
       <div class="inline-chips">
-        <div class="badge">新設</div>
-        <div class="badge">レスポンシブ</div>
+        <div class="badge">注目記事</div>
+        <div class="badge" id="metaInfo"></div>
       </div>
-      <h2>幅に合わせて表情を変える一覧ビュー</h2>
-      <p>スマホでは縦にカードを並べ、タブレットはサムネイル横並び、PCではサイドバー付きの2カラムで統計とタグクラウドを固定。見やすさを保ちながら情報量を増やしました。</p>
-      <div class="inline-chips">
-        <span class="badge" id="metaInfo"></span>
-        <span class="badge">LINE連携</span>
-        <span class="badge">ローカル保存</span>
+      <div class="grid-2" style="align-items:center;">
+        <div class="stack" style="gap:10px;" id="featuredCopy">
+          <h2>幅に合わせて表情を変える一覧ビュー</h2>
+          <p>スマホでは縦にカードを並べ、タブレットはサムネイル横並び、PCではサイドバー付きの2カラムで統計とタグクラウドを固定。見やすさを保ちながら情報量を増やしました。</p>
+          <div class="inline-chips">
+            <span class="badge">LINE連携</span>
+            <span class="badge">ローカル保存</span>
+          </div>
+          <div class="actions" id="featuredShare"></div>
+        </div>
+        <div id="featuredVisual"></div>
       </div>
     </section>
 
@@ -84,8 +89,17 @@
         </div>
       </aside>
     </section>
+
+    <section class="panel" id="pinnedWrapper" style="display:none;">
+      <div class="section-title">
+        <h3>固定記事</h3>
+        <span class="tiny">管理ページで選択された記事を表示</span>
+      </div>
+      <div class="list card-layout" id="pinnedList"></div>
+    </section>
   </main>
 
+  <script src="/assets/lightbox.js"></script>
   <script src="/assets/blog-data.js"></script>
   <script>
     const officialLinePage = "https://page.line.me/projecte_official";
@@ -95,6 +109,11 @@
     const tagCloud = document.getElementById("tagCloud");
     const metaInfo = document.getElementById("metaInfo");
     const countBadge = document.getElementById("countBadge");
+    const featuredCopy = document.getElementById("featuredCopy");
+    const featuredShare = document.getElementById("featuredShare");
+    const featuredVisual = document.getElementById("featuredVisual");
+    const pinnedWrapper = document.getElementById("pinnedWrapper");
+    const pinnedList = document.getElementById("pinnedList");
 
     function enforceAdminLinks() {
       const adminLinks = document.querySelectorAll('[data-requires-auth]');
@@ -147,6 +166,40 @@
         `;
         listEl.appendChild(card);
       });
+      Lightbox.enhanceImages(listEl);
+    }
+
+    function renderFeatured(settings, list) {
+      featuredVisual.innerHTML = "";
+      featuredShare.innerHTML = "";
+      const { featuredId } = settings;
+      if (!list.length) {
+        featuredCopy.querySelector("h2").textContent = "記事がありません";
+        featuredCopy.querySelector("p").textContent = "管理ページから記事を追加してください。";
+        return;
+      }
+      const idx = Number.isInteger(featuredId) ? featuredId : 0;
+      const target = list[idx];
+      featuredCopy.querySelector("h2").textContent = target.title || "無題の記事";
+      featuredCopy.querySelector("p").textContent = target.body || "本文がありません";
+
+      if (target.image) {
+        const img = document.createElement("img");
+        img.src = target.image;
+        img.alt = target.title;
+        img.className = "thumb";
+        featuredVisual.appendChild(img);
+        Lightbox.enhanceImages(featuredVisual);
+      } else {
+        featuredVisual.innerHTML = '<div class="thumb fallback" style="max-width:320px;">NO IMAGE</div>';
+      }
+
+      const articleUrl = `${location.origin}/blog-article.html?id=${idx}`;
+      const shareUrl = BlogData.buildOfficialLineShare(articleUrl);
+      featuredShare.innerHTML = `
+        <a class="share line" href="${shareUrl}" target="_blank" rel="noreferrer">LINEで共有</a>
+        <a class="share" href="${articleUrl}" target="_blank">記事を開く</a>
+      `;
     }
 
     function renderStats(list) {
@@ -188,14 +241,52 @@
       countBadge.textContent = `${count} posts`;
     }
 
+    function renderPinned(list, settings) {
+      pinnedList.innerHTML = "";
+      if (!settings.footerIds?.length) {
+        pinnedWrapper.style.display = "none";
+        return;
+      }
+      pinnedWrapper.style.display = "grid";
+      settings.footerIds.forEach((id) => {
+        if (!Number.isInteger(id) || id < 0 || id >= list.length) return;
+        const item = list[id];
+        const card = document.createElement("article");
+        card.className = "list-card";
+        const articleUrl = `${location.origin}/blog-article.html?id=${id}`;
+        card.innerHTML = `
+          ${item.image ? `<img class="thumb" src="${item.image}" alt="${item.title}">` : '<div class="thumb fallback">NO IMAGE</div>'}
+          <div class="stack" style="gap:12px;">
+            <div class="inline-chips">
+              <span class="badge">固定枠</span>
+              <span class="badge">ID ${id}</span>
+            </div>
+            <h3 style="margin:0; font-size:18px; letter-spacing:0.01em;">${item.title}</h3>
+            <p class="muted">${item.body}</p>
+            <div class="meta">
+              ${(item.tags || []).map(t => `<span class="tag">#${t}</span>`).join("") || '<span class="tag">#untagged</span>'}
+            </div>
+            <div class="actions">
+              <a class="share" href="${articleUrl}" target="_blank">記事を開く</a>
+            </div>
+          </div>
+        `;
+        pinnedList.appendChild(card);
+      });
+      Lightbox.enhanceImages(pinnedList);
+    }
+
     document.addEventListener("DOMContentLoaded", () => {
       document.getElementById("openLine").href = officialLinePage;
       enforceAdminLinks();
       const articles = BlogData.loadArticles();
+      const settings = BlogData.loadSettings();
+      renderFeatured(settings, articles);
       renderList(articles);
       renderStats(articles);
       renderTags(articles);
       renderMeta(articles.length);
+      renderPinned(articles, settings);
     });
   </script>
 </body>

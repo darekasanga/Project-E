@@ -45,6 +45,27 @@
     </section>
 
     <section class="panel stack">
+      <div class="section-title">
+        <h3>配置設定</h3>
+        <span class="tiny">注目記事と固定記事を選択</span>
+      </div>
+      <form class="stack" id="settingsForm">
+        <div class="form-row">
+          <label class="tiny" for="featuredSelect">注目記事（一覧の一番上）</label>
+          <select id="featuredSelect"></select>
+        </div>
+        <div class="form-row">
+          <label class="tiny">固定記事（一覧の最下部に並べます）</label>
+          <div id="pinnedChoices" class="stack" style="gap:8px;"></div>
+        </div>
+        <div class="actions" style="justify-content: space-between; align-items: center; flex-wrap: wrap;">
+          <button class="primary" type="submit">配置を保存</button>
+          <span class="tiny" id="settingsStatus">一覧ページに反映されます。</span>
+        </div>
+      </form>
+    </section>
+
+    <section class="panel stack">
       <form class="stack" id="editorForm">
         <div class="form-row">
           <label for="title" class="tiny">タイトル</label>
@@ -90,6 +111,7 @@
     </section>
   </main>
 
+<script src="/assets/lightbox.js"></script>
 <script src="/assets/blog-data.js"></script>
 <script>
   const SESSION_KEY = "emperor_admin_token";
@@ -103,6 +125,10 @@
   const imagePreview = document.getElementById("imagePreview");
   const imageStatus = document.getElementById("imageStatus");
   const clearImageBtn = document.getElementById("clearImage");
+  const settingsForm = document.getElementById("settingsForm");
+  const featuredSelect = document.getElementById("featuredSelect");
+  const pinnedChoices = document.getElementById("pinnedChoices");
+  const settingsStatus = document.getElementById("settingsStatus");
   let editingIdx = null;
   let imageData = "";
 
@@ -153,6 +179,50 @@
   function setSessionBadge() {
     const authed = sessionStorage.getItem(SESSION_KEY) === "active";
     statusLabel.textContent = authed ? "ログイン中: admin" : "未ログイン";
+  }
+
+  function renderSettingsForm() {
+    const articles = BlogData.loadArticles();
+    const settings = BlogData.saveSettings(BlogData.loadSettings());
+    featuredSelect.innerHTML = "";
+    pinnedChoices.innerHTML = "";
+
+    if (!articles.length) {
+      featuredSelect.innerHTML = '<option value="">記事がありません</option>';
+      pinnedChoices.innerHTML = '<span class="tiny">記事追加後に設定できます。</span>';
+      settingsStatus.textContent = "記事を追加すると設定できます。";
+      return;
+    }
+
+    const fallbackOpt = document.createElement("option");
+    fallbackOpt.value = "";
+    fallbackOpt.textContent = "未指定 (先頭の記事を表示)";
+    featuredSelect.appendChild(fallbackOpt);
+
+    articles.forEach((article, idx) => {
+      const opt = document.createElement("option");
+      opt.value = String(idx);
+      opt.textContent = `ID ${idx}: ${article.title || "無題"}`;
+      if (settings.featuredId === idx) opt.selected = true;
+      featuredSelect.appendChild(opt);
+    });
+
+    articles.forEach((article, idx) => {
+      const row = document.createElement("label");
+      row.className = "flex";
+      row.style.justifyContent = "space-between";
+      const checkbox = document.createElement("input");
+      checkbox.type = "checkbox";
+      checkbox.value = String(idx);
+      checkbox.checked = settings.footerIds.includes(idx);
+      const text = document.createElement("span");
+      text.textContent = `ID ${idx}: ${article.title || "無題"}`;
+      row.appendChild(text);
+      row.appendChild(checkbox);
+      pinnedChoices.appendChild(row);
+    });
+
+    settingsStatus.textContent = `注目: ${Number.isInteger(settings.featuredId) ? `ID ${settings.featuredId}` : "未指定"} / 固定 ${settings.footerIds.length} 件`;
   }
 
   function renderList() {
@@ -211,6 +281,7 @@
     BlogData.upsertArticle(payload, editingIdx);
     fillForm({}, null);
     renderList();
+    renderSettingsForm();
     alert("記事を保存しました");
   }
 
@@ -230,14 +301,26 @@
       if (confirm("この記事を削除しますか？")) {
         BlogData.deleteArticle(idx);
         renderList();
+        renderSettingsForm();
       }
     }
+  }
+
+  function handleSettingsSave(event) {
+    event.preventDefault();
+    const featuredId = featuredSelect.value === "" ? null : parseInt(featuredSelect.value, 10);
+    const footerIds = Array.from(pinnedChoices.querySelectorAll('input[type="checkbox"]:checked'))
+      .map((input) => parseInt(input.value, 10))
+      .filter(Number.isInteger);
+    const normalized = BlogData.saveSettings({ featuredId, footerIds });
+    settingsStatus.textContent = `注目: ${Number.isInteger(normalized.featuredId) ? `ID ${normalized.featuredId}` : "未指定"} / 固定 ${normalized.footerIds.length} 件 保存しました`;
   }
 
   document.addEventListener("DOMContentLoaded", () => {
     setSessionBadge();
     renderList();
     fillForm({}, null);
+    renderSettingsForm();
   });
 
   form.addEventListener("submit", handleSave);
@@ -250,6 +333,7 @@
     setPreview("");
   });
   document.getElementById("newBtn").addEventListener("click", () => fillForm({}, null));
+  settingsForm.addEventListener("submit", handleSettingsSave);
 </script>
 </body>
 </html>

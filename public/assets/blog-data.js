@@ -1,5 +1,6 @@
 (() => {
   const storageKey = "emperor_articles";
+  const settingsKey = "emperor_article_settings";
   const officialLineAccountId = "@projecte_official";
   const baseArticles = [
     {
@@ -36,8 +37,38 @@
     return parseSaved() ?? baseArticles;
   }
 
+  function normalizeSettings(raw) {
+    const articles = loadArticles();
+    const limit = articles.length;
+    const featuredId = Number.isInteger(raw?.featuredId) && raw.featuredId >= 0 && raw.featuredId < limit
+      ? raw.featuredId
+      : (limit ? 0 : null);
+    const footerIds = Array.isArray(raw?.footerIds)
+      ? [...new Set(raw.footerIds.filter((idx) => Number.isInteger(idx) && idx >= 0 && idx < limit))]
+      : [];
+    return { featuredId, footerIds };
+  }
+
+  function loadSettings() {
+    const saved = localStorage.getItem(settingsKey);
+    if (!saved) return normalizeSettings({});
+    try {
+      const parsed = JSON.parse(saved);
+      return normalizeSettings(parsed);
+    } catch (err) {
+      console.warn("Failed to parse article settings", err);
+      return normalizeSettings({});
+    }
+  }
+
   function saveArticles(list) {
     localStorage.setItem(storageKey, JSON.stringify(list));
+  }
+
+  function saveSettings(next) {
+    const normalized = normalizeSettings(next);
+    localStorage.setItem(settingsKey, JSON.stringify(normalized));
+    return normalized;
   }
 
   function upsertArticle(article, idx) {
@@ -66,19 +97,40 @@
     return { article: list[safeIdx], list, idx: safeIdx };
   }
 
+  function getFeaturedArticle() {
+    const settings = loadSettings();
+    if (!Number.isInteger(settings.featuredId)) return { article: null, idx: null, settings };
+    const { article, idx } = findArticle(settings.featuredId);
+    return { article, idx, settings };
+  }
+
+  function getFooterArticles() {
+    const settings = loadSettings();
+    const articles = loadArticles();
+    const pinned = settings.footerIds
+      .map((idx) => ({ idx, article: articles[idx] }))
+      .filter((item) => item.article);
+    return { list: pinned, settings };
+  }
+
   function buildOfficialLineShare(url) {
     return `https://social-plugins.line.me/lineit/share?url=${encodeURIComponent(url)}&accountId=${encodeURIComponent(officialLineAccountId)}`;
   }
 
   window.BlogData = {
     storageKey,
+    settingsKey,
     officialLineAccountId,
     baseArticles,
     loadArticles,
     saveArticles,
+    loadSettings,
+    saveSettings,
     upsertArticle,
     deleteArticle,
     findArticle,
+    getFeaturedArticle,
+    getFooterArticles,
     buildOfficialLineShare,
   };
 })();
