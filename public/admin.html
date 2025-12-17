@@ -1,63 +1,71 @@
 <!doctype html>
 <html lang="ja">
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Emperor News 管理page</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Emperor News Admin</title>
 <style>
   :root {
-    --bg: #050505;
-    --panel: #0b0b0b;
+    --bg: #05070c;
+    --panel: #0c0f1a;
+    --accent: #38bdf8;
+    --accent-strong: #0ea5e9;
+    --text: #e5e7eb;
     --muted: #9ca3af;
-    --text: #f7f7f7;
-    --line: #06c755;
-    --border: #1f1f1f;
-    --danger: #ef4444;
-    --radius: 18px;
+    --border: #1f2937;
+    --success: #22c55e;
+    --danger: #f87171;
+    --radius: 14px;
+    --shadow: 0 20px 60px rgba(8, 15, 35, 0.45);
   }
   * { box-sizing: border-box; }
   body {
     margin: 0;
-    font-family: "SF Pro Display", "Inter", "Noto Sans JP", system-ui, sans-serif;
-    background: radial-gradient(180% 160% at 15% 20%, rgba(6,199,85,0.12), transparent),
-                radial-gradient(140% 140% at 80% 0%, rgba(6,199,85,0.08), transparent),
+    font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+    background: radial-gradient(circle at top, rgba(56,189,248,0.14), transparent 38%),
+                radial-gradient(circle at 20% 20%, rgba(34,197,94,0.08), transparent 30%),
                 var(--bg);
     color: var(--text);
     min-height: 100vh;
-    padding: 20px;
     display: grid;
-    gap: 18px;
+    place-items: center;
+    padding: 24px;
+  }
+  .shell {
+    width: min(980px, 100%);
+    background: linear-gradient(145deg, rgba(12,15,26,0.96), rgba(8,10,18,0.92));
+    border: 1px solid rgba(148, 163, 184, 0.14);
+    border-radius: 22px;
+    box-shadow: var(--shadow);
+    overflow: hidden;
   }
   header {
-    background: #0a0a0a;
-    border: 1px solid var(--border);
-    border-radius: 22px;
-    padding: 16px;
+    padding: 18px 22px;
+    border-bottom: 1px solid rgba(148, 163, 184, 0.16);
     display: flex;
-    align-items: center;
     justify-content: space-between;
+    align-items: center;
     gap: 12px;
-    flex-wrap: wrap;
+    background: radial-gradient(circle at 14% 10%, rgba(56,189,248,0.15), transparent 40%);
   }
   .brand { display: flex; align-items: center; gap: 12px; }
   .logo {
-    width: 42px;
-    height: 42px;
-    border-radius: 14px;
-    border: 1px solid var(--border);
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #0ea5e9, #0f172a);
     display: grid;
     place-items: center;
-    background: #0f0f0f;
-    color: var(--line);
-    font-weight: 700;
+    color: #e0f2fe;
+    font-weight: 800;
+    border: 1px solid rgba(148, 163, 184, 0.4);
   }
-  .brand h1 { margin: 0; font-size: 19px; }
-  .brand p { margin: 4px 0 0; color: var(--muted); font-size: 13px; }
-  .actions { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+  .brand h1 { margin: 0; font-size: 20px; letter-spacing: 0.01em; }
+  .brand p { margin: 2px 0 0; color: var(--muted); font-size: 13px; }
   .pill {
     padding: 9px 14px;
     border-radius: 999px;
-    border: 1px solid var(--border);
-    background: #0d0d0d;
+    border: 1px solid rgba(148, 163, 184, 0.2);
+    background: rgba(56, 189, 248, 0.1);
     color: var(--text);
     text-decoration: none;
     font-size: 13px;
@@ -65,352 +73,175 @@
     align-items: center;
     gap: 6px;
   }
-  .pill.primary { background: var(--line); color: #041902; font-weight: 700; border-color: #0f2f14; }
-  main { display: grid; gap: 14px; }
+  main { padding: 22px; display: grid; gap: 14px; }
   .panel {
-    background: var(--panel);
+    background: rgba(10, 12, 20, 0.9);
     border: 1px solid var(--border);
     border-radius: var(--radius);
-    padding: 16px;
-    box-shadow: 0 16px 40px rgba(0,0,0,0.35);
+    padding: 18px;
+    display: grid;
+    gap: 10px;
   }
-  .panel h2 { margin: 0 0 6px; font-size: 16px; }
-  .panel p { margin: 0 0 10px; color: var(--muted); font-size: 13px; }
-  .toolbar { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; justify-content: space-between; }
-  .badge { padding: 6px 10px; border-radius: 10px; border: 1px solid var(--border); color: var(--muted); font-size: 12px; }
-  table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-top: 6px;
-  }
-  th, td {
-    border-bottom: 1px solid var(--border);
-    padding: 10px 8px;
-    text-align: left;
-    font-size: 13px;
-    vertical-align: top;
-  }
-  th { color: var(--muted); font-weight: 600; }
-  tbody tr:hover { background: rgba(255,255,255,0.03); }
-  .tag-list { display: flex; gap: 6px; flex-wrap: wrap; }
-  .tag { padding: 5px 9px; border-radius: 999px; border: 1px solid var(--border); background: #0f0f0f; font-size: 12px; }
-  .btn {
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 8px 12px;
-    background: #0d0d0d;
-    color: var(--text);
-    cursor: pointer;
-    font-size: 13px;
-  }
-  .btn.primary { background: var(--line); color: #041902; border-color: #0f2f14; font-weight: 700; }
-  .btn.danger { border-color: #2d0d0d; color: #fecaca; background: rgba(239,68,68,0.1); }
-  form { display: grid; gap: 10px; }
-  label { display: block; font-size: 12px; color: var(--muted); margin-bottom: 4px; }
-  input, textarea {
+  h2 { margin: 0; font-size: 17px; letter-spacing: 0.01em; }
+  p { margin: 0; color: var(--muted); }
+  label { display: block; font-size: 12px; color: var(--muted); margin-bottom: 6px; }
+  input[type="text"], input[type="password"] {
     width: 100%;
     border-radius: 12px;
     border: 1px solid var(--border);
-    padding: 10px 12px;
-    background: #0f0f0f;
+    padding: 12px;
+    background: #070911;
     color: var(--text);
-    font-size: 14px;
+    font-size: 15px;
   }
-  textarea { min-height: 120px; resize: vertical; }
-  .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 10px; }
-  .form-actions { display: flex; gap: 10px; flex-wrap: wrap; }
-  .hint { color: var(--muted); font-size: 12px; }
-  @media (max-width: 700px) {
-    header { flex-direction: column; align-items: flex-start; }
-    .toolbar { flex-direction: column; align-items: flex-start; }
+  button {
+    border: none;
+    border-radius: 12px;
+    padding: 12px 14px;
+    background: var(--accent-strong);
+    color: #e0f2fe;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: 0 8px 20px rgba(14,165,233,0.35);
   }
+  button.secondary {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text);
+    box-shadow: none;
+  }
+  .hint { font-size: 13px; color: var(--muted); }
+  .stack { display: grid; gap: 10px; }
+  .badge { padding: 6px 10px; border-radius: 10px; background: rgba(34,197,94,0.12); border: 1px solid rgba(34,197,94,0.4); color: #bbf7d0; font-size: 12px; width: fit-content; }
+  .danger { background: rgba(248,113,113,0.12); border-color: rgba(248,113,113,0.4); color: #fecdd3; }
+  .actions { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+  .hidden { display: none; }
 </style>
 <body>
-  <header>
-    <div class="brand">
-      <div class="logo">E</div>
-      <div>
-        <h1>Emperor News 管理</h1>
-        <p>記事の一覧・編集・削除を行います</p>
-      </div>
-    </div>
-    <div class="actions">
-      <a class="pill" href="/">トップ</a>
-      <a class="pill" href="/blog-public.html" target="_blank" rel="noreferrer">公開ページ</a>
-      <a class="pill" href="/blog.html" target="_blank" rel="noreferrer">アップロードフォーム</a>
-      <button class="pill primary" id="newButton" type="button">新規作成</button>
-    </div>
-  </header>
-
-  <main>
-    <section class="panel">
-      <div class="toolbar">
+  <div class="shell">
+    <header>
+      <div class="brand">
+        <div class="logo">E</div>
         <div>
-          <h2>記事一覧</h2>
-          <p>タイトル・タグ・作成日時を確認し、編集・削除を実行できます。</p>
+          <h1>Emperor News Admin</h1>
+          <p>管理者ログインと管理UI</p>
         </div>
-        <div class="badge" id="meta">0 件</div>
       </div>
-      <div class="table-wrap">
-        <table aria-label="記事一覧">
-          <thead>
-            <tr>
-              <th>タイトル</th>
-              <th>タグ</th>
-              <th>作成日時</th>
-              <th>操作</th>
-            </tr>
-          </thead>
-          <tbody id="articleBody">
-            <tr><td colspan="4" style="color: var(--muted); text-align:center; padding:16px;">読み込み中…</td></tr>
-          </tbody>
-        </table>
-      </div>
-    </section>
+      <a class="pill" href="/">公開サイトへ戻る</a>
+    </header>
 
-    <section class="panel">
-      <h2 id="formTitle">新規記事</h2>
-      <p>記事を新規作成するか、一覧の「編集」から読み込んで更新してください。</p>
-      <form id="editorForm">
-        <div class="form-grid">
+    <main>
+      <section class="panel" id="loginPanel">
+        <h2>ログイン</h2>
+        <p>ユーザー名とパスワードを入力してください。</p>
+        <form class="stack" id="loginForm">
           <div>
-            <label for="title">タイトル</label>
-            <input id="title" name="title" placeholder="タイトル" required>
+            <label for="username">ユーザー名</label>
+            <input id="username" name="username" type="text" autocomplete="username" placeholder="admin" required>
           </div>
           <div>
-            <label for="tags">タグ（カンマ区切り）</label>
-            <input id="tags" name="tags" placeholder="tech, news">
+            <label for="password">パスワード</label>
+            <input id="password" name="password" type="password" autocomplete="current-password" placeholder="admin" required>
           </div>
-          <div>
-            <label for="imageUrl">カバー画像URL</label>
-            <input id="imageUrl" name="imageUrl" placeholder="https://example.com/cover.jpg">
+          <div class="actions">
+            <button type="submit">ログイン</button>
+            <p class="hint">初期認証情報: <strong>admin / admin</strong></p>
           </div>
-          <div>
-            <label for="imageFile">または画像ファイル</label>
-            <input id="imageFile" name="imageFile" type="file" accept="image/*">
-            <div class="hint">URLが空でファイルを選ぶと、Base64で保存されます。</div>
+        </form>
+        <div class="badge danger hidden" id="errorMessage">ユーザー名またはパスワードが違います。</div>
+      </section>
+
+      <section class="panel hidden" id="adminPanel">
+        <div class="actions" style="justify-content: space-between; align-items: flex-start; flex-wrap: wrap;">
+          <div class="stack">
+            <div class="badge" id="statusBadge">ログイン中</div>
+            <h2 style="margin-top:-4px;">管理UI</h2>
+            <p>ログイン済みの管理者のみが閲覧できます。記事編集やアップロードに進めます。</p>
           </div>
+          <button class="secondary" id="logoutBtn">ログアウト</button>
         </div>
-        <div>
-          <label for="body">本文（改行可）</label>
-          <textarea id="body" name="body" placeholder="本文を入力" required></textarea>
+        <div class="stack">
+          <div class="actions">
+            <a class="pill" href="/blog.html" id="openManager">記事管理を開く</a>
+            <a class="pill" href="/blog-public.html">公開ビューを見る</a>
+          </div>
+          <p class="hint">管理リンクは認証済みセッションでのみ利用できます。</p>
         </div>
-        <div class="form-actions">
-          <button class="btn primary" type="submit">保存</button>
-          <button class="btn" type="button" id="resetButton">入力をクリア</button>
-        </div>
-      </form>
-    </section>
-  </main>
+      </section>
+    </main>
+  </div>
 
 <script>
-  const STORAGE_KEY = "emperor_articles";
-  const baseArticles = [
-    {
-      title: "スクロールスナップで魅せるiPad特集",
-      body: "iPadOSのオーバースクロールに合わせた柔らかなカードUI。モバイルファーストの編集フローを紹介。",
-      tags: ["iPad", "UI", "ScrollSnap"],
-      image: "https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?auto=format&fit=crop&w=900&q=80",
-      createdAt: "2024-03-02T09:00:00.000Z",
-    },
-    {
-      title: "LINE配信テンプレート付き記事運用",
-      body: "配信用のOGPとLINEシェアURLをワンクリック生成。チャット経由での下書きアップロードにも対応。",
-      tags: ["LINE", "OGP", "Automation"],
-      image: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=900&q=80",
-      createdAt: "2024-03-08T12:00:00.000Z",
-    },
-    {
-      title: "ChatGPT→ブログ 直貼りワークフロー",
-      body: "ChatGPTで生成した文章をそのままペースト。カバー画像とタグを加えて即公開。",
-      tags: ["ChatGPT", "Workflow", "Creator"],
-      image: "https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=900&q=80",
-      createdAt: "2024-03-15T18:00:00.000Z",
-    }
-  ];
+  const SESSION_KEY = "emperor_admin_token";
+  const loginPanel = document.getElementById("loginPanel");
+  const adminPanel = document.getElementById("adminPanel");
+  const errorMessage = document.getElementById("errorMessage");
+  const statusBadge = document.getElementById("statusBadge");
+  const redirectParam = new URLSearchParams(location.search).get("redirect");
+  const redirectTarget = redirectParam && redirectParam.startsWith("/") ? redirectParam : null;
 
-  const articleBody = document.getElementById("articleBody");
-  const meta = document.getElementById("meta");
-  const form = document.getElementById("editorForm");
-  const titleInput = document.getElementById("title");
-  const tagsInput = document.getElementById("tags");
-  const imageUrlInput = document.getElementById("imageUrl");
-  const imageFileInput = document.getElementById("imageFile");
-  const bodyInput = document.getElementById("body");
-  const formTitle = document.getElementById("formTitle");
-
-  let articles = [];
-  let editingIndex = null;
-
-  function normalizeArticles(list) {
-    return list.map((item, idx) => ({
-      ...item,
-      createdAt: item.createdAt || new Date(Date.now() - idx * 3600_000).toISOString(),
-    }));
+  function isAuthenticated() {
+    return sessionStorage.getItem(SESSION_KEY) === "active";
   }
 
-  function persist(list) {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
+  function setSession() {
+    sessionStorage.setItem(SESSION_KEY, "active");
   }
 
-  function loadArticles() {
-    const saved = localStorage.getItem(STORAGE_KEY);
-    const raw = saved ? JSON.parse(saved) : baseArticles;
-    const normalized = normalizeArticles(raw);
-    if (!saved || normalized.some((item, idx) => !raw[idx]?.createdAt)) {
-      persist(normalized);
-    }
-    return normalized;
+  function clearSession() {
+    sessionStorage.removeItem(SESSION_KEY);
   }
 
-  function formatDate(value) {
-    const date = new Date(value);
-    if (Number.isNaN(date.getTime())) return "—";
-    return date.toLocaleString("ja-JP", { year: "numeric", month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" });
-  }
-
-  function updateMeta(count) {
-    meta.textContent = `${count} 件`;
-  }
-
-  function renderTable(list) {
-    if (!list.length) {
-      articleBody.innerHTML = '<tr><td colspan="4" style="color: var(--muted); text-align:center; padding:16px;">記事がありません。新規作成してください。</td></tr>';
-      updateMeta(0);
-      return;
-    }
-
-    const rows = list.map((item, idx) => `
-      <tr>
-        <td>${item.title || "(無題)"}</td>
-        <td>
-          <div class="tag-list">${(item.tags || []).map(tag => `<span class="tag">#${tag}</span>`).join("") || '<span class="tag">#untagged</span>'}</div>
-        </td>
-        <td>${formatDate(item.createdAt)}</td>
-        <td>
-          <div class="tag-list">
-            <button class="btn" data-action="edit" data-idx="${idx}">編集</button>
-            <button class="btn danger" data-action="delete" data-idx="${idx}">削除</button>
-          </div>
-        </td>
-      </tr>
-    `).join("");
-
-    articleBody.innerHTML = rows;
-    updateMeta(list.length);
-  }
-
-  function resetForm() {
-    editingIndex = null;
-    formTitle.textContent = "新規記事";
-    form.reset();
-    imageFileInput.value = "";
-  }
-
-  function loadIntoForm(article, idx) {
-    editingIndex = idx;
-    formTitle.textContent = `編集中: ${article.title || "(無題)"}`;
-    titleInput.value = article.title || "";
-    tagsInput.value = (article.tags || []).join(", ");
-    imageUrlInput.value = article.image || "";
-    imageFileInput.value = "";
-    bodyInput.value = article.body || "";
-  }
-
-  function readFileAsDataURL(file) {
-    return new Promise((resolve) => {
-      const reader = new FileReader();
-      reader.onload = () => resolve(reader.result);
-      reader.readAsDataURL(file);
-    });
-  }
-
-  async function handleSubmit(event) {
-    event.preventDefault();
-    const title = titleInput.value.trim();
-    const body = bodyInput.value.trim();
-    const tags = tagsInput.value.split(",").map(t => t.trim()).filter(Boolean);
-    const imgFile = imageFileInput.files[0];
-
-    if (!title || !body) {
-      alert("タイトルと本文を入力してください。");
-      return;
-    }
-
-    let image = imageUrlInput.value.trim();
-    if (imgFile) {
-      image = await readFileAsDataURL(imgFile);
-    }
-
-    if (editingIndex !== null) {
-      if (!articles[editingIndex]) {
-        alert("選択した記事が見つかりませんでした。");
-        return;
-      }
-      articles[editingIndex] = {
-        ...articles[editingIndex],
-        title,
-        body,
-        tags,
-        image,
-        createdAt: articles[editingIndex].createdAt || new Date().toISOString(),
-      };
+  function toggleView(authenticated) {
+    if (authenticated) {
+      loginPanel.classList.add("hidden");
+      adminPanel.classList.remove("hidden");
+      statusBadge.textContent = "ログイン中: admin";
     } else {
-      const newArticle = { title, body, tags, image, createdAt: new Date().toISOString() };
-      articles = [newArticle, ...articles];
-    }
-
-    persist(articles);
-    renderTable(articles);
-    resetForm();
-  }
-
-  function handleAction(event) {
-    const action = event.target.getAttribute("data-action");
-    const idx = Number(event.target.getAttribute("data-idx"));
-    if (!action || Number.isNaN(idx)) return;
-
-    if (action === "edit") {
-      loadIntoForm(articles[idx], idx);
-    }
-
-    if (action === "delete") {
-      const target = articles[idx];
-      if (!target) return;
-      const ok = confirm(`「${target.title || "(無題)"}」を削除しますか？`);
-      if (!ok) return;
-      articles.splice(idx, 1);
-      persist(articles);
-      renderTable(articles);
-      if (editingIndex === idx) {
-        resetForm();
-      }
+      adminPanel.classList.add("hidden");
+      loginPanel.classList.remove("hidden");
     }
   }
 
-  document.getElementById("newButton").addEventListener("click", () => {
-    resetForm();
-    titleInput.focus();
+  function handleRedirectIfNeeded() {
+    if (redirectTarget) {
+      location.href = redirectTarget;
+    }
+  }
+
+  document.getElementById("loginForm").addEventListener("submit", (event) => {
+    event.preventDefault();
+    const username = document.getElementById("username").value.trim();
+    const password = document.getElementById("password").value.trim();
+
+    if (username === "admin" && password === "admin") {
+      setSession();
+      errorMessage.classList.add("hidden");
+      toggleView(true);
+      handleRedirectIfNeeded();
+    } else {
+      errorMessage.classList.remove("hidden");
+    }
   });
 
-  document.getElementById("resetButton").addEventListener("click", () => {
-    resetForm();
+  document.getElementById("logoutBtn").addEventListener("click", () => {
+    clearSession();
+    toggleView(false);
   });
 
-  articleBody.addEventListener("click", handleAction);
-  form.addEventListener("submit", handleSubmit);
-
-  window.addEventListener("storage", (event) => {
-    if (event.key === STORAGE_KEY && event.newValue) {
-      articles = normalizeArticles(JSON.parse(event.newValue));
-      renderTable(articles);
+  document.getElementById("openManager").addEventListener("click", (e) => {
+    if (!isAuthenticated()) {
+      e.preventDefault();
+      location.href = "/admin.html";
     }
   });
 
   document.addEventListener("DOMContentLoaded", () => {
-    articles = loadArticles();
-    renderTable(articles);
-    resetForm();
+    const authed = isAuthenticated();
+    toggleView(authed);
+    if (authed && redirectTarget) {
+      handleRedirectIfNeeded();
+    }
   });
 </script>
 </body>
