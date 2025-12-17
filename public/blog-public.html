@@ -67,7 +67,7 @@
     </div>
     <div class="actions">
       <a class="pill" href="/">トップ</a>
-      <a class="pill primary" href="/blog.html" data-requires-auth="true">編集・アップロード</a>
+      <a class="pill primary" href="/blog-edit.html" data-requires-auth="true">編集・アップロード</a>
     </div>
   </header>
 
@@ -78,7 +78,7 @@
       <p>管理画面やチャットから登録した記事をそのまま公開。黒基調のモバイル最適化カードで、公式LINEアカウントにもシェアできます。リンクだけで友だち追加と記事閲覧を両立。</p>
       <div class="cta-row">
         <a class="pill primary" id="openLine" rel="noreferrer">公式LINEで読む</a>
-        <a class="pill" href="/blog.html#upload" data-requires-auth="true">記事を投稿する</a>
+        <a class="pill" href="/blog-edit.html" data-requires-auth="true">記事を投稿する</a>
       </div>
       <div class="cta-row" id="metaInfo"></div>
     </section>
@@ -134,7 +134,7 @@
         if (authed) return;
 
         event.preventDefault();
-        const rawTarget = link.getAttribute("href") || "/blog.html";
+        const rawTarget = link.getAttribute("href") || "/blog-edit.html";
         const normalized = rawTarget.startsWith("/") ? rawTarget : `/${rawTarget}`;
         const redirect = encodeURIComponent(normalized);
         location.href = `/admin.html?redirect=${redirect}`;
