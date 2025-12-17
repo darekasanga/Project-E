@@ -40,48 +40,7 @@
         <h2>注目記事</h2>
         <span class="muted">横スクロールでチェック</span>
       </div>
-      <div class="scroll-row">
-        <article class="featured-card">
-          <div class="featured-thumb" aria-hidden="true"></div>
-          <div class="featured-pill">特集</div>
-          <h3>生成AIで記事制作を高速化</h3>
-          <p>編集部のワークフローを自動化し、下書き生成から校閲まで一気通貫で支援する最新ツールをレビュー。</p>
-          <div class="featured-meta">
-            <span>テック / プロダクト</span>
-            <span>8分</span>
-          </div>
-        </article>
-        <article class="featured-card gradient-blue">
-          <div class="featured-thumb" aria-hidden="true"></div>
-          <div class="featured-pill">インタビュー</div>
-          <h3>著名ブロガーが語る「書き続ける理由」</h3>
-          <p>PVや収益だけではない、ファンとの共創や長期のブランド形成をどう捉えているのかを深堀りしました。</p>
-          <div class="featured-meta">
-            <span>カルチャー</span>
-            <span>6分</span>
-          </div>
-        </article>
-        <article class="featured-card gradient-gold">
-          <div class="featured-thumb" aria-hidden="true"></div>
-          <div class="featured-pill">速報</div>
-          <h3>新デバイス発表イベントをリアルタイム更新</h3>
-          <p>現地からの写真と試用インプレッションを随時更新。UI/UXの細部をスクリーンショット付きで追います。</p>
-          <div class="featured-meta">
-            <span>ガジェット</span>
-            <span>ライブ</span>
-          </div>
-        </article>
-        <article class="featured-card gradient-purple">
-          <div class="featured-thumb" aria-hidden="true"></div>
-          <div class="featured-pill">連載</div>
-          <h3>デザインシステム刷新の舞台裏</h3>
-          <p>統一されたコンポーネント設計とアクセシビリティ改善を、実装例とともにシリーズで解説します。</p>
-          <div class="featured-meta">
-            <span>UI/UX</span>
-            <span>10分</span>
-          </div>
-        </article>
-      </div>
+      <div class="scroll-row" id="featuredRow"></div>
     </section>
 
     <section class="section">
@@ -173,6 +132,7 @@
     const heroActions = document.getElementById("heroActions");
     const heroBadge = document.getElementById("heroBadge");
     const heroMeta = document.getElementById("heroMeta");
+    const featuredRow = document.getElementById("featuredRow");
 
     const heroFallback = {
       title: "全ページをレスポンシブで作り直しました",
@@ -189,7 +149,8 @@
     }
 
     function renderLatestList() {
-      const articles = BlogData.loadArticles();
+      const latest = BlogData.getHomeLatestArticles();
+      const articles = latest.list;
       latestList.innerHTML = "";
 
       if (!articles.length) {
@@ -197,8 +158,8 @@
         return;
       }
 
-      articles.slice(0, 4).forEach((article, idx) => {
-        const isLatest = idx === 0;
+      articles.forEach(({ article, idx }, orderIdx) => {
+        const isLatest = orderIdx === 0;
         const primaryTag = article.tags?.[0];
         const detailLink = `/blog-article.html?id=${idx}`;
         const card = document.createElement("article");
@@ -216,6 +177,45 @@
           </div>
         `;
         latestList.appendChild(card);
+      });
+    }
+
+    function renderFeaturedRow() {
+      const featured = BlogData.getHomeFeaturedArticles();
+      const articles = featured.list;
+      featuredRow.innerHTML = "";
+
+      if (!articles.length) {
+        featuredRow.innerHTML = '<p class="muted">記事を追加して注目枠を設定してください。</p>';
+        return;
+      }
+
+      const gradients = ["", "gradient-blue", "gradient-gold", "gradient-purple"];
+
+      articles.forEach(({ article, idx }, orderIdx) => {
+        const card = document.createElement("article");
+        const gradient = gradients[orderIdx % gradients.length];
+        card.className = `featured-card ${gradient}`.trim();
+        const cover = article.image
+          ? `<div class="featured-thumb" aria-hidden="true" style="background-image: url(${article.image}); background-size: cover; background-position: center;"></div>`
+          : '<div class="featured-thumb fallback" aria-hidden="true">NO IMAGE</div>';
+        const primaryTag = article.tags?.[0];
+        const secondaryTag = article.tags?.[1];
+        const articleUrl = `/blog-article.html?id=${idx}`;
+        card.innerHTML = `
+          ${cover}
+          <div class="featured-pill">ID ${idx}</div>
+          <h3>${article.title || "無題の記事"}</h3>
+          <p>${article.body || "本文がありません"}</p>
+          <div class="featured-meta">
+            <span>${primaryTag ? `#${primaryTag}` : "タグなし"}</span>
+            <span>${secondaryTag ? `#${secondaryTag}` : "選択順 ${orderIdx + 1}"}</span>
+          </div>
+          <div class="actions" style="margin-top:8px;">
+            <a class="button ghost" href="${articleUrl}">記事を読む</a>
+          </div>
+        `;
+        featuredRow.appendChild(card);
       });
     }
 
@@ -273,6 +273,7 @@
     document.addEventListener("DOMContentLoaded", () => {
       renderHeroFromArticle();
       renderLatestList();
+      renderFeaturedRow();
     });
   </script>
 </body>
