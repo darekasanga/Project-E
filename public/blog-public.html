@@ -158,20 +158,30 @@
       body: "黒背景とオーバースクロールを活かしたカードレイアウト。公式LINEアカウントへの配信リンクを同梱。",
       tags: ["iPad", "Scroll", "LINE公式"],
       image: "https://images.unsplash.com/photo-1472289065668-ce650ac443d2?auto=format&fit=crop&w=1200&q=80",
+      createdAt: "2024-03-02T09:00:00.000Z",
     },
     {
       title: "ChatGPTから即公開",
-      body: "チャットで生成した原稿をそのまま貼り付け。タグとカバーを足すだけで読者向けカードを生成します。",
+      body: "チャットで生成した原稿をそのまま貼付け。タグとカバーを足すだけで読者向けカードを生成します。",
       tags: ["ChatGPT", "Workflow"],
       image: "https://images.unsplash.com/photo-1507138451611-3001135909a5?auto=format&fit=crop&w=1200&q=80",
+      createdAt: "2024-03-08T12:00:00.000Z",
     },
     {
       title: "LINEシェアリンクをワンクリック",
       body: "公式LINEアカウントと連動した共有ボタンを自動生成。外部ブラウザでも快適に閲覧できるOGP調整済み。",
       tags: ["LINE", "Share", "OGP"],
       image: "https://images.unsplash.com/photo-1508766206392-8bd5cf550d1b?auto=format&fit=crop&w=1200&q=80",
+      createdAt: "2024-03-15T18:00:00.000Z",
     }
   ];
+
+  function normalizeArticles(list) {
+    return list.map((item, idx) => ({
+      ...item,
+      createdAt: item.createdAt || new Date(Date.now() - idx * 3600_000).toISOString(),
+    }));
+  }
 
   function buildOfficialLineShare(url) {
     return `https://social-plugins.line.me/lineit/share?url=${encodeURIComponent(url)}&accountId=@projecte_official`;
@@ -179,7 +189,10 @@
 
   function loadArticles() {
     const saved = localStorage.getItem("emperor_articles");
-    return saved ? JSON.parse(saved) : baseArticles;
+    const raw = saved ? JSON.parse(saved) : baseArticles;
+    const data = normalizeArticles(raw);
+    localStorage.setItem("emperor_articles", JSON.stringify(data));
+    return data;
   }
 
   function renderTicker(tags) {

@@ -227,6 +227,7 @@
     </div>
     <div class="nav-actions">
       <a class="pill" href="/">トップへ</a>
+      <a class="pill" href="/admin.html">管理ページ</a>
       <a class="pill primary" href="#upload">ChatGPTから貼り付け</a>
     </div>
   </header>
@@ -305,24 +306,36 @@
       body: "iPadOSのオーバースクロールに合わせた柔らかなカードUI。モバイルファーストの編集フローを紹介。",
       tags: ["iPad", "UI", "ScrollSnap"],
       image: "https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?auto=format&fit=crop&w=900&q=80",
+      createdAt: "2024-03-02T09:00:00.000Z",
     },
     {
       title: "LINE配信テンプレート付き記事運用",
       body: "配信用のOGPとLINEシェアURLをワンクリック生成。チャット経由での下書きアップロードにも対応。",
       tags: ["LINE", "OGP", "Automation"],
       image: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=900&q=80",
+      createdAt: "2024-03-08T12:00:00.000Z",
     },
     {
       title: "ChatGPT→ブログ 直貼りワークフロー",
       body: "ChatGPTで生成した文章をそのままペースト。カバー画像とタグを加えて即公開。",
       tags: ["ChatGPT", "Workflow", "Creator"],
       image: "https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=900&q=80",
+      createdAt: "2024-03-15T18:00:00.000Z",
     }
   ];
 
+  function normalizeArticles(list) {
+    return list.map((item, idx) => ({
+      ...item,
+      createdAt: item.createdAt || new Date(Date.now() - idx * 3600_000).toISOString(),
+    }));
+  }
+
   function loadArticles() {
     const saved = localStorage.getItem("emperor_articles");
-    const data = saved ? JSON.parse(saved) : baseArticles;
+    const raw = saved ? JSON.parse(saved) : baseArticles;
+    const data = normalizeArticles(raw);
+    persist(data);
     renderFeatures(data);
     renderFeed(data);
   }
@@ -425,7 +438,7 @@
     const list = saved ? JSON.parse(saved) : [...baseArticles];
     const image = imgFile ? await readFileAsDataURL(imgFile) : "";
 
-    const article = { title, body, tags, image };
+    const article = { title, body, tags, image, createdAt: new Date().toISOString() };
     const updated = [article, ...list];
     persist(updated);
     renderFeatures(updated);
