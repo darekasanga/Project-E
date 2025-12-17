@@ -548,23 +548,34 @@
     }
     links.forEach((link) => {
       const row = document.createElement("article");
-      row.className = "card";
+      row.className = "swipeable";
+      row.dataset.id = link.id;
       row.innerHTML = `
-        <div class="actions" style="justify-content: space-between; align-items: flex-start; flex-wrap: wrap;">
-          <div class="stack" style="gap:6px;">
-            <div class="inline-chips">
-              <span class="badge">ID ${link.id}</span>
-              <span class="badge">${link.url}</span>
+        <div class="swipe-delete">削除</div>
+        <div class="card swipe-body">
+          <div class="actions" style="justify-content: space-between; align-items: flex-start; flex-wrap: wrap;">
+            <div class="stack" style="gap:6px;">
+              <div class="inline-chips">
+                <span class="badge">ID ${link.id}</span>
+                <span class="badge">${link.url}</span>
+              </div>
+              <h3 style="margin:0;">${link.title}</h3>
+              <p class="muted" style="margin:0;">${link.description || ""}</p>
             </div>
-            <h3 style="margin:0;">${link.title}</h3>
-            <p class="muted" style="margin:0;">${link.description || ""}</p>
-          </div>
-          <div class="stack" style="gap:6px; align-items:flex-end;">
-            <button class="secondary" data-action="edit-link" data-id="${link.id}">編集</button>
-            <button class="secondary" data-action="delete-link" data-id="${link.id}">削除</button>
+            <div class="stack" style="gap:6px; align-items:flex-end;">
+              <button class="secondary" data-action="edit-link" data-id="${link.id}">編集</button>
+              <button class="secondary" data-action="delete-link" data-id="${link.id}">削除</button>
+            </div>
           </div>
         </div>
       `;
+      attachSwipeHandler(row, () => {
+        const next = BlogData.loadPageLinks().filter((item) => item.id !== link.id);
+        BlogData.savePageLinks(next);
+        renderPageLinks();
+        resetPageLinkForm();
+        pageLinkStatus.textContent = `ID ${link.id} を削除しました。`;
+      });
       pageLinkList.appendChild(row);
     });
   }
@@ -658,24 +669,35 @@
 
     articles.forEach((article, idx) => {
       const item = document.createElement("div");
-      item.className = "card";
+      item.className = "swipeable";
+      item.dataset.idx = String(idx);
       item.innerHTML = `
-        <div class="actions" style="justify-content: space-between; align-items: flex-start; flex-wrap: wrap;">
-          <div class="stack" style="gap:6px;">
-            <div class="inline-chips">
-              <span class="badge">ID ${idx}</span>
-              <span class="badge">${(article.tags || []).length || 0} タグ</span>
+        <div class="swipe-delete">削除</div>
+        <div class="card swipe-body">
+          <div class="actions" style="justify-content: space-between; align-items: flex-start; flex-wrap: wrap;">
+            <div class="stack" style="gap:6px;">
+              <div class="inline-chips">
+                <span class="badge">ID ${idx}</span>
+                <span class="badge">${(article.tags || []).length || 0} タグ</span>
+              </div>
+              <h3 style="margin:0;">${article.title || "無題の記事"}</h3>
+              <p class="muted">${article.body?.slice(0, 80) || "本文がありません"}</p>
+              <div class="tag-row">${(article.tags || []).map(tag => `<a class="tag" href="/tag.html?tag=${encodeURIComponent(tag)}">#${tag}</a>`).join("") || '<span class="tag">#untagged</span>'}</div>
             </div>
-            <h3 style="margin:0;">${article.title || "無題の記事"}</h3>
-            <p class="muted">${article.body?.slice(0, 80) || "本文がありません"}</p>
-            <div class="tag-row">${(article.tags || []).map(tag => `<a class="tag" href="/tag.html?tag=${encodeURIComponent(tag)}">#${tag}</a>`).join("") || '<span class="tag">#untagged</span>'}</div>
-          </div>
-          <div class="stack" style="gap:6px; align-items:flex-end;">
-            <button class="secondary" data-action="edit" data-idx="${idx}">編集</button>
-            <button class="secondary" data-action="delete" data-idx="${idx}">削除</button>
+            <div class="stack" style="gap:6px; align-items:flex-end;">
+              <button class="secondary" data-action="edit" data-idx="${idx}">編集</button>
+              <button class="secondary" data-action="delete" data-idx="${idx}">削除</button>
+            </div>
           </div>
         </div>
       `;
+      attachSwipeHandler(item, () => {
+        if (confirm("この記事を削除しますか？")) {
+          BlogData.deleteArticle(idx);
+          renderList();
+          renderSettingsForm();
+        }
+      });
       articleList.appendChild(item);
     });
   }
