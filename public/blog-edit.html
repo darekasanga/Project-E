@@ -153,6 +153,37 @@
     </section>
 
     <section class="panel stack">
+      <div class="section-title">
+        <h3>ページリンク管理</h3>
+        <span class="tiny">トップページのリンクカードを編集・削除</span>
+      </div>
+      <form class="stack" id="pageLinkForm">
+        <div class="grid-2" style="gap:12px;">
+          <div class="form-row">
+            <label class="tiny" for="pageLinkTitle">タイトル（絵文字含め可）</label>
+            <input id="pageLinkTitle" name="pageLinkTitle" required placeholder="📰 記事ビュー">
+          </div>
+          <div class="form-row">
+            <label class="tiny" for="pageLinkUrl">URL</label>
+            <input id="pageLinkUrl" name="pageLinkUrl" required placeholder="/blog-article.html">
+          </div>
+        </div>
+        <div class="form-row">
+          <label class="tiny" for="pageLinkDescription">説明</label>
+          <textarea id="pageLinkDescription" name="pageLinkDescription" rows="3" placeholder="リンク先の補足"></textarea>
+        </div>
+        <div class="actions" style="justify-content: space-between; align-items: center; flex-wrap: wrap;">
+          <div class="flex" style="gap:8px;">
+            <button class="primary" type="submit" id="pageLinkSave">保存</button>
+            <button class="secondary" type="button" id="pageLinkReset">新規追加に切替</button>
+          </div>
+          <span class="tiny" id="pageLinkStatus">トップページのカードに反映されます。</span>
+        </div>
+      </form>
+      <div class="stack" id="pageLinkList" style="gap:10px;"></div>
+    </section>
+
+    <section class="panel stack">
       <form class="stack" id="editorForm">
         <div class="form-row">
           <label for="title" class="tiny">タイトル</label>
@@ -228,6 +259,14 @@
   const copySourceSelect = document.getElementById("copySourceSelect");
   const copySourceStatus = document.getElementById("copySourceStatus");
   const applyCopySourceBtn = document.getElementById("applyCopySource");
+  const pageLinkForm = document.getElementById("pageLinkForm");
+  const pageLinkTitle = document.getElementById("pageLinkTitle");
+  const pageLinkUrl = document.getElementById("pageLinkUrl");
+  const pageLinkDescription = document.getElementById("pageLinkDescription");
+  const pageLinkStatus = document.getElementById("pageLinkStatus");
+  const pageLinkList = document.getElementById("pageLinkList");
+  const pageLinkReset = document.getElementById("pageLinkReset");
+  let editingLinkId = null;
   let editingIdx = null;
   let imageData = "";
 
@@ -492,6 +531,84 @@
     renderCopyExtras();
   }
 
+  function resetPageLinkForm(link = {}) {
+    pageLinkTitle.value = link.title || "";
+    pageLinkUrl.value = link.url || "";
+    pageLinkDescription.value = link.description || "";
+    editingLinkId = link.id ?? null;
+    pageLinkStatus.textContent = editingLinkId ? `ID ${editingLinkId} を編集中です。` : "トップページのカードに反映されます。";
+  }
+
+  function renderPageLinks() {
+    const links = BlogData.loadPageLinks();
+    pageLinkList.innerHTML = "";
+    if (!links.length) {
+      pageLinkList.innerHTML = '<p class="muted">リンクがありません。追加してください。</p>';
+      return;
+    }
+    links.forEach((link) => {
+      const row = document.createElement("article");
+      row.className = "card";
+      row.innerHTML = `
+        <div class="actions" style="justify-content: space-between; align-items: flex-start; flex-wrap: wrap;">
+          <div class="stack" style="gap:6px;">
+            <div class="inline-chips">
+              <span class="badge">ID ${link.id}</span>
+              <span class="badge">${link.url}</span>
+            </div>
+            <h3 style="margin:0;">${link.title}</h3>
+            <p class="muted" style="margin:0;">${link.description || ""}</p>
+          </div>
+          <div class="stack" style="gap:6px; align-items:flex-end;">
+            <button class="secondary" data-action="edit-link" data-id="${link.id}">編集</button>
+            <button class="secondary" data-action="delete-link" data-id="${link.id}">削除</button>
+          </div>
+        </div>
+      `;
+      pageLinkList.appendChild(row);
+    });
+  }
+
+  function handlePageLinkSave(event) {
+    event.preventDefault();
+    const title = pageLinkTitle.value.trim();
+    const url = pageLinkUrl.value.trim();
+    const description = pageLinkDescription.value.trim();
+    if (!title || !url) {
+      pageLinkStatus.textContent = "タイトルとURLは必須です。";
+      return;
+    }
+    const links = BlogData.loadPageLinks();
+    const id = editingLinkId ?? `link-${Date.now()}`;
+    const next = links.filter((item) => item.id !== id);
+    next.unshift({ id, title, url, description });
+    const saved = BlogData.savePageLinks(next);
+    renderPageLinks();
+    resetPageLinkForm();
+    pageLinkStatus.textContent = `${saved.length}件のリンクを保存しました。`;
+  }
+
+  function handlePageLinkListClick(event) {
+    const target = event.target;
+    if (!(target instanceof HTMLElement)) return;
+    const { action, id } = target.dataset;
+    if (!id) return;
+    const links = BlogData.loadPageLinks();
+    if (action === "edit-link") {
+      const link = links.find((item) => item.id === id);
+      if (link) {
+        resetPageLinkForm(link);
+      }
+    }
+    if (action === "delete-link") {
+      const next = links.filter((item) => item.id !== id);
+      BlogData.savePageLinks(next);
+      renderPageLinks();
+      resetPageLinkForm();
+      pageLinkStatus.textContent = `ID ${id} を削除しました。`;
+    }
+  }
+
   function attachSwipeHandler(element, onCommit) {
     const body = element.querySelector(".swipe-body");
     let startX = 0;
@@ -662,6 +779,8 @@
     renderSettingsForm();
     renderCopyForm();
     renderCopyExtras();
+    renderPageLinks();
+    resetPageLinkForm();
   });
 
   form.addEventListener("submit", handleSave);
@@ -685,6 +804,9 @@
     }
   });
   applyCopySourceBtn.addEventListener("click", applyCopySource);
+  pageLinkForm.addEventListener("submit", handlePageLinkSave);
+  pageLinkReset.addEventListener("click", () => resetPageLinkForm());
+  pageLinkList.addEventListener("click", handlePageLinkListClick);
 </script>
 </body>
 </html>

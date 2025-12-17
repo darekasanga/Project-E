@@ -47,6 +47,30 @@
         </div>
       </aside>
     </section>
+
+    <section class="panel stack" id="commentSection">
+      <div class="section-title">
+        <h3>コメント</h3>
+        <span class="tiny" id="commentStatus">記事への感想を残せます。</span>
+      </div>
+      <form class="stack" id="commentForm">
+        <div class="grid-2" style="gap:12px;">
+          <div class="form-row">
+            <label class="tiny" for="commentAuthor">名前</label>
+            <input id="commentAuthor" name="commentAuthor" placeholder="匿名でも投稿できます">
+          </div>
+          <div class="form-row">
+            <label class="tiny" for="commentBody">コメント</label>
+            <textarea id="commentBody" name="commentBody" rows="3" required placeholder="本文への感想や質問"></textarea>
+          </div>
+        </div>
+        <div class="actions" style="justify-content: space-between; align-items: center; flex-wrap: wrap;">
+          <button class="primary" type="submit">投稿する</button>
+          <span class="tiny">ローカルに保存されるため即時表示されます。</span>
+        </div>
+      </form>
+      <div class="stack" id="commentList" style="gap:10px;"></div>
+    </section>
   </main>
 
 <script src="/assets/lightbox.js"></script>
@@ -55,6 +79,11 @@
   const params = new URLSearchParams(location.search);
   const articleIdx = parseInt(params.get("id"), 10) || 0;
   const { article } = BlogData.findArticle(articleIdx);
+  const commentForm = document.getElementById("commentForm");
+  const commentAuthor = document.getElementById("commentAuthor");
+  const commentBody = document.getElementById("commentBody");
+  const commentList = document.getElementById("commentList");
+  const commentStatus = document.getElementById("commentStatus");
 
   function renderArticle() {
     const hero = document.getElementById("articleHero");
@@ -63,28 +92,28 @@
     const bodyEl = document.getElementById("articleBody");
     const shareRow = document.getElementById("shareRow");
     const meta = document.getElementById("articleMeta");
+    const safeArticle = article || { title: "記事がありません", body: "管理ページから追加してください", tags: [] };
 
-    titleEl.textContent = article.title || "無題の記事";
-    leadEl.textContent = article.body?.slice(0, 120) || "本文を入力してください";
+    titleEl.textContent = safeArticle.title || "無題の記事";
+    leadEl.textContent = safeArticle.body?.slice(0, 120) || "本文を入力してください";
 
     meta.innerHTML = `
       <span class="badge">ID ${articleIdx}</span>
       <span class="badge">レスポンシブ本文</span>
-      ${(article.tags || []).map(tag => `<a class=\"tag\" href=\"/tag.html?tag=${encodeURIComponent(tag)}\">#${tag}</a>`).join(""
-      )}
+      ${(safeArticle.tags || []).map(tag => `<a class=\"tag\" href=\"/tag.html?tag=${encodeURIComponent(tag)}\">#${tag}</a>`).join("")}
     `;
 
-    if (article.image) {
+    if (safeArticle.image) {
       const img = document.createElement("img");
-      img.src = article.image;
-      img.alt = article.title;
+      img.src = safeArticle.image;
+      img.alt = safeArticle.title;
       img.className = "hero-img";
       hero.appendChild(img);
       Lightbox.enhanceImages(hero);
     }
 
     bodyEl.classList.add("article-body");
-    bodyEl.innerHTML = (article.body || "本文がありません").split(/\n+/).map(p => `<p>${p}</p>`).join("");
+    bodyEl.innerHTML = (safeArticle.body || "本文がありません").split(/\n+/).map(p => `<p>${p}</p>`).join("");
 
     const articleUrl = `${location.origin}/blog-article.html?id=${articleIdx}`;
     const shareUrl = BlogData.buildOfficialLineShare(articleUrl);
@@ -94,7 +123,63 @@
     `;
   }
 
-  document.addEventListener("DOMContentLoaded", renderArticle);
+  function formatRelativeTime(timestamp) {
+    const diffMs = Date.now() - timestamp;
+    const diffMinutes = Math.floor(diffMs / 60000);
+    if (diffMinutes < 60) return `${diffMinutes || 1}分前`;
+    const diffHours = Math.floor(diffMinutes / 60);
+    if (diffHours < 24) return `${diffHours}時間前`;
+    const diffDays = Math.floor(diffHours / 24);
+    return `${diffDays}日前`;
+  }
+
+  function renderComments() {
+    const comments = BlogData.loadComments(articleIdx);
+    commentList.innerHTML = "";
+    if (!comments.length) {
+      commentList.innerHTML = '<p class="muted">まだコメントがありません。最初の感想を投稿してください。</p>';
+      return;
+    }
+    comments.forEach((item) => {
+      const row = document.createElement("article");
+      row.className = "card comment-card";
+      const header = document.createElement("div");
+      header.className = "comment-header";
+      const author = document.createElement("strong");
+      author.textContent = item.author || "名無しさん";
+      const time = document.createElement("span");
+      time.className = "tiny";
+      time.textContent = formatRelativeTime(item.createdAt);
+      header.appendChild(author);
+      header.appendChild(time);
+      const body = document.createElement("p");
+      body.className = "comment-body";
+      body.textContent = item.body;
+      row.appendChild(header);
+      row.appendChild(body);
+      commentList.appendChild(row);
+    });
+  }
+
+  function handleCommentSubmit(event) {
+    event.preventDefault();
+    const author = commentAuthor.value.trim();
+    const body = commentBody.value.trim();
+    if (!body) {
+      commentStatus.textContent = "コメントを入力してください。";
+      return;
+    }
+    const next = BlogData.addComment(articleIdx, { author, body });
+    commentBody.value = "";
+    commentStatus.textContent = `${next.length}件のコメント`;
+    renderComments();
+  }
+
+  document.addEventListener("DOMContentLoaded", () => {
+    renderArticle();
+    renderComments();
+  });
+  commentForm.addEventListener("submit", handleCommentSubmit);
 </script>
 </body>
 </html>

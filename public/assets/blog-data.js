@@ -3,6 +3,8 @@
   const settingsKey = "emperor_article_settings";
   const copyKey = "emperor_article_copy";
   const copyExtrasKey = "emperor_article_copy_extras";
+  const pageLinksKey = "emperor_page_links";
+  const commentsKey = "emperor_article_comments_v1";
   const officialLineAccountId = "@projecte_official";
   const baseArticles = [
     {
@@ -102,6 +104,45 @@
     tagSubtitle: "使用頻度順に表示",
   };
 
+  const defaultPageLinks = [
+    {
+      id: "draw",
+      title: "🎨 Draw Board",
+      description: "新しいダークテーマとレスポンシブボタンで描画ツールも刷新。指でもマウスでも快適です。",
+      url: "/draw.html",
+    },
+    {
+      id: "admin",
+      title: "🗂️ 管理ビュー",
+      description: "ログイン後のナビゲーション、認証エラー表示を更新し、リダイレクト導線も整理しました。",
+      url: "/admin.html",
+    },
+    {
+      id: "blog-list",
+      title: "📑 Blog (一覧)",
+      description: "スマホ1カラム、タブレット2カラム、PC2カラム＋サイドバー。新しい統計ウィジェット付き。",
+      url: "/blog-list.html",
+    },
+    {
+      id: "blog-edit",
+      title: "✏️ Blog 編集",
+      description: "フォームとリストを整理し、編集状態やタグ表示を強調。保存後のフィードバックも改善。",
+      url: "/blog-edit.html",
+    },
+    {
+      id: "chat-toc",
+      title: "💬 Chat TOC Maker",
+      description: "チャットの目次生成ツールを新レイアウトに刷新。レスポンシブでシンプルな入力に。",
+      url: "/chat-toc.html",
+    },
+    {
+      id: "article",
+      title: "📰 記事ビュー",
+      description: "個別記事ページは本文とタグ、共有ボタンを再配置。読みやすさを優先した新デザインです。",
+      url: "/blog-article.html",
+    },
+  ];
+
   function loadCopy() {
     const saved = localStorage.getItem(copyKey);
     if (!saved) return { ...defaultCopy };
@@ -119,6 +160,74 @@
     const normalized = { ...defaultCopy, ...copy };
     localStorage.setItem(copyKey, JSON.stringify(normalized));
     return normalized;
+  }
+
+  function normalizePageLinks(list) {
+    const source = Array.isArray(list) ? list : [];
+    const normalized = source
+      .map((item, index) => {
+        const fallbackId = item?.id || `link-${index}`;
+        if (!item?.title || !item?.url) return null;
+        return {
+          id: String(fallbackId),
+          title: String(item.title),
+          description: item.description ? String(item.description) : "",
+          url: String(item.url),
+        };
+      })
+      .filter(Boolean);
+    if (!Array.isArray(list)) return [...defaultPageLinks];
+    return normalized;
+  }
+
+  function loadPageLinks() {
+    const saved = localStorage.getItem(pageLinksKey);
+    if (!saved) return [...defaultPageLinks];
+    try {
+      const parsed = JSON.parse(saved);
+      return normalizePageLinks(parsed);
+    } catch (err) {
+      console.warn("Failed to parse page links", err);
+      return [...defaultPageLinks];
+    }
+  }
+
+  function savePageLinks(list) {
+    const normalized = normalizePageLinks(list);
+    localStorage.setItem(pageLinksKey, JSON.stringify(normalized));
+    return normalized;
+  }
+
+  function loadCommentsMap() {
+    try {
+      const saved = JSON.parse(localStorage.getItem(commentsKey));
+      return saved && typeof saved === "object" ? saved : {};
+    } catch (err) {
+      console.warn("Failed to parse comments", err);
+      return {};
+    }
+  }
+
+  function loadComments(articleId) {
+    const map = loadCommentsMap();
+    return Array.isArray(map?.[articleId]) ? map[articleId] : [];
+  }
+
+  function addComment(articleId, payload) {
+    if (!articleId && articleId !== 0) return loadComments(articleId);
+    const map = loadCommentsMap();
+    const list = Array.isArray(map[articleId]) ? map[articleId] : [];
+    const newComment = {
+      id: crypto.randomUUID?.() ?? `c-${Date.now()}`,
+      author: payload?.author?.trim() || "名無しさん",
+      body: payload?.body?.trim() || "",
+      createdAt: Date.now(),
+    };
+    if (!newComment.body) return list;
+    const next = [newComment, ...list].slice(0, 100);
+    map[articleId] = next;
+    localStorage.setItem(commentsKey, JSON.stringify(map));
+    return next;
   }
 
   function loadCopyExtras() {
@@ -219,9 +328,12 @@
     settingsKey,
     copyKey,
     copyExtrasKey,
+    pageLinksKey,
+    commentsKey,
     officialLineAccountId,
     baseArticles,
     defaultCopy,
+    defaultPageLinks,
     loadArticles,
     saveArticles,
     loadSettings,
@@ -230,6 +342,8 @@
     saveCopy,
     loadCopyExtras,
     saveCopyExtras,
+    loadPageLinks,
+    savePageLinks,
     upsertArticle,
     deleteArticle,
     findArticle,
@@ -239,5 +353,7 @@
     getHomeLatestArticles,
     getHomeFeaturedArticles,
     buildOfficialLineShare,
+    loadComments,
+    addComment,
   };
 })();
