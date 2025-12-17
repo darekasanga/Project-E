@@ -90,53 +90,7 @@
         <span class="muted">縦スクロールでまとめ読み</span>
       </div>
       <div class="list-shell latest-list">
-        <div class="list">
-          <article class="list-card latest-card">
-            <div class="latest-top">
-              <h3>モバイル最適化のチェックリスト 2024</h3>
-              <span class="badge">NEW</span>
-            </div>
-            <p>読み込み速度、タップターゲット、スクロール体験を中心に、今すぐ確認できる項目をまとめました。</p>
-            <div class="latest-meta">
-              <span>2024/05/12</span>
-              <span>パフォーマンス</span>
-              <span>レビュー 24</span>
-            </div>
-          </article>
-          <article class="list-card latest-card">
-            <div class="latest-top">
-              <h3>CMS連携を見直す：API設計のベストプラクティス</h3>
-            </div>
-            <p>ヘッドレスCMSとのシンプルな統合方法と、キャッシュ戦略・認証フローの実践例を解説します。</p>
-            <div class="latest-meta">
-              <span>2024/05/10</span>
-              <span>バックエンド</span>
-              <span>レビュー 12</span>
-            </div>
-          </article>
-          <article class="list-card latest-card">
-            <div class="latest-top">
-              <h3>暗号化ストレージで守るチーム共有メモ</h3>
-            </div>
-            <p>セキュリティと共同編集の両立を目指した新機能を紹介。ゼロ知識証明とリンク共有の仕組みも検証。</p>
-            <div class="latest-meta">
-              <span>2024/05/08</span>
-              <span>セキュリティ</span>
-              <span>レビュー 31</span>
-            </div>
-          </article>
-          <article class="list-card latest-card">
-            <div class="latest-top">
-              <h3>ビジュアルリグレッションを防ぐUIテスト術</h3>
-            </div>
-            <p>コンポーネント単位での差分検知や、自動スクリーンショットの運用で品質を担保する方法を紹介。</p>
-            <div class="latest-meta">
-              <span>2024/05/06</span>
-              <span>テスト</span>
-              <span>レビュー 18</span>
-            </div>
-          </article>
-        </div>
+        <div class="list" id="latestList"></div>
       </div>
     </section>
 
@@ -212,6 +166,7 @@
   <script src="/assets/lightbox.js"></script>
   <script src="/assets/blog-data.js"></script>
   <script>
+    const latestList = document.getElementById("latestList");
     const heroTitle = document.getElementById("heroTitle");
     const heroBody = document.getElementById("heroBody");
     const heroTags = document.getElementById("heroTags");
@@ -224,6 +179,45 @@
       body: "スマホは片手で読みやすく、タブレットは横幅を活かし、PCはサイド情報付きで一覧性を高めました。すべてのページで共通のナビゲーションとダークテーマを採用しています。",
       tags: ["スマホ対応", "タブレット", "PC"]
     };
+
+    function formatRelative(index) {
+      const base = Date.now() - index * 3_600_000 * 3;
+      const diffHours = Math.max(1, Math.round((Date.now() - base) / 3_600_000));
+      if (diffHours < 24) return `${diffHours}時間前`;
+      const days = Math.round(diffHours / 24);
+      return `${days}日前`;
+    }
+
+    function renderLatestList() {
+      const articles = BlogData.loadArticles();
+      latestList.innerHTML = "";
+
+      if (!articles.length) {
+        latestList.innerHTML = '<p class="muted">まだ記事がありません。管理画面から追加してください。</p>';
+        return;
+      }
+
+      articles.slice(0, 4).forEach((article, idx) => {
+        const isLatest = idx === 0;
+        const primaryTag = article.tags?.[0];
+        const detailLink = `/blog-article.html?id=${idx}`;
+        const card = document.createElement("article");
+        card.className = "list-card latest-card";
+        card.innerHTML = `
+          <div class="latest-top">
+            <h3>${article.title || "無題の記事"}</h3>
+            ${isLatest ? '<span class="badge">NEW</span>' : ""}
+          </div>
+          <p>${article.body || "本文がありません"}</p>
+          <div class="latest-meta">
+            <span>${formatRelative(idx)}</span>
+            <span>${primaryTag ? `#${primaryTag}` : "タグなし"}</span>
+            <span><a class="tag" href="${detailLink}">記事を読む</a></span>
+          </div>
+        `;
+        latestList.appendChild(card);
+      });
+    }
 
     function renderHeroFromArticle() {
       const { article, idx } = BlogData.getHeroArticle();
@@ -276,7 +270,10 @@
       `;
     }
 
-    document.addEventListener("DOMContentLoaded", renderHeroFromArticle);
+    document.addEventListener("DOMContentLoaded", () => {
+      renderHeroFromArticle();
+      renderLatestList();
+    });
   </script>
 </body>
 </html>
