@@ -4,65 +4,13 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Emperor News — 公開ビュー (旧)</title>
 <link rel="stylesheet" href="/assets/blog-shared.css">
-<style>
-  :root {
-    --panel: #0a0a0a;
-    --accent: #1a1a1a;
-  }
-  body {
-    background: radial-gradient(160% 140% at 20% 20%, rgba(6,199,85,0.12), transparent),
-                radial-gradient(120% 120% at 80% 0%, rgba(6,199,85,0.08), transparent),
-                var(--bg);
-  }
-  main { padding: 22px 18px 48px; display: grid; gap: 20px; }
-  .hero {
-    background: linear-gradient(135deg, rgba(6,199,85,0.18), rgba(6,199,85,0.05) 32%, rgba(12,12,12,0.9) 100%);
-    border: 1px solid var(--border);
-    border-radius: 26px;
-    padding: 20px;
-    display: grid;
-    gap: 12px;
-    box-shadow: var(--shadow);
-  }
-  .hero h2 { margin: 0; font-size: 22px; }
-  .hero p { margin: 0; color: var(--muted); line-height: 1.6; }
-  .hero .cta-row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
-  .mini-pill { font-size: 12px; padding: 6px 10px; border-radius: 999px; background: rgba(255,255,255,0.05); border: 1px solid var(--border); color: var(--muted); }
-
-  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 14px; }
-  .card {
-    background: var(--panel);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 14px;
-    display: grid;
-    gap: 10px;
-    box-shadow: 0 12px 32px rgba(0,0,0,0.3);
-    transition: transform 220ms ease, border-color 200ms ease;
-  }
-  .card:hover { transform: translateY(-4px); border-color: rgba(6,199,85,0.4); }
-  .card h3 { margin: 0; font-size: 17px; letter-spacing: 0.01em; }
-  .card p { margin: 0; color: var(--muted); line-height: 1.6; }
-  .hero-img { width: 100%; border-radius: 14px; aspect-ratio: 16 / 9; object-fit: cover; border: 1px solid var(--border); }
-
-  .share-row { display: flex; gap: 8px; flex-wrap: wrap; }
-
-  .ticker { display: flex; gap: 10px; overflow: hidden; border: 1px solid var(--border); border-radius: 14px; background: #080808; padding: 8px 10px; }
-  .ticker-track { display: flex; gap: 10px; animation: marquee 26s linear infinite; }
-  .chip { padding: 7px 12px; border-radius: 999px; border: 1px solid var(--border); background: #0d0d0d; color: var(--muted); white-space: nowrap; }
-
-  @keyframes marquee { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
-  @media (max-width: 680px) {
-    header { flex-direction: column; align-items: flex-start; }
-  }
-</style>
 <body>
-  <header>
+  <header class="site-header">
     <div class="brand">
       <div class="logo">E</div>
       <div>
         <h1>Emperor News</h1>
-        <p>公開ビュー / LINE公式アカウント向け</p>
+        <p>公開ビュー (旧) もレスポンシブ化</p>
       </div>
     </div>
     <div class="actions">
@@ -71,24 +19,35 @@
     </div>
   </header>
 
-  <main>
+  <main class="container">
     <section class="hero">
-      <div class="mini-pill">公開ページ (旧デザイン)</div>
-      <h2>読者向けのシンプル配信ビュー</h2>
-      <p>管理画面やチャットから登録した記事をそのまま公開。黒基調のモバイル最適化カードで、公式LINEアカウントにもシェアできます。リンクだけで友だち追加と記事閲覧を両立。</p>
-      <div class="cta-row">
-        <a class="pill primary" id="openLine" rel="noreferrer">公式LINEで読む</a>
-        <a class="pill" href="/blog-edit.html" data-requires-auth="true">記事を投稿する</a>
+      <div class="inline-chips">
+        <div class="badge">旧デザイン</div>
+        <div class="badge">スマホ / タブレット / PC</div>
       </div>
-      <div class="cta-row" id="metaInfo"></div>
+      <h2>読者向けのシンプル配信ビュー</h2>
+      <p>以前の公開ページをベースに、余白とカードサイズを調整しました。レスポンシブで見やすく、公式LINEシェアもそのまま利用できます。</p>
+      <div class="actions">
+        <a class="pill primary" id="openLine" rel="noreferrer">公式LINEで読む</a>
+        <a class="pill ghost" href="/blog-edit.html" data-requires-auth="true">記事を投稿する</a>
+      </div>
+      <div class="inline-chips" id="metaInfo"></div>
     </section>
 
-    <div class="ticker" aria-hidden="true">
-      <div class="ticker-track" id="ticker"></div>
-      <div class="ticker-track" id="tickerClone"></div>
-    </div>
+    <section>
+      <div class="ticker" aria-hidden="true">
+        <div class="ticker-track" id="ticker"></div>
+        <div class="ticker-track" id="tickerClone"></div>
+      </div>
+    </section>
 
-    <section class="grid" id="feed"></section>
+    <section>
+      <div class="section-title">
+        <h2>最新カード</h2>
+        <span class="muted">旧レイアウトを再構成</span>
+      </div>
+      <div class="card-grid" id="feed"></div>
+    </section>
   </main>
 
 <script src="/assets/blog-data.js"></script>
@@ -121,9 +80,30 @@
 
   function renderMeta(count) {
     metaInfo.innerHTML = `
-      <span class="mini-pill">公開中 ${count} 件</span>
-      <span class="mini-pill">LINE連携中</span>
+      <span class="badge">公開中 ${count} 件</span>
+      <span class="badge">LINE連携</span>
     `;
+  }
+
+  function renderFeed(list) {
+    feedEl.innerHTML = "";
+    list.forEach((item, idx) => {
+      const articleUrl = `${location.origin}/blog-article.html?id=${idx}`;
+      const shareUrl = buildOfficialLineShare(articleUrl);
+      const card = document.createElement("article");
+      card.className = "card";
+      card.innerHTML = `
+        ${item.image ? `<img class="hero-img" src="${item.image}" alt="${item.title}">` : ""}
+        <h3>${item.title}</h3>
+        <p>${item.body}</p>
+        <div class="meta">${(item.tags || []).map(t => `<span class=\"tag\">#${t}</span>`).join("") || '<span class="tag">#untagged</span>'}</div>
+        <div class="actions">
+          <a class="share line" href="${shareUrl}" target="_blank" rel="noreferrer">公式LINEで共有</a>
+          <a class="share" href="${articleUrl}" target="_blank">記事を開く</a>
+        </div>
+      `;
+      feedEl.appendChild(card);
+    });
   }
 
   function enforceAdminLinks() {
@@ -142,34 +122,11 @@
     });
   }
 
-  function renderFeed(list) {
-    feedEl.innerHTML = "";
-    list.forEach((item, idx) => {
-      const articleUrl = `${location.origin}/blog-article.html?id=${idx}`;
-      const shareUrl = buildOfficialLineShare(articleUrl);
-      const card = document.createElement("article");
-      card.className = "card";
-      card.id = `post-${idx}`;
-      card.innerHTML = `
-        ${item.image ? `<img class="hero-img" src="${item.image}" alt="${item.title}">` : ""}
-        <h3>${item.title}</h3>
-        <p>${item.body}</p>
-        <div class="meta">
-          ${(item.tags || []).map(t => `<span class="tag">#${t}</span>`).join("") || '<span class="tag">#untagged</span>'}
-        </div>
-        <div class="share-row">
-          <a class="share line" href="${shareUrl}" rel="noreferrer">公式LINEで共有</a>
-          <a class="share" href="${articleUrl}">リンクを開く</a>
-        </div>
-      `;
-      feedEl.appendChild(card);
-    });
-  }
-
-  document.addEventListener("DOMContentLoaded", async () => {
+  document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("openLine").href = officialLinePage;
     enforceAdminLinks();
-    const articles = loadArticles();
+    const cached = localStorage.getItem(cacheKey);
+    const articles = cached ? normalizeArticles(JSON.parse(cached)) : BlogData.loadArticles();
     renderFeed(articles);
     renderTicker(articles.flatMap(a => a.tags || []));
     renderMeta(articles.length);

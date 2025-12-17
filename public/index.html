@@ -1,18 +1,115 @@
 <!doctype html>
-<html lang="en">
+<html lang="ja">
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Emperor News</title>
-<body style="font:16px/1.6 system-ui;margin:40px;max-width:800px">
-  <h1>Emperor News</h1>
-  <p>Welcome to <strong>emperor.news</strong> — deployed from <em>project-E</em>.</p>
-  <p><a href="/draw.html">🎨 Go to Draw Board</a></p>
-  <p>Status check: <a href="/health.txt">health.txt</a></p>
-<p><a href="/draw.html">Go to Draw Board</a></p>
-<p><a href="/chat-toc.html">Go to Chat TOC Maker</a></p>
-<p><a href="/blog.html">📰 Blog (/blog)</a> — reader-facing feed with LINE sharing</p>
-<p><a href="/blog-list.html">🗂️ Blog List (/blog-list)</a> — responsive list view for phone / tablet / PC</p>
-<p><a href="/admin.html">🛠️ Admin (/admin)</a> — manage posts (create / edit / delete)</p>
-<p><a href="/blog-public.html">📰 Public News Page (legacy)</a> — previous reader view kept for reference</p>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Emperor News | Project-E</title>
+<link rel="stylesheet" href="/assets/base.css">
+<body>
+  <header class="site-header">
+    <div class="brand">
+      <div class="logo">E</div>
+      <div>
+        <h1>Emperor News</h1>
+        <p>スマホ / タブレット / PC 全面刷新</p>
+      </div>
+    </div>
+    <div class="actions">
+      <a class="pill primary" href="/blog.html">公開ビュー</a>
+      <a class="pill" href="/blog-list.html">一覧ビュー</a>
+      <a class="pill ghost" href="/admin.html">管理画面</a>
+    </div>
+  </header>
+
+  <main class="container">
+    <section class="hero">
+      <div class="badge">New UI</div>
+      <h2>全ページをレスポンシブで作り直しました</h2>
+      <p>スマホは片手で読みやすく、タブレットは横幅を活かし、PCはサイド情報付きで一覧性を高めました。すべてのページで共通のナビゲーションとダークテーマを採用しています。</p>
+      <div class="actions">
+        <a class="button primary" href="/blog.html">ブログカードビュー</a>
+        <a class="button ghost" href="/blog-list.html">一覧ビュー</a>
+        <a class="button ghost" href="/blog-article.html">単体記事</a>
+      </div>
+    </section>
+
+    <section class="grid-2">
+      <article class="card">
+        <div class="badge">スマホビュー</div>
+        <h3>タップしやすい縦積み</h3>
+        <p>1カラム構成と大きめのタッチターゲットで、iPhoneサイズでも余白にゆとりを持たせています。横スクロールの特集カードも指で操作しやすい幅に調整。</p>
+      </article>
+      <article class="card">
+        <div class="badge">タブレットビュー</div>
+        <h3>横幅を活かした2カラム</h3>
+        <p>768〜1024px帯では、サムネイルと本文を横並びにし、サイドメタ情報も表示。Splitレイアウトで情報量と読みやすさを両立しています。</p>
+      </article>
+      <article class="card">
+        <div class="badge">PCビュー</div>
+        <h3>最大幅1200pxのワイドUI</h3>
+        <p>記事一覧＋サイドバー、エディタとプレビューなど、PCでの操作性を優先した配置に。固定ヘッダーと段階的な余白で視線移動を最小化します。</p>
+      </article>
+      <article class="card">
+        <div class="badge">管理・ツール</div>
+        <h3>描画・チャット TOC も統一デザイン</h3>
+        <p>管理ログイン、ブログ編集、描画ツール、チャットTOCメーカーも新しいベースレイアウトを適用。すべての機能が同じUI部品でまとまりました。</p>
+      </article>
+    </section>
+
+    <section class="section">
+      <div class="section-title">
+        <h2>ページリンク</h2>
+        <span class="muted">すべてレスポンシブ対応</span>
+      </div>
+      <div class="card-grid">
+        <article class="card">
+          <h3>🎨 Draw Board</h3>
+          <p>新しいダークテーマとレスポンシブボタンで描画ツールも刷新。指でもマウスでも快適です。</p>
+          <a class="button primary" href="/draw.html">開く</a>
+        </article>
+        <article class="card">
+          <h3>🗂️ 管理ビュー</h3>
+          <p>ログイン後のナビゲーション、認証エラー表示を更新し、リダイレクト導線も整理しました。</p>
+          <a class="button ghost" href="/admin.html">開く</a>
+        </article>
+        <article class="card">
+          <h3>📰 Blog (カード)</h3>
+          <p>LINE共有付きのカード一覧。横スクロール特集とチップ型ティッカーを搭載。</p>
+          <a class="button ghost" href="/blog.html">開く</a>
+        </article>
+        <article class="card">
+          <h3>📑 Blog (一覧)</h3>
+          <p>スマホ1カラム、タブレット2カラム、PC2カラム＋サイドバー。新しい統計ウィジェット付き。</p>
+          <a class="button ghost" href="/blog-list.html">開く</a>
+        </article>
+        <article class="card">
+          <h3>✏️ Blog 編集</h3>
+          <p>フォームとリストを整理し、編集状態やタグ表示を強調。保存後のフィードバックも改善。</p>
+          <a class="button ghost" href="/blog-edit.html">開く</a>
+        </article>
+        <article class="card">
+          <h3>📱 旧公開ビュー</h3>
+          <p>レガシー公開ページも新しいスタイルで表示。ブログ記事との互換性を維持しています。</p>
+          <a class="button ghost" href="/blog-public.html">開く</a>
+        </article>
+        <article class="card">
+          <h3>💬 Chat TOC Maker</h3>
+          <p>チャットの目次生成ツールを新レイアウトに刷新。レスポンシブでシンプルな入力に。</p>
+          <a class="button ghost" href="/chat-toc.html">開く</a>
+        </article>
+        <article class="card">
+          <h3>📰 記事ビュー</h3>
+          <p>個別記事ページは本文とタグ、共有ボタンを再配置。読みやすさを優先した新デザインです。</p>
+          <a class="button ghost" href="/blog-article.html">開く</a>
+        </article>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="section-title">
+      <span>Project-E / Emperor News</span>
+      <span class="tiny">スマホ・タブレット・PCで同じ体験を届けます。</span>
+    </div>
+  </footer>
 </body>
 </html>

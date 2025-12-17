@@ -4,293 +4,84 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Emperor News — 一覧ビュー</title>
 <link rel="stylesheet" href="/assets/blog-shared.css">
-<style>
-  main {
-    padding: 22px var(--page-inline) 70px;
-    display: grid;
-    gap: 18px;
-  }
-
-  .intro-grid {
-    display: grid;
-    gap: 14px;
-  }
-
-  .hero {
-    background: linear-gradient(135deg, rgba(6, 199, 85, 0.14), rgba(6, 199, 85, 0.04) 40%, rgba(12, 12, 12, 0.9) 100%);
-    border: 1px solid var(--border);
-    border-radius: 24px;
-    padding: 18px 18px 20px;
-    display: grid;
-    gap: 12px;
-    box-shadow: var(--shadow);
-  }
-
-  .hero h2 { margin: 0; font-size: 22px; letter-spacing: 0.01em; }
-  .hero p { margin: 0; color: var(--muted); line-height: 1.6; }
-
-  .hero-foot {
-    display: flex;
-    gap: 10px;
-    flex-wrap: wrap;
-    align-items: center;
-  }
-
-  .mini-pill {
-    font-size: 12px;
-    padding: 6px 10px;
-    border-radius: 999px;
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid var(--border);
-    color: var(--muted);
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-  }
-
-  .list-layout {
-    display: grid;
-    gap: 14px;
-  }
-
-  .list-shell {
-    background: #090909;
-    border: 1px solid var(--border);
-    border-radius: 20px;
-    overflow: hidden;
-    box-shadow: var(--shadow);
-  }
-
-  .list-head {
-    padding: 14px 16px;
-    border-bottom: 1px solid var(--border);
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 10px;
-    flex-wrap: wrap;
-  }
-
-  .list-head h3 { margin: 0; font-size: 16px; letter-spacing: 0.01em; }
-  .list-head p { margin: 0; color: var(--muted); font-size: 13px; }
-
-  .list {
-    display: grid;
-  }
-
-  .list-card {
-    padding: 16px;
-    display: grid;
-    gap: 12px;
-    border-bottom: 1px solid var(--border);
-    transition: background 180ms ease, transform 180ms ease;
-  }
-
-  .list-card:hover { background: rgba(255, 255, 255, 0.02); transform: translateY(-2px); }
-
-  .list-card:last-child { border-bottom: none; }
-
-  .list-content {
-    display: grid;
-    gap: 10px;
-  }
-
-  .list-meta {
-    display: flex;
-    gap: 8px;
-    flex-wrap: wrap;
-    align-items: center;
-    color: var(--muted);
-    font-size: 12px;
-  }
-
-  .list-title { margin: 0; font-size: 18px; letter-spacing: 0.01em; }
-  .list-excerpt { margin: 0; color: var(--muted); line-height: 1.6; font-size: 14px; }
-
-  .list-actions {
-    display: flex;
-    gap: 10px;
-    flex-wrap: wrap;
-    align-items: center;
-  }
-
-  .thumb {
-    width: 100%;
-    border-radius: 14px;
-    border: 1px solid var(--border);
-    background: #0c0c0c;
-    aspect-ratio: 3 / 2;
-    object-fit: cover;
-    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.3);
-  }
-
-  .thumb.fallback {
-    display: grid;
-    place-items: center;
-    color: var(--muted);
-    font-weight: 700;
-    letter-spacing: 0.08em;
-    background: linear-gradient(135deg, #0e0e0e, #0a0a0a);
-  }
-
-  .aside {
-    display: grid;
-    gap: 12px;
-  }
-
-  .panel {
-    background: #0a0a0a;
-    border: 1px solid var(--border);
-    border-radius: 18px;
-    padding: 14px;
-    display: grid;
-    gap: 10px;
-  }
-
-  .stats-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-    gap: 12px;
-  }
-
-  .stat {
-    padding: 12px;
-    border-radius: 14px;
-    border: 1px solid var(--border);
-    background: #0c0c0c;
-    display: grid;
-    gap: 6px;
-  }
-
-  .stat h4 { margin: 0; font-size: 14px; color: var(--muted); }
-  .stat strong { font-size: 20px; letter-spacing: 0.02em; }
-
-  .tag-cloud {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-  }
-
-  .device-hints {
-    display: grid;
-    gap: 8px;
-    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-  }
-
-  .hint {
-    padding: 10px 12px;
-    border-radius: 12px;
-    border: 1px solid var(--border);
-    background: rgba(255, 255, 255, 0.03);
-    color: var(--muted);
-    font-size: 13px;
-    display: grid;
-    gap: 4px;
-  }
-
-  @media (min-width: 640px) {
-    .list-card {
-      grid-template-columns: 170px 1fr;
-      align-items: center;
-    }
-
-    .list-content { gap: 12px; }
-  }
-
-  @media (min-width: 960px) {
-    .list-layout {
-      grid-template-columns: minmax(0, 2.2fr) minmax(0, 1fr);
-      align-items: start;
-    }
-
-    .aside { position: sticky; top: 84px; }
-  }
-</style>
 <body>
-  <header>
+  <header class="site-header">
     <div class="brand">
       <div class="logo">E</div>
       <div>
         <h1>Emperor News</h1>
-        <p>一覧ビュー / モバイル・タブレット・PC対応</p>
+        <p>一覧ビュー / スマホ・タブレット・PC対応</p>
       </div>
     </div>
     <div class="actions">
       <a class="pill" href="/">トップ</a>
       <a class="pill" href="/blog.html">カードビュー</a>
-      <a class="pill" id="openLine" target="_blank" rel="noreferrer">公式LINEで読む</a>
-      <a class="pill" href="/blog-edit.html" data-requires-auth="true">記事を編集</a>
+      <a class="pill primary" id="openLine" target="_blank" rel="noreferrer">公式LINEで読む</a>
+      <a class="pill ghost" href="/blog-edit.html" data-requires-auth="true">記事を編集</a>
     </div>
   </header>
 
-  <main>
-    <section class="intro-grid">
-      <div class="hero">
-        <div class="mini-pill">新設 / 一覧レイアウト</div>
-        <h2>端末幅に合わせて読める一覧ビュー</h2>
-        <p>スマホでは縦積み、タブレットではサムネイル横並び、PCではサイド情報付きの2カラムで記事を探せます。黒基調とLINE共有ボタンは既存ビューと共通です。</p>
-        <div class="hero-foot">
-          <span class="mini-pill" id="metaInfo"></span>
-          <span class="mini-pill">LINE連携</span>
-          <span class="mini-pill">ローカル保存</span>
-        </div>
+  <main class="container">
+    <section class="hero">
+      <div class="inline-chips">
+        <div class="badge">新設</div>
+        <div class="badge">レスポンシブ</div>
       </div>
-
-      <div class="panel">
-        <div class="list-head" style="padding:0">
-          <div>
-            <h3>デバイス別の見え方</h3>
-            <p>スマホ・タブレット・PCの幅に応じて、自動で余白とレイアウトを再配置します。</p>
-          </div>
-        </div>
-        <div class="device-hints">
-          <div class="hint">
-            <strong>スマホ</strong>
-            <span>サムネイルは縦に配置。1列カードでタップしやすい余白。</span>
-          </div>
-          <div class="hint">
-            <strong>タブレット</strong>
-            <span>サムネイルと本文を2カラム化。行間を少し拡大。</span>
-          </div>
-          <div class="hint">
-            <strong>PC</strong>
-            <span>右側に統計とタグクラウドのサイドバーを表示。最大幅を1100pxに制限。</span>
-          </div>
-        </div>
+      <h2>幅に合わせて表情を変える一覧ビュー</h2>
+      <p>スマホでは縦にカードを並べ、タブレットはサムネイル横並び、PCではサイドバー付きの2カラムで統計とタグクラウドを固定。見やすさを保ちながら情報量を増やしました。</p>
+      <div class="inline-chips">
+        <span class="badge" id="metaInfo"></span>
+        <span class="badge">LINE連携</span>
+        <span class="badge">ローカル保存</span>
       </div>
     </section>
 
-    <section class="list-layout">
+    <section class="grid-2">
+      <article class="card">
+        <h3>スマホビュー</h3>
+        <p class="mobile-hint">1カラムでサムネイルを上、本文とタグを下に配置。タップしやすい余白を確保しました。</p>
+      </article>
+      <article class="card">
+        <h3>タブレットビュー</h3>
+        <p class="tablet-hint">サムネイル横並び＋行間拡大。768px以上で自動適用されます。</p>
+      </article>
+      <article class="card">
+        <h3>PCビュー</h3>
+        <p class="pc-hint">最大幅1200pxで2カラム＋サイドバーを固定。タグクラウドと統計を右側に表示します。</p>
+      </article>
+      <article class="card">
+        <h3>共有と導線</h3>
+        <p>各記事にLINE共有と記事リンクを配置。管理者リンクは認証が必要な場合のみ遷移します。</p>
+      </article>
+    </section>
+
+    <section class="split-layout">
       <div class="list-shell">
         <div class="list-head">
           <div>
             <h3>最新の投稿</h3>
-            <p>ローカル保存された記事を時系列順に一覧表示します。</p>
+            <p class="muted">ローカル保存された記事を時系列順に一覧表示します。</p>
           </div>
-          <div class="mini-pill" id="countBadge"></div>
+          <div class="badge" id="countBadge"></div>
         </div>
         <div class="list" id="list"></div>
       </div>
 
-      <aside class="aside" aria-label="サイド情報">
+      <aside class="stack" aria-label="サイド情報">
         <div class="panel">
-          <div class="list-head" style="padding:0">
-            <div>
-              <h3>ビューのステータス</h3>
-              <p>タブレット・PCで横に並ぶカード。</p>
-            </div>
+          <div class="section-title" style="gap:6px;">
+            <h3>ビューのステータス</h3>
+            <span class="tiny">タブレット以上で右カラムに固定</span>
           </div>
-          <div class="stats-grid" id="stats"></div>
+          <div class="card-grid" id="stats"></div>
         </div>
 
         <div class="panel">
-          <div class="list-head" style="padding:0">
-            <div>
-              <h3>タグクラウド</h3>
-              <p>よく使うタグを確認できます。</p>
-            </div>
+          <div class="section-title" style="gap:6px;">
+            <h3>タグクラウド</h3>
+            <span class="tiny">使用頻度順に表示</span>
           </div>
-          <div class="tag-cloud" id="tagCloud"></div>
+          <div class="tag-row" id="tagCloud"></div>
         </div>
       </aside>
     </section>
@@ -340,17 +131,17 @@
         const hasImage = Boolean(item.image);
         card.innerHTML = `
           ${hasImage ? `<img class="thumb" src="${item.image}" alt="${item.title}">` : `<div class="thumb fallback">NO IMAGE</div>`}
-          <div class="list-content">
-            <div class="list-meta">
-              <span class="mini-pill">#${idx + 1}</span>
-              <span class="mini-pill">${formatRelative(idx)}に更新</span>
+          <div class="stack" style="gap:12px;">
+            <div class="inline-chips">
+              <span class="badge">#${idx + 1}</span>
+              <span class="badge">${formatRelative(idx)}に更新</span>
             </div>
-            <h3 class="list-title">${item.title}</h3>
-            <p class="list-excerpt">${item.body}</p>
+            <h3 style="margin:0; font-size:18px; letter-spacing:0.01em;">${item.title}</h3>
+            <p class="muted">${item.body}</p>
             <div class="meta">
               ${(item.tags || []).map(t => `<span class="tag">#${t}</span>`).join("") || '<span class="tag">#untagged</span>'}
             </div>
-            <div class="list-actions">
+            <div class="actions">
               <a class="share line" href="${shareUrl}" target="_blank" rel="noreferrer">LINEで共有</a>
               <a class="share" href="${articleUrl}" target="_blank">記事ページ</a>
             </div>
@@ -364,13 +155,13 @@
       statsEl.innerHTML = "";
       const statItems = [
         { label: "記事数", value: `${list.length} 件` },
-        { label: "スマホ/タブレット対応", value: "横2列⇔縦1列が自動切替" },
+        { label: "スマホ/タブレット対応", value: "横2列⇔縦1列 自動切替" },
         { label: "LINE共有", value: "公式アカウントへ誘導" },
       ];
       statItems.forEach((item) => {
         const box = document.createElement("div");
-        box.className = "stat";
-        box.innerHTML = `<h4>${item.label}</h4><strong>${item.value}</strong>`;
+        box.className = "card";
+        box.innerHTML = `<h3>${item.label}</h3><p class="muted">${item.value}</p>`;
         statsEl.appendChild(box);
       });
     }
@@ -383,7 +174,7 @@
       });
       const entries = [...counts.entries()].sort((a, b) => b[1] - a[1]);
       if (!entries.length) {
-        tagCloud.innerHTML = '<span class="mini-pill">タグが未設定です</span>';
+        tagCloud.innerHTML = '<span class="badge">タグが未設定です</span>';
         return;
       }
       entries.forEach(([tag, count]) => {
