@@ -70,7 +70,8 @@
     meta.innerHTML = `
       <span class="badge">ID ${articleIdx}</span>
       <span class="badge">レスポンシブ本文</span>
-      ${(article.tags || []).map(tag => `<span class=\"badge\">#${tag}</span>`).join("")}
+      ${(article.tags || []).map(tag => `<a class=\"tag\" href=\"/tag.html?tag=${encodeURIComponent(tag)}\">#${tag}</a>`).join(""
+      )}
     `;
 
     if (article.image) {

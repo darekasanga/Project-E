@@ -245,7 +245,7 @@
             </div>
             <h3 style="margin:0;">${article.title || "無題の記事"}</h3>
             <p class="muted">${article.body?.slice(0, 80) || "本文がありません"}</p>
-            <div class="tag-row">${(article.tags || []).map(tag => `<span class="tag">#${tag}</span>`).join("") || '<span class="tag">#untagged</span>'}</div>
+            <div class="tag-row">${(article.tags || []).map(tag => `<a class="tag" href="/tag.html?tag=${encodeURIComponent(tag)}">#${tag}</a>`).join("") || '<span class="tag">#untagged</span>'}</div>
           </div>
           <div class="stack" style="gap:6px; align-items:flex-end;">
             <button class="secondary" data-action="edit" data-idx="${idx}">編集</button>
