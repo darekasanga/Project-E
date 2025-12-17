@@ -3,51 +3,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>記事編集 | Emperor News</title>
-<link rel="stylesheet" href="/assets/blog-shared.css">
-<style>
-  body { background: radial-gradient(circle at 14% 12%, rgba(6,199,85,0.16), transparent 38%), var(--bg); }
-  main { padding: 22px 18px 48px; display: grid; gap: 18px; }
-  .stack { display: grid; gap: 12px; }
-  .panel {
-    background: rgba(10,12,20,0.9);
-    border: 1px solid var(--border);
-    border-radius: 18px;
-    padding: 16px;
-    box-shadow: var(--shadow);
-  }
-  .panel h2 { margin: 0 0 4px; font-size: 18px; }
-  .panel p { margin: 0 0 10px; color: var(--muted); }
-  label { display: block; font-size: 12px; color: var(--muted); margin-bottom: 6px; }
-  input, textarea {
-    width: 100%;
-    border-radius: 12px;
-    border: 1px solid var(--border);
-    background: #090b12;
-    color: #f8fafc;
-    padding: 12px;
-    font-size: 15px;
-  }
-  textarea { min-height: 160px; resize: vertical; }
-  .actions { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
-  button { border: none; border-radius: 12px; padding: 12px 14px; font-weight: 700; cursor: pointer; }
-  button.primary { background: #16a34a; color: #ecfdf3; box-shadow: 0 8px 20px rgba(22,163,74,0.35); }
-  button.secondary { background: transparent; border: 1px solid var(--border); color: var(--text); }
-  .list { display: grid; gap: 10px; }
-  .item {
-    border: 1px solid var(--border);
-    border-radius: 14px;
-    padding: 12px;
-    background: linear-gradient(120deg, rgba(6,199,85,0.12), rgba(6,199,85,0.04));
-    display: grid;
-    gap: 6px;
-  }
-  .item h3 { margin: 0; font-size: 16px; }
-  .badge { padding: 6px 10px; border-radius: 10px; background: rgba(6,199,85,0.12); border: 1px solid rgba(6,199,85,0.35); color: #bbf7d0; font-size: 12px; width: fit-content; }
-  .muted { color: var(--muted); font-size: 13px; margin: 0; }
-  .tag-row { display: flex; gap: 6px; flex-wrap: wrap; }
-  .tag-row .tag { background: rgba(255,255,255,0.05); border: 1px solid var(--border); }
-  .empty { color: var(--muted); font-size: 14px; }
-</style>
+<link rel="stylesheet" href="/assets/base.css">
 <body>
   <script>
     (function enforceAdminSession() {
@@ -60,7 +16,7 @@
     })();
   </script>
 
-  <header>
+  <header class="site-header">
     <div class="brand">
       <div class="logo">E</div>
       <div>
@@ -70,49 +26,54 @@
     </div>
     <div class="actions">
       <a class="pill" href="/blog.html">公開一覧へ戻る</a>
-      <a class="pill" href="/admin.html">認証ページ</a>
+      <a class="pill ghost" href="/admin.html">認証ページ</a>
     </div>
   </header>
 
-  <main>
-    <section class="panel stack">
-      <div class="actions" style="justify-content: space-between; align-items: flex-start; flex-wrap: wrap;">
-        <div class="stack">
-          <div class="badge" id="status">ログイン中</div>
-          <h2 style="margin:0">記事の新規追加・編集</h2>
-          <p style="margin:0">タイトル・本文・タグ・カバー画像URLを入力して保存します。</p>
-        </div>
-        <button class="secondary" id="newBtn">新規作成</button>
+  <main class="container">
+    <section class="hero">
+      <div class="inline-chips">
+        <div class="badge" id="status">ログイン中</div>
+        <div class="badge">スマホ〜PC対応</div>
       </div>
+      <h2 style="margin:0">記事の新規追加・編集</h2>
+      <p class="muted">タイトル・本文・タグ・カバー画像URLを入力して保存します。フォームやリストはすべてレスポンシブに配置しました。</p>
+      <div class="actions" style="justify-content: space-between; align-items: flex-start;">
+        <button class="secondary" id="newBtn">新規作成</button>
+        <p class="tiny" id="helper">新しい記事を作成します。</p>
+      </div>
+    </section>
 
+    <section class="panel stack">
       <form class="stack" id="editorForm">
-        <div>
-          <label for="title">タイトル</label>
+        <div class="form-row">
+          <label for="title" class="tiny">タイトル</label>
           <input id="title" name="title" required placeholder="記事タイトル">
         </div>
-        <div>
-          <label for="body">本文 (複数段落は空行で区切ってください)</label>
+        <div class="form-row">
+          <label for="body" class="tiny">本文 (複数段落は空行で区切ってください)</label>
           <textarea id="body" name="body" required placeholder="本文を入力"></textarea>
         </div>
-        <div>
-          <label for="tags">タグ (カンマ区切り)</label>
+        <div class="form-row">
+          <label for="tags" class="tiny">タグ (カンマ区切り)</label>
           <input id="tags" name="tags" placeholder="iPhone, iPad, 公式LINE">
         </div>
-        <div>
-          <label for="image">カバー画像URL</label>
+        <div class="form-row">
+          <label for="image" class="tiny">カバー画像URL</label>
           <input id="image" name="image" type="url" placeholder="https://example.com/cover.jpg">
         </div>
         <div class="actions">
           <button class="primary" type="submit" id="saveBtn">保存する</button>
-          <p class="muted" id="helper">新しい記事を作成します。</p>
         </div>
       </form>
     </section>
 
     <section class="panel">
-      <h2>保存済みの記事</h2>
-      <p class="muted">ローカル保存された記事を編集または削除できます。</p>
-      <div class="list" id="articleList"></div>
+      <div class="section-title">
+        <h3>保存済みの記事</h3>
+        <span class="tiny">ローカル保存された記事を編集または削除できます。</span>
+      </div>
+      <div class="stack" id="articleList"></div>
     </section>
   </main>
 
@@ -127,7 +88,7 @@
   let editingIdx = null;
 
   function parseTags(input) {
-    return input.split(/[,\n]/).map(t => t.trim()).filter(Boolean);
+    return input.split(/[\,\n]/).map(t => t.trim()).filter(Boolean);
   }
 
   function formatTags(tags) {
@@ -143,17 +104,21 @@
     const articles = BlogData.loadArticles();
     articleList.innerHTML = "";
     if (!articles.length) {
-      articleList.innerHTML = '<p class="empty">まだ記事がありません。フォームから追加してください。</p>';
+      articleList.innerHTML = '<p class="muted">まだ記事がありません。フォームから追加してください。</p>';
       return;
     }
 
     articles.forEach((article, idx) => {
       const item = document.createElement("div");
-      item.className = "item";
+      item.className = "card";
       item.innerHTML = `
-        <div class="actions" style="justify-content: space-between; align-items: flex-start;">
-          <div class="stack" style="gap:4px;">
-            <h3>${article.title || "無題の記事"}</h3>
+        <div class="actions" style="justify-content: space-between; align-items: flex-start; flex-wrap: wrap;">
+          <div class="stack" style="gap:6px;">
+            <div class="inline-chips">
+              <span class="badge">ID ${idx}</span>
+              <span class="badge">${(article.tags || []).length || 0} タグ</span>
+            </div>
+            <h3 style="margin:0;">${article.title || "無題の記事"}</h3>
             <p class="muted">${article.body?.slice(0, 80) || "本文がありません"}</p>
             <div class="tag-row">${(article.tags || []).map(tag => `<span class="tag">#${tag}</span>`).join("") || '<span class="tag">#untagged</span>'}</div>
           </div>

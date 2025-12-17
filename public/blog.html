@@ -4,75 +4,32 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Emperor News — 公開ビュー</title>
 <link rel="stylesheet" href="/assets/blog-shared.css">
-<style>
-  main { padding: 24px var(--page-inline) 56px; display: grid; gap: 20px; width: 100%; }
-  .hero {
-    background: linear-gradient(135deg, rgba(6, 199, 85, 0.18), rgba(6, 199, 85, 0.05) 32%, rgba(12, 12, 12, 0.9) 100%);
-    border: 1px solid var(--border);
-    border-radius: 26px;
-    padding: 20px;
-    display: grid;
-    gap: 12px;
-    box-shadow: var(--shadow);
-  }
-  .hero h2 { margin: 0; font-size: 22px; }
-  .hero p { margin: 0; color: var(--muted); line-height: 1.6; }
-  .hero .cta-row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
-  .mini-pill { font-size: 12px; padding: 6px 10px; border-radius: 999px; background: rgba(255,255,255,0.05); border: 1px solid var(--border); color: var(--muted); }
-
-  .scroll-shell { overflow: hidden; border-radius: 24px; border: 1px solid var(--border); background: #0b0b0b; }
-  .scroll-track { display: grid; grid-auto-flow: column; grid-auto-columns: 88%; gap: 12px; overflow-x: auto; padding: 12px; scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch; }
-  .scroll-track::-webkit-scrollbar { height: 6px; }
-  .scroll-track::-webkit-scrollbar-thumb { background: #1f1f1f; border-radius: 999px; }
-
-  .card {
-    background: var(--panel);
-    border: 1px solid var(--border);
-    border-radius: 20px;
-    padding: 14px;
-    display: grid;
-    gap: 10px;
-    box-shadow: 0 12px 32px rgba(0,0,0,0.3);
-    scroll-snap-align: start;
-  }
-  .card h3 { margin: 0; font-size: 17px; letter-spacing: 0.01em; }
-  .card p { margin: 0; color: var(--muted); line-height: 1.6; }
-  .hero-img { width: 100%; border-radius: 14px; aspect-ratio: 16 / 9; object-fit: cover; border: 1px solid var(--border); }
-
-  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px; }
-
-  .share-row { display: flex; gap: 8px; flex-wrap: wrap; }
-
-  .ticker { display: flex; gap: 10px; overflow: hidden; border: 1px solid var(--border); border-radius: 14px; background: #080808; padding: 8px 10px; }
-  .ticker-track { display: flex; gap: 10px; animation: marquee 26s linear infinite; }
-  .chip { padding: 7px 12px; border-radius: 999px; border: 1px solid var(--border); background: #0d0d0d; color: var(--muted); white-space: nowrap; }
-
-  @keyframes marquee { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
-  @media (min-width: 720px) { .scroll-track { grid-auto-columns: 64%; } }
-  @media (min-width: 1024px) { .scroll-track { grid-auto-columns: 42%; } }
-</style>
 <body>
-  <header>
+  <header class="site-header">
     <div class="brand">
       <div class="logo">E</div>
       <div>
         <h1>Emperor News</h1>
-        <p>公開ビュー / LINE公式アカウント向け</p>
+        <p>公開ビュー / LINE共有 / モバイル最適化</p>
       </div>
     </div>
     <div class="actions">
       <a class="pill" href="/">トップ</a>
-      <a class="pill" id="openLine" target="_blank" rel="noreferrer">公式LINEで読む</a>
-      <a class="pill" href="/blog-edit.html" data-requires-auth="true">記事を編集</a>
+      <a class="pill" href="/blog-list.html">一覧ビュー</a>
+      <a class="pill primary" id="openLine" target="_blank" rel="noreferrer">公式LINEで読む</a>
+      <a class="pill ghost" href="/blog-edit.html" data-requires-auth="true">記事を編集</a>
     </div>
   </header>
 
-  <main>
+  <main class="container">
     <section class="hero">
-      <div class="mini-pill">読者向け / /blog</div>
-      <h2>シンプルな公開ブログビュー</h2>
-      <p>チャットや管理画面から追加された記事を自動で配信。黒基調のモバイル最適化カードと公式LINEシェアボタン付きで、友だち追加からの導線も確保します。</p>
-      <div class="cta-row" id="metaInfo"></div>
+      <div class="inline-chips">
+        <div class="badge">読者向け</div>
+        <div class="badge">スマホ / タブレット / PC</div>
+      </div>
+      <h2>カードスタイルのニュースフィード</h2>
+      <p>横スクロールの特集エリアと、タグ付きのカード一覧を刷新しました。スマホでは指でスワイプ、タブレットでは2列寄り、PCでは最大幅1200pxで広々表示します。</p>
+      <div class="inline-chips" id="metaInfo"></div>
     </section>
 
     <section>
@@ -82,11 +39,23 @@
       </div>
     </section>
 
-    <section class="scroll-shell">
-      <div class="scroll-track" id="featureTrack"></div>
+    <section>
+      <div class="section-title">
+        <h2>特集</h2>
+        <span class="muted">スマホは1枚ずつ、PCは複数カードを横並びで</span>
+      </div>
+      <div class="scroll-shell">
+        <div class="scroll-track" id="featureTrack"></div>
+      </div>
     </section>
 
-    <section class="grid" id="feed"></section>
+    <section>
+      <div class="section-title">
+        <h2>最新記事</h2>
+        <span class="muted">LINE共有ボタンとリンク付き</span>
+      </div>
+      <div class="card-grid" id="feed"></div>
+    </section>
   </main>
 
 <script src="/assets/blog-data.js"></script>
@@ -114,8 +83,9 @@
 
   function renderMeta(count) {
     metaInfo.innerHTML = `
-      <span class="mini-pill">公開中 ${count} 件</span>
-      <span class="mini-pill">LINE連携</span>
+      <span class="badge">公開中 ${count} 件</span>
+      <span class="badge">LINE連携</span>
+      <span class="badge">レスポンシブ</span>
     `;
   }
 
@@ -123,7 +93,7 @@
     featureTrack.innerHTML = "";
     list.slice(0, 6).forEach((item, idx) => {
       const card = document.createElement("article");
-      card.className = "card";
+      card.className = "article-card";
       card.innerHTML = `
         <div class="badge">特集 ${idx + 1}</div>
         ${item.image ? `<img class="hero-img" src="${item.image}" alt="${item.title}">` : ""}
@@ -145,12 +115,16 @@
       card.id = `post-${idx}`;
       card.innerHTML = `
         ${item.image ? `<img class="hero-img" src="${item.image}" alt="${item.title}">` : ""}
+        <div class="inline-chips">
+          <span class="badge">#${idx + 1}</span>
+          <span class="badge">レスポンシブカード</span>
+        </div>
         <h3>${item.title}</h3>
         <p>${item.body}</p>
         <div class="meta">${(item.tags || []).map(t => `<span class=\"tag\">#${t}</span>`).join("") || '<span class="tag">#untagged</span>'}</div>
-        <div class="share-row">
+        <div class="actions">
           <a class="share line" href="${shareUrl}" target="_blank" rel="noreferrer">公式LINEで共有</a>
-          <a class="share" href="${articleUrl}" target="_blank">リンクを開く</a>
+          <a class="share" href="${articleUrl}" target="_blank">記事ページを開く</a>
         </div>
       `;
       feedEl.appendChild(card);

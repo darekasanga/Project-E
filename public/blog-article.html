@@ -2,161 +2,96 @@
 <html lang="ja">
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>記事ビュー | Emperor News</title>
+<title>記事ページ | Emperor News</title>
 <link rel="stylesheet" href="/assets/blog-shared.css">
-<style>
-  main { padding: 22px var(--page-inline) 40px; display: grid; gap: 16px; width: 100%; }
-  .hero {
-    background: linear-gradient(130deg, rgba(6,199,85,0.16), rgba(6,199,85,0.05) 35%, rgba(8,8,8,0.95));
-    border: 1px solid var(--border);
-    border-radius: 24px;
-    padding: 18px;
-    display: grid;
-    gap: 12px;
-    box-shadow: var(--shadow);
-  }
-  .hero h2 { margin: 0; font-size: 24px; letter-spacing: 0.01em; }
-  .hero p { margin: 0; color: var(--muted); line-height: 1.7; }
-  .meta-row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; color: var(--muted); font-size: 12px; }
-  .chip { padding: 6px 10px; border-radius: 999px; border: 1px solid var(--border); background: rgba(255,255,255,0.04); }
-
-  .article-card {
-    background: var(--panel);
-    border: 1px solid var(--border);
-    border-radius: 20px;
-    padding: 16px;
-    display: grid;
-    gap: 14px;
-    box-shadow: var(--shadow);
-  }
-  .cover {
-    width: 100%;
-    border-radius: 16px;
-    aspect-ratio: 16 / 9;
-    object-fit: cover;
-    border: 1px solid var(--border);
-  }
-  .title-block h3 { margin: 0; font-size: 22px; }
-  .title-block p { margin: 6px 0 0; color: var(--muted); line-height: 1.6; }
-  .tag-row { display: flex; gap: 8px; flex-wrap: wrap; }
-  .body { display: grid; gap: 12px; line-height: 1.7; color: #e5e7eb; }
-  .body p { margin: 0; }
-
-  .share-row { display: flex; gap: 10px; flex-wrap: wrap; }
-  .share:active { transform: translateY(1px); }
-
-  footer { padding: 0 18px 24px; color: var(--muted); font-size: 12px; }
-</style>
 <body>
-  <header>
+  <header class="site-header">
     <div class="brand">
       <div class="logo">E</div>
       <div>
-        <h1>Emperor News</h1>
-        <p>記事ビュー / 黒ベースのシンプル読書体験</p>
+        <h1>記事ページ</h1>
+        <p>スマホ・タブレット・PCの本文ビュー</p>
       </div>
     </div>
     <div class="actions">
-      <a class="pill" href="/blog.html">公開一覧</a>
-      <a class="pill" href="/">トップ</a>
+      <a class="pill" href="/blog.html">一覧へ</a>
+      <a class="pill ghost" href="/blog-list.html">リストビュー</a>
     </div>
   </header>
 
-  <main>
-    <section class="hero">
-      <div class="meta-row">
-        <span class="chip">公開記事</span>
-        <span class="chip">LINE公式シェア対応</span>
-      </div>
-      <h2 id="heroTitle">記事タイトル</h2>
-      <p id="heroLead">記事本文の冒頭をここに表示します。iPhone / iPadのダークモードに合わせた黒基調のレイアウトです。</p>
-      <div class="share-row">
-        <a class="share line" id="lineShare" target="_blank" rel="noreferrer">公式LINEで共有</a>
-        <a class="share" id="copyLink" href="#">リンクをコピー</a>
-      </div>
+  <main class="container">
+    <section class="hero" id="articleHero">
+      <div class="inline-chips" id="articleMeta"></div>
+      <h2 id="articleTitle">記事タイトル</h2>
+      <p id="articleLead" class="muted">本文の冒頭をここに表示します。</p>
+      <div class="actions" id="shareRow"></div>
     </section>
 
-    <article class="article-card" id="article">
-      <img class="cover" id="cover" alt="カバー画像">
-      <div class="title-block">
-        <h3 id="title">記事タイトル</h3>
-        <p id="excerpt">記事の概要テキストを表示します。</p>
-      </div>
-      <div class="tag-row" id="tags"></div>
-      <div class="body" id="body"></div>
-    </article>
+    <section class="grid-2">
+      <article class="card" id="articleBody"></article>
+      <aside class="card">
+        <h3>デバイス別の読みやすさ</h3>
+        <div class="device-grid">
+          <div class="device-card">
+            <strong>スマホ</strong>
+            <span class="mobile-hint">本文を1カラムで表示し、ボタンを大きめに。</span>
+          </div>
+          <div class="device-card">
+            <strong>タブレット</strong>
+            <span class="tablet-hint">本文幅を少し広げ、サイド余白を確保。</span>
+          </div>
+          <div class="device-card">
+            <strong>PC</strong>
+            <span class="pc-hint">最大1200pxのカラムで視線移動を最小化。</span>
+          </div>
+        </div>
+      </aside>
+    </section>
   </main>
-
-  <footer>
-    Emperor News — 公式LINEアカウント連携ビュー
-  </footer>
 
 <script src="/assets/blog-data.js"></script>
 <script>
-  function loadArticles() {
-    return BlogData.loadArticles();
-  }
+  const params = new URLSearchParams(location.search);
+  const articleIdx = parseInt(params.get("id"), 10) || 0;
+  const { article } = BlogData.findArticle(articleIdx);
 
-  async function findArticle() {
-    const params = new URLSearchParams(location.search);
-    const idx = parseInt(params.get("id"), 10);
-    const list = loadArticles();
-    const isValidIdx = Number.isFinite(idx) && list[idx];
-    const article = isValidIdx ? list[idx] : list[0];
-    return { article, list, idx: isValidIdx ? idx : 0 };
-  }
+  function renderArticle() {
+    const hero = document.getElementById("articleHero");
+    const titleEl = document.getElementById("articleTitle");
+    const leadEl = document.getElementById("articleLead");
+    const bodyEl = document.getElementById("articleBody");
+    const shareRow = document.getElementById("shareRow");
+    const meta = document.getElementById("articleMeta");
 
-  function paragraphize(text) {
-    if (!text) return ["本文が追加されていません。管理画面から本文を入れてください。"];
-    return text.split(/\n{2,}/).map(chunk => chunk.trim()).filter(Boolean);
-  }
+    titleEl.textContent = article.title || "無題の記事";
+    leadEl.textContent = article.body?.slice(0, 120) || "本文を入力してください";
 
-  function render(article, idx) {
-    const safeBody = paragraphize(article.body);
-    const cover = document.getElementById("cover");
-    const title = document.getElementById("title");
-    const heroTitle = document.getElementById("heroTitle");
-    const heroLead = document.getElementById("heroLead");
-    const excerpt = document.getElementById("excerpt");
-    const tags = document.getElementById("tags");
-    const body = document.getElementById("body");
-    const lineShare = document.getElementById("lineShare");
-
-    title.textContent = article.title || "無題の記事";
-    heroTitle.textContent = article.title || "無題の記事";
-    heroLead.textContent = safeBody[0] || "本文がありません。";
-    excerpt.textContent = safeBody[0] || "本文がありません。";
-
-    tags.innerHTML = (article.tags || []).length
-      ? article.tags.map(tag => `<span class="tag">#${tag}</span>`).join("")
-      : '<span class="tag">#untagged</span>';
-
-    body.innerHTML = safeBody.map(p => `<p>${p}</p>`).join("");
+    meta.innerHTML = `
+      <span class="badge">ID ${articleIdx}</span>
+      <span class="badge">レスポンシブ本文</span>
+      ${(article.tags || []).map(tag => `<span class=\"badge\">#${tag}</span>`).join("")}
+    `;
 
     if (article.image) {
-      cover.src = article.image;
-      cover.alt = article.title;
-      cover.style.display = "block";
-    } else {
-      cover.style.display = "none";
+      const img = document.createElement("img");
+      img.src = article.image;
+      img.alt = article.title;
+      img.className = "hero-img";
+      hero.appendChild(img);
     }
 
-    const canonical = `${location.origin}${location.pathname}?id=${idx}`;
-    lineShare.href = BlogData.buildOfficialLineShare(canonical);
-    lineShare.textContent = `${BlogData.officialLineAccountId} で共有`;
+    bodyEl.classList.add("article-body");
+    bodyEl.innerHTML = (article.body || "本文がありません").split(/\n+/).map(p => `<p>${p}</p>`).join("");
 
-    document.getElementById("copyLink").addEventListener("click", (e) => {
-      e.preventDefault();
-      navigator.clipboard?.writeText(canonical).then(() => {
-        alert("記事リンクをコピーしました。LINEに貼り付けて共有できます。");
-      }).catch(() => alert("コピーに失敗しました"));
-    });
+    const articleUrl = `${location.origin}/blog-article.html?id=${articleIdx}`;
+    const shareUrl = BlogData.buildOfficialLineShare(articleUrl);
+    shareRow.innerHTML = `
+      <a class="share line" href="${shareUrl}" target="_blank" rel="noreferrer">LINEで共有</a>
+      <a class="share" href="${articleUrl}" target="_blank">リンクをコピー</a>
+    `;
   }
 
-  document.addEventListener("DOMContentLoaded", async () => {
-    const { article, idx } = await findArticle();
-    render(article, idx);
-  });
+  document.addEventListener("DOMContentLoaded", renderArticle);
 </script>
 </body>
 </html>
