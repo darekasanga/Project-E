@@ -28,8 +28,8 @@
       </div>
       <div class="grid-2" style="align-items:center;">
         <div class="stack" style="gap:10px;" id="featuredCopy">
-          <h2>幅に合わせて表情を変える一覧ビュー</h2>
-          <p>スマホでは縦にカードを並べ、タブレットはサムネイル横並び、PCではサイドバー付きの2カラムで統計とタグクラウドを固定。見やすさを保ちながら情報量を増やしました。</p>
+          <h2 id="heroTitle">幅に合わせて表情を変える一覧ビュー</h2>
+          <p id="heroBody">スマホでは縦にカードを並べ、タブレットはサムネイル横並び、PCではサイドバー付きの2カラムで統計とタグクラウドを固定。見やすさを保ちながら情報量を増やしました。</p>
           <div class="inline-chips">
             <span class="badge">LINE連携</span>
             <span class="badge">ローカル保存</span>
@@ -42,20 +42,20 @@
 
     <section class="grid-2">
       <article class="card">
-        <h3>スマホビュー</h3>
-        <p class="mobile-hint">1カラムでサムネイルを上、本文とタグを下に配置。タップしやすい余白を確保しました。</p>
+        <h3 id="mobileTitle">スマホビュー</h3>
+        <p class="mobile-hint" id="mobileBody">1カラムでサムネイルを上、本文とタグを下に配置。タップしやすい余白を確保しました。</p>
       </article>
       <article class="card">
-        <h3>タブレットビュー</h3>
-        <p class="tablet-hint">サムネイル横並び＋行間拡大。768px以上で自動適用されます。</p>
+        <h3 id="tabletTitle">タブレットビュー</h3>
+        <p class="tablet-hint" id="tabletBody">サムネイル横並び＋行間拡大。768px以上で自動適用されます。</p>
       </article>
       <article class="card">
-        <h3>PCビュー</h3>
-        <p class="pc-hint">最大幅1200pxで2カラム＋サイドバーを固定。タグクラウドと統計を右側に表示します。</p>
+        <h3 id="pcTitle">PCビュー</h3>
+        <p class="pc-hint" id="pcBody">最大幅1200pxで2カラム＋サイドバーを固定。タグクラウドと統計を右側に表示します。</p>
       </article>
       <article class="card">
-        <h3>共有と導線</h3>
-        <p>各記事にLINE共有と記事リンクを配置。管理者リンクは認証が必要な場合のみ遷移します。</p>
+        <h3 id="shareTitle">共有と導線</h3>
+        <p id="shareBody">各記事にLINE共有と記事リンクを配置。管理者リンクは認証が必要な場合のみ遷移します。</p>
       </article>
     </section>
 
@@ -63,8 +63,8 @@
       <div class="list-shell">
         <div class="list-head">
           <div>
-            <h3>最新の投稿</h3>
-            <p class="muted">ローカル保存された記事を時系列順に一覧表示します。</p>
+            <h3 id="listTitle">最新の投稿</h3>
+            <p class="muted" id="listSubtitle">ローカル保存された記事を時系列順に一覧表示します。</p>
           </div>
           <div class="badge" id="countBadge"></div>
         </div>
@@ -74,8 +74,8 @@
       <aside class="stack" aria-label="サイド情報">
         <div class="panel">
           <div class="section-title" style="gap:6px;">
-            <h3>タグクラウド</h3>
-            <span class="tiny">使用頻度順に表示</span>
+            <h3 id="tagTitle">タグクラウド</h3>
+            <span class="tiny" id="tagSubtitle">使用頻度順に表示</span>
           </div>
           <div class="tag-row" id="tagCloud"></div>
         </div>
@@ -84,8 +84,8 @@
 
     <section class="panel" id="pinnedWrapper" style="display:none;">
       <div class="section-title">
-        <h3>固定記事</h3>
-        <span class="tiny">管理ページで選択された記事を表示</span>
+        <h3 id="pinnedTitle">固定記事</h3>
+        <span class="tiny" id="pinnedSubtitle">管理ページで選択された記事を表示</span>
       </div>
       <div class="list card-layout" id="pinnedList"></div>
     </section>
@@ -105,6 +105,27 @@
     const featuredVisual = document.getElementById("featuredVisual");
     const pinnedWrapper = document.getElementById("pinnedWrapper");
     const pinnedList = document.getElementById("pinnedList");
+    const copyTexts = BlogData.loadCopy();
+
+    function applyCopy() {
+      const safeText = (value, fallback) => (value ?? fallback);
+      document.getElementById("heroTitle").textContent = safeText(copyTexts.heroTitle, "");
+      document.getElementById("heroBody").textContent = safeText(copyTexts.heroBody, "");
+      document.getElementById("mobileTitle").textContent = safeText(copyTexts.mobileTitle, "");
+      document.getElementById("mobileBody").textContent = safeText(copyTexts.mobileBody, "");
+      document.getElementById("tabletTitle").textContent = safeText(copyTexts.tabletTitle, "");
+      document.getElementById("tabletBody").textContent = safeText(copyTexts.tabletBody, "");
+      document.getElementById("pcTitle").textContent = safeText(copyTexts.pcTitle, "");
+      document.getElementById("pcBody").textContent = safeText(copyTexts.pcBody, "");
+      document.getElementById("shareTitle").textContent = safeText(copyTexts.shareTitle, "");
+      document.getElementById("shareBody").textContent = safeText(copyTexts.shareBody, "");
+      document.getElementById("listTitle").textContent = safeText(copyTexts.listTitle, "");
+      document.getElementById("listSubtitle").textContent = safeText(copyTexts.listSubtitle, "");
+      document.getElementById("pinnedTitle").textContent = safeText(copyTexts.pinnedTitle, "");
+      document.getElementById("pinnedSubtitle").textContent = safeText(copyTexts.pinnedSubtitle, "");
+      document.getElementById("tagTitle").textContent = safeText(copyTexts.tagTitle, "");
+      document.getElementById("tagSubtitle").textContent = safeText(copyTexts.tagSubtitle, "");
+    }
 
     function enforceAdminLinks() {
       const adminLinks = document.querySelectorAll('[data-requires-auth]');
@@ -121,6 +142,8 @@
         });
       });
     }
+
+    applyCopy();
 
     function formatRelative(index) {
       const base = Date.now() - index * 3_600_000 * 3;
