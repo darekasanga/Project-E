@@ -1,3 +1,4 @@
+
 :root {
   --bg: #050505;
   --panel: #0b0b0b;
@@ -8,6 +9,8 @@
   --border: #1f1f1f;
   --radius: 18px;
   --shadow: 0 18px 50px rgba(0, 0, 0, 0.45);
+  --page-max: 1100px;
+  --page-inline: clamp(16px, 4vw, 30px);
 }
 
 * { box-sizing: border-box; }
@@ -20,6 +23,9 @@ body {
               var(--bg);
   color: var(--text);
   min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 a { color: inherit; }
@@ -31,11 +37,12 @@ header {
   backdrop-filter: blur(12px);
   background: rgba(5, 5, 5, 0.9);
   border-bottom: 1px solid var(--border);
-  padding: 14px 18px;
+  padding: 14px var(--page-inline);
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
+  width: min(var(--page-max), 100%);
 }
 
 .brand { display: flex; align-items: center; gap: 10px; }
@@ -68,6 +75,13 @@ header {
 }
 
 .pill.primary { background: var(--line); color: #041902; font-weight: 700; border-color: #0f2f14; }
+
+.actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
 
 .badge {
   display: inline-flex;
@@ -104,6 +118,15 @@ header {
 
 .meta { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; color: var(--muted); font-size: 12px; }
 
+main,
+footer {
+  width: min(var(--page-max), 100%);
+}
+
 @media (max-width: 720px) {
   header { flex-direction: column; align-items: flex-start; }
+}
+
+@media (min-width: 740px) {
+  header { gap: 16px; }
 }
