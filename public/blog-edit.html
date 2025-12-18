@@ -1,0 +1,834 @@
+<!doctype html>
+<html lang="ja">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>記事編集 | Emperor News</title>
+<link rel="stylesheet" href="/assets/base.css">
+<body>
+  <script>
+    (function enforceAdminSession() {
+      const SESSION_KEY = "emperor_admin_token";
+      const authed = sessionStorage.getItem(SESSION_KEY) === "active";
+      if (!authed) {
+        const destination = encodeURIComponent(location.pathname + location.search + location.hash);
+        window.location.replace(`/admin.html?redirect=${destination}`);
+      }
+    })();
+  </script>
+
+  <header class="site-header">
+    <div class="brand">
+      <div class="logo">E</div>
+      <div>
+        <h1>記事編集</h1>
+        <p>公開ビューとは別の管理用編集ページ</p>
+      </div>
+    </div>
+    <div class="actions">
+      <a class="pill" href="/blog-list.html">公開一覧へ戻る</a>
+      <a class="pill ghost" href="/admin.html">認証ページ</a>
+    </div>
+  </header>
+
+  <main class="container">
+    <section class="hero">
+      <div class="inline-chips">
+        <div class="badge" id="status">ログイン中</div>
+        <div class="badge">スマホ〜PC対応</div>
+      </div>
+      <h2 style="margin:0">記事の新規追加・編集</h2>
+      <p class="muted">タイトル・本文・タグ・カバー画像URLを入力して保存します。フォームやリストはすべてレスポンシブに配置しました。</p>
+      <div class="actions" style="justify-content: space-between; align-items: flex-start;">
+        <button class="secondary" id="newBtn">新規作成</button>
+        <p class="tiny" id="helper">新しい記事を作成します。</p>
+      </div>
+    </section>
+
+    <section class="panel stack">
+      <div class="section-title">
+        <h3>配置設定</h3>
+        <span class="tiny">注目記事と固定記事を選択</span>
+      </div>
+      <form class="stack" id="settingsForm">
+        <div class="form-row">
+          <label class="tiny" for="heroSelect">トップヒーロー（トップページの強調枠）</label>
+          <select id="heroSelect"></select>
+        </div>
+        <div class="form-row">
+          <label class="tiny" for="featuredSelect">注目記事（一覧の一番上）</label>
+          <select id="featuredSelect"></select>
+        </div>
+        <div class="form-row">
+          <label class="tiny" for="homeFeaturedSelect">トップページの注目記事（横スクロール枠 / 最大4件）</label>
+          <select id="homeFeaturedSelect" multiple size="5"></select>
+          <p class="tiny muted">Cmd/Ctrl + クリックで複数選択できます。最大4件まで優先表示します。</p>
+        </div>
+        <div class="form-row">
+          <label class="tiny" for="homeLatestSelect">トップページの最新記事（リスト表示 / 最大4件）</label>
+          <select id="homeLatestSelect" multiple size="5"></select>
+          <p class="tiny muted">選択されたID順で表示します（未選択の場合は先頭から4件）。</p>
+        </div>
+        <div class="form-row">
+          <label class="tiny">固定記事（一覧の最下部に並べます）</label>
+          <div id="pinnedChoices" class="stack" style="gap:8px;"></div>
+        </div>
+        <div class="actions" style="justify-content: space-between; align-items: center; flex-wrap: wrap;">
+          <button class="primary" type="submit">配置を保存</button>
+          <span class="tiny" id="settingsStatus">一覧ページに反映されます。</span>
+        </div>
+      </form>
+    </section>
+
+    <section class="panel stack">
+      <div class="section-title">
+        <h3>文言設定</h3>
+        <span class="tiny">一覧ページの各項目テキストを変更</span>
+      </div>
+      <form class="stack" id="copyForm">
+        <div class="form-row" style="align-items: flex-start;">
+          <div style="flex:1;">
+            <label class="tiny" for="copySourceSelect">記事IDから文言を読み込む</label>
+            <select id="copySourceSelect"></select>
+            <p class="tiny muted" id="copySourceStatus">固定記事・ヒーロー・一覧/固定セクションもIDから選択できます。</p>
+          </div>
+          <button class="secondary" type="button" id="applyCopySource">反映</button>
+        </div>
+        <div class="grid-2" style="gap:12px;">
+          <div class="form-row">
+            <label class="tiny" for="heroTitle">ヒーロータイトル</label>
+            <input id="heroTitle" name="heroTitle">
+          </div>
+          <div class="form-row">
+            <label class="tiny" for="heroBody">ヒーロー本文</label>
+            <textarea id="heroBody" name="heroBody"></textarea>
+          </div>
+          <div class="form-row">
+            <label class="tiny" for="listTitle">一覧セクション見出し</label>
+            <input id="listTitle" name="listTitle">
+          </div>
+          <div class="form-row">
+            <label class="tiny" for="listSubtitle">一覧セクション補足</label>
+            <textarea id="listSubtitle" name="listSubtitle"></textarea>
+          </div>
+          <div class="form-row">
+            <label class="tiny" for="pinnedTitle">固定セクション見出し</label>
+            <input id="pinnedTitle" name="pinnedTitle">
+          </div>
+          <div class="form-row">
+            <label class="tiny" for="pinnedSubtitle">固定セクション補足</label>
+            <textarea id="pinnedSubtitle" name="pinnedSubtitle"></textarea>
+          </div>
+          <div class="form-row">
+            <label class="tiny" for="tagTitle">タグクラウド見出し</label>
+            <input id="tagTitle" name="tagTitle">
+          </div>
+          <div class="form-row">
+            <label class="tiny" for="tagSubtitle">タグクラウド補足</label>
+            <textarea id="tagSubtitle" name="tagSubtitle"></textarea>
+          </div>
+        </div>
+        <div class="actions" style="justify-content: space-between; align-items: center; flex-wrap: wrap;">
+          <button class="primary" type="submit">文言を保存</button>
+          <span class="tiny" id="copyStatus">一覧ページに即時反映されます。</span>
+        </div>
+      </form>
+
+      <div class="stack" style="gap:12px;">
+        <div class="section-title" style="align-items: flex-end;">
+          <div>
+            <h4 style="margin:0;">追加の文言項目</h4>
+            <p class="tiny" style="margin:4px 0 0;">右からスワイプで削除できます。必要に応じて新規追加してください。</p>
+          </div>
+          <form class="stack" id="copyExtraForm" style="gap:6px; width:min(360px, 100%);">
+            <label class="tiny" for="copyExtraInput" style="color: var(--muted);">追記事項</label>
+            <div class="flex" style="gap:8px; align-items: center;">
+              <input id="copyExtraInput" name="copyExtra" placeholder="例: スマホは右スワイプで削除" style="flex:1;">
+              <button class="secondary" type="submit" id="copyAddBtn">追加</button>
+            </div>
+            <span class="tiny" id="copyExtraStatus">Enterキーでも追加できます。</span>
+          </form>
+        </div>
+        <div class="stack" id="copyList" style="gap:12px;"></div>
+      </div>
+    </section>
+
+    <section class="panel stack">
+      <div class="section-title">
+        <h3>ページリンク管理</h3>
+        <span class="tiny">トップページのリンクカードを編集・削除</span>
+      </div>
+      <form class="stack" id="pageLinkForm">
+        <div class="grid-2" style="gap:12px;">
+          <div class="form-row">
+            <label class="tiny" for="pageLinkTitle">タイトル（絵文字含め可）</label>
+            <input id="pageLinkTitle" name="pageLinkTitle" required placeholder="📰 記事ビュー">
+          </div>
+          <div class="form-row">
+            <label class="tiny" for="pageLinkUrl">URL</label>
+            <input id="pageLinkUrl" name="pageLinkUrl" required placeholder="/blog-article.html">
+          </div>
+        </div>
+        <div class="form-row">
+          <label class="tiny" for="pageLinkDescription">説明</label>
+          <textarea id="pageLinkDescription" name="pageLinkDescription" rows="3" placeholder="リンク先の補足"></textarea>
+        </div>
+        <div class="actions" style="justify-content: space-between; align-items: center; flex-wrap: wrap;">
+          <div class="flex" style="gap:8px;">
+            <button class="primary" type="submit" id="pageLinkSave">保存</button>
+            <button class="secondary" type="button" id="pageLinkReset">新規追加に切替</button>
+          </div>
+          <span class="tiny" id="pageLinkStatus">トップページのカードに反映されます。</span>
+        </div>
+      </form>
+      <div class="stack" id="pageLinkList" style="gap:10px;"></div>
+    </section>
+
+    <section class="panel stack">
+      <form class="stack" id="editorForm">
+        <div class="form-row">
+          <label for="title" class="tiny">タイトル</label>
+          <input id="title" name="title" required placeholder="記事タイトル">
+        </div>
+        <div class="form-row">
+          <label for="body" class="tiny">本文 (複数段落は空行で区切ってください)</label>
+          <textarea id="body" name="body" required placeholder="本文を入力"></textarea>
+        </div>
+        <div class="form-row">
+          <label for="tags" class="tiny">タグ (カンマ区切り)</label>
+          <input id="tags" name="tags" placeholder="iPhone, iPad, 公式LINE">
+        </div>
+        <div class="form-row">
+          <label for="image" class="tiny">カバー画像URL</label>
+          <input id="image" name="image" type="url" placeholder="https://example.com/cover.jpg">
+        </div>
+        <div class="form-row">
+          <label class="tiny" for="imageFile">画像アップロード (jpg / png)</label>
+          <div class="stack" style="gap:8px;">
+            <input id="imageFile" type="file" accept="image/*">
+            <div class="flex" style="align-items:flex-end; justify-content: space-between; gap:12px;">
+              <div id="imagePreview" class="thumb fallback" style="width: 140px; height: auto; aspect-ratio: 4/3; display: grid; place-items: center;">No image</div>
+              <div class="stack" style="align-items:flex-end; gap:6px;">
+                <button class="secondary" type="button" id="clearImage">画像をクリア</button>
+                <span class="tiny" id="imageStatus">URL入力かファイル選択でカバー画像を登録できます。</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="actions">
+          <button class="primary" type="submit" id="saveBtn">保存する</button>
+        </div>
+      </form>
+    </section>
+
+    <section class="panel">
+      <div class="section-title">
+        <h3>保存済みの記事</h3>
+        <span class="tiny">ローカル保存された記事を編集または削除できます。</span>
+      </div>
+      <div class="stack" id="articleList"></div>
+    </section>
+  </main>
+
+<script src="/assets/lightbox.js"></script>
+<script src="/assets/blog-data.js"></script>
+<script>
+  const SESSION_KEY = "emperor_admin_token";
+  const form = document.getElementById("editorForm");
+  const articleList = document.getElementById("articleList");
+  const statusLabel = document.getElementById("status");
+  const helper = document.getElementById("helper");
+  const saveBtn = document.getElementById("saveBtn");
+  const imageInput = document.getElementById("image");
+  const imageFile = document.getElementById("imageFile");
+  const imagePreview = document.getElementById("imagePreview");
+  const imageStatus = document.getElementById("imageStatus");
+  const clearImageBtn = document.getElementById("clearImage");
+  const settingsForm = document.getElementById("settingsForm");
+  const heroSelect = document.getElementById("heroSelect");
+  const featuredSelect = document.getElementById("featuredSelect");
+  const homeFeaturedSelect = document.getElementById("homeFeaturedSelect");
+  const homeLatestSelect = document.getElementById("homeLatestSelect");
+  const pinnedChoices = document.getElementById("pinnedChoices");
+  const settingsStatus = document.getElementById("settingsStatus");
+  const copyForm = document.getElementById("copyForm");
+  const copyStatus = document.getElementById("copyStatus");
+  const copyList = document.getElementById("copyList");
+  const copyExtraForm = document.getElementById("copyExtraForm");
+  const copyExtraInput = document.getElementById("copyExtraInput");
+  const copyExtraStatus = document.getElementById("copyExtraStatus");
+  const copySourceSelect = document.getElementById("copySourceSelect");
+  const copySourceStatus = document.getElementById("copySourceStatus");
+  const applyCopySourceBtn = document.getElementById("applyCopySource");
+  const pageLinkForm = document.getElementById("pageLinkForm");
+  const pageLinkTitle = document.getElementById("pageLinkTitle");
+  const pageLinkUrl = document.getElementById("pageLinkUrl");
+  const pageLinkDescription = document.getElementById("pageLinkDescription");
+  const pageLinkStatus = document.getElementById("pageLinkStatus");
+  const pageLinkList = document.getElementById("pageLinkList");
+  const pageLinkReset = document.getElementById("pageLinkReset");
+  let editingLinkId = null;
+  let editingIdx = null;
+  let imageData = "";
+
+  function parseTags(input) {
+    return input.split(/[\,\n]/).map(t => t.trim()).filter(Boolean);
+  }
+
+  function formatTags(tags) {
+    return (tags || []).join(", ");
+  }
+
+  function setPreview(src) {
+    imageData = src || "";
+    if (!imageData) {
+      imagePreview.classList.add("fallback");
+      imagePreview.textContent = "No image";
+      imagePreview.style.backgroundImage = "";
+      imageStatus.textContent = "URL入力かファイル選択でカバー画像を登録できます。";
+      return;
+    }
+    imagePreview.classList.remove("fallback");
+    imagePreview.textContent = "";
+    imagePreview.style.backgroundImage = `url(${imageData})`;
+    imagePreview.style.backgroundSize = "cover";
+    imagePreview.style.backgroundPosition = "center";
+    imageStatus.textContent = "保存後、公開ビューでタップ拡大できます。";
+  }
+
+  function downscaleImage(file) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        const img = new Image();
+        img.onload = () => {
+          const MAX_DIMENSION = 1200;
+          const scale = Math.min(1, MAX_DIMENSION / Math.max(img.width, img.height));
+          const targetWidth = Math.round(img.width * scale);
+          const targetHeight = Math.round(img.height * scale);
+          const canvas = document.createElement("canvas");
+          canvas.width = targetWidth;
+          canvas.height = targetHeight;
+          const ctx = canvas.getContext("2d");
+          ctx.drawImage(img, 0, 0, targetWidth, targetHeight);
+          const outputType = file.type === "image/png" ? "image/png" : "image/jpeg";
+          const quality = outputType === "image/png" ? 0.9 : 0.85;
+          const dataUrl = canvas.toDataURL(outputType, quality);
+          resolve(dataUrl);
+        };
+        img.onerror = () => reject(new Error("画像の読み込みに失敗しました。"));
+        img.src = reader.result;
+      };
+      reader.onerror = () => reject(new Error("画像の読み込みに失敗しました。"));
+      reader.readAsDataURL(file);
+    });
+  }
+
+  async function handleFileSelect(event) {
+    const [file] = event.target.files || [];
+    if (!file) return;
+    if (!file.type.startsWith("image/")) {
+      imageStatus.textContent = "画像ファイルを選択してください。";
+      return;
+    }
+    if (file.size > 3 * 1024 * 1024) {
+      imageStatus.textContent = "3MB以下の画像をアップロードしてください。";
+      return;
+    }
+    imageStatus.textContent = "画像を読み込み中です…";
+    try {
+      const scaled = await downscaleImage(file);
+      imageInput.value = "";
+      setPreview(scaled);
+      imageStatus.textContent = "長辺1200pxに自動リサイズして保存します。";
+    } catch (err) {
+      imageStatus.textContent = err?.message || "画像処理に失敗しました。";
+    }
+  }
+
+  function setSessionBadge() {
+    const authed = sessionStorage.getItem(SESSION_KEY) === "active";
+    statusLabel.textContent = authed ? "ログイン中: admin" : "未ログイン";
+  }
+
+  function renderSettingsForm() {
+    const articles = BlogData.loadArticles();
+    const settings = BlogData.saveSettings(BlogData.loadSettings());
+    heroSelect.innerHTML = "";
+    featuredSelect.innerHTML = "";
+    homeFeaturedSelect.innerHTML = "";
+    homeLatestSelect.innerHTML = "";
+    pinnedChoices.innerHTML = "";
+
+    if (!articles.length) {
+      heroSelect.innerHTML = '<option value="">記事がありません</option>';
+      featuredSelect.innerHTML = '<option value="">記事がありません</option>';
+      homeFeaturedSelect.innerHTML = '<option value="">記事がありません</option>';
+      homeLatestSelect.innerHTML = '<option value="">記事がありません</option>';
+      pinnedChoices.innerHTML = '<span class="tiny">記事追加後に設定できます。</span>';
+      copySourceSelect.innerHTML = '<option value="">記事がありません</option>';
+      settingsStatus.textContent = "記事を追加すると設定できます。";
+      return;
+    }
+
+    const heroFallbackOpt = document.createElement("option");
+    heroFallbackOpt.value = "";
+    heroFallbackOpt.textContent = "未指定 (先頭の記事を表示)";
+    heroSelect.appendChild(heroFallbackOpt);
+
+    const fallbackOpt = document.createElement("option");
+    fallbackOpt.value = "";
+    fallbackOpt.textContent = "未指定 (先頭の記事を表示)";
+    featuredSelect.appendChild(fallbackOpt);
+
+    articles.forEach((article, idx) => {
+      const heroOption = document.createElement("option");
+      heroOption.value = String(idx);
+      heroOption.textContent = `ID ${idx}: ${article.title || "無題"}`;
+      if (settings.heroId === idx) heroOption.selected = true;
+      heroSelect.appendChild(heroOption);
+
+      const opt = document.createElement("option");
+      opt.value = String(idx);
+      opt.textContent = `ID ${idx}: ${article.title || "無題"}`;
+      if (settings.featuredId === idx) opt.selected = true;
+      featuredSelect.appendChild(opt);
+
+      const featuredOpt = document.createElement("option");
+      featuredOpt.value = String(idx);
+      featuredOpt.textContent = `ID ${idx}: ${article.title || "無題"}`;
+      featuredOpt.selected = settings.homeFeaturedIds.includes(idx);
+      homeFeaturedSelect.appendChild(featuredOpt);
+
+      const latestOpt = document.createElement("option");
+      latestOpt.value = String(idx);
+      latestOpt.textContent = `ID ${idx}: ${article.title || "無題"}`;
+      latestOpt.selected = settings.homeLatestIds.includes(idx);
+      homeLatestSelect.appendChild(latestOpt);
+    });
+
+    copySourceSelect.innerHTML = '<option value="">文言を読み込む記事を選択</option>';
+    articles.forEach((article, idx) => {
+      const opt = document.createElement("option");
+      opt.value = String(idx);
+      opt.textContent = `ID ${idx}: ${article.title || "無題"}`;
+      copySourceSelect.appendChild(opt);
+    });
+
+    articles.forEach((article, idx) => {
+      const row = document.createElement("label");
+      row.className = "flex";
+      row.style.justifyContent = "space-between";
+      const checkbox = document.createElement("input");
+      checkbox.type = "checkbox";
+      checkbox.value = String(idx);
+      checkbox.checked = settings.footerIds.includes(idx);
+      const text = document.createElement("span");
+      text.textContent = `ID ${idx}: ${article.title || "無題"}`;
+      row.appendChild(text);
+      row.appendChild(checkbox);
+      pinnedChoices.appendChild(row);
+    });
+
+    settingsStatus.textContent = `ヒーロー: ${Number.isInteger(settings.heroId) ? `ID ${settings.heroId}` : "未指定"} / 注目: ${Number.isInteger(settings.featuredId) ? `ID ${settings.featuredId}` : "未指定"} / トップ注目 ${settings.homeFeaturedIds.length} 件 / トップ最新 ${settings.homeLatestIds.length} 件 / 固定 ${settings.footerIds.length} 件`;
+  }
+
+  function renderCopyForm() {
+    const copy = BlogData.loadCopy();
+    Object.entries(copy).forEach(([key, value]) => {
+      const input = copyForm.querySelector(`[name="${key}"]`);
+      if (input) {
+        input.value = value;
+      }
+    });
+    copyStatus.textContent = "一覧ページに即時反映されます。";
+  }
+
+  function applyCopySource() {
+    const idx = parseInt(copySourceSelect.value, 10);
+    if (!Number.isInteger(idx)) {
+      copySourceStatus.textContent = "記事IDを選択してください。";
+      return;
+    }
+    const { article } = BlogData.findArticle(idx);
+    if (!article) {
+      copySourceStatus.textContent = "記事が見つかりませんでした。";
+      return;
+    }
+
+    const title = article.title?.trim() || `記事ID ${idx}`;
+    const body = (article.body || "").split(/\n+/)[0].trim();
+    const excerpt = body.slice(0, 120);
+
+    const setters = {
+      heroTitle: title,
+      listTitle: title,
+      pinnedTitle: title,
+      heroBody: excerpt,
+      listSubtitle: excerpt,
+      pinnedSubtitle: excerpt,
+    };
+
+    Object.entries(setters).forEach(([key, value]) => {
+      const input = copyForm.querySelector(`[name="${key}"]`);
+      if (input) input.value = value;
+    });
+
+    copySourceStatus.textContent = `ID ${idx} の記事から文言を反映しました。`;
+  }
+
+  function renderCopyExtras() {
+    const extras = BlogData.loadCopyExtras();
+    copyList.innerHTML = "";
+    if (!extras.length) {
+      copyList.innerHTML = '<p class="muted">追加された文言はありません。右上のフォームから追加できます。</p>';
+      return;
+    }
+
+    extras.forEach((item) => {
+      const row = document.createElement("div");
+      row.className = "swipeable";
+      row.dataset.id = item.id;
+      row.innerHTML = `
+        <div class="swipe-delete">削除</div>
+        <div class="card swipe-body">
+          <div class="actions" style="justify-content: space-between; align-items: flex-start;">
+            <div class="stack" style="gap:4px;">
+              <div class="badge">追記</div>
+              <span class="tiny">右からスワイプで消せます</span>
+            </div>
+            <button class="secondary" data-action="delete" data-id="${item.id}">削除</button>
+          </div>
+          <p style="margin:0; color: var(--text);">${item.text}</p>
+        </div>
+      `;
+      attachSwipeHandler(row, () => removeCopyExtra(item.id));
+      copyList.appendChild(row);
+    });
+  }
+
+  function removeCopyExtra(id) {
+    const extras = BlogData.loadCopyExtras();
+    const next = extras.filter((item) => item.id !== id);
+    BlogData.saveCopyExtras(next);
+    renderCopyExtras();
+    copyExtraStatus.textContent = "削除しました。";
+  }
+
+  function handleCopyExtraAdd(event) {
+    event.preventDefault();
+    const text = copyExtraInput.value.trim();
+    if (!text) {
+      copyExtraStatus.textContent = "文言を入力してください。";
+      return;
+    }
+    const extras = BlogData.loadCopyExtras();
+    const next = BlogData.saveCopyExtras([
+      ...extras,
+      { id: crypto.randomUUID?.() ?? `copy-${Date.now()}`, text },
+    ]);
+    copyExtraInput.value = "";
+    copyExtraStatus.textContent = `${next.length}件の文言を保存しました。`;
+    renderCopyExtras();
+  }
+
+  function resetPageLinkForm(link = {}) {
+    pageLinkTitle.value = link.title || "";
+    pageLinkUrl.value = link.url || "";
+    pageLinkDescription.value = link.description || "";
+    editingLinkId = link.id ?? null;
+    pageLinkStatus.textContent = editingLinkId ? `ID ${editingLinkId} を編集中です。` : "トップページのカードに反映されます。";
+  }
+
+  function renderPageLinks() {
+    const links = BlogData.loadPageLinks();
+    pageLinkList.innerHTML = "";
+    if (!links.length) {
+      pageLinkList.innerHTML = '<p class="muted">リンクがありません。追加してください。</p>';
+      return;
+    }
+    links.forEach((link) => {
+      const row = document.createElement("article");
+      row.className = "swipeable";
+      row.dataset.id = link.id;
+      row.innerHTML = `
+        <div class="swipe-delete">削除</div>
+        <div class="card swipe-body">
+          <div class="actions" style="justify-content: space-between; align-items: flex-start; flex-wrap: wrap;">
+            <div class="stack" style="gap:6px;">
+              <div class="inline-chips">
+                <span class="badge">ID ${link.id}</span>
+                <span class="badge">${link.url}</span>
+              </div>
+              <h3 style="margin:0;">${link.title}</h3>
+              <p class="muted" style="margin:0;">${link.description || ""}</p>
+            </div>
+            <div class="stack" style="gap:6px; align-items:flex-end;">
+              <button class="secondary" data-action="edit-link" data-id="${link.id}">編集</button>
+              <button class="secondary" data-action="delete-link" data-id="${link.id}">削除</button>
+            </div>
+          </div>
+        </div>
+      `;
+      attachSwipeHandler(row, () => {
+        const next = BlogData.loadPageLinks().filter((item) => item.id !== link.id);
+        BlogData.savePageLinks(next);
+        renderPageLinks();
+        resetPageLinkForm();
+        pageLinkStatus.textContent = `ID ${link.id} を削除しました。`;
+      });
+      pageLinkList.appendChild(row);
+    });
+  }
+
+  function handlePageLinkSave(event) {
+    event.preventDefault();
+    const title = pageLinkTitle.value.trim();
+    const url = pageLinkUrl.value.trim();
+    const description = pageLinkDescription.value.trim();
+    if (!title || !url) {
+      pageLinkStatus.textContent = "タイトルとURLは必須です。";
+      return;
+    }
+    const links = BlogData.loadPageLinks();
+    const id = editingLinkId ?? `link-${Date.now()}`;
+    const next = links.filter((item) => item.id !== id);
+    next.unshift({ id, title, url, description });
+    const saved = BlogData.savePageLinks(next);
+    renderPageLinks();
+    resetPageLinkForm();
+    pageLinkStatus.textContent = `${saved.length}件のリンクを保存しました。`;
+  }
+
+  function handlePageLinkListClick(event) {
+    const target = event.target;
+    if (!(target instanceof HTMLElement)) return;
+    const { action, id } = target.dataset;
+    if (!id) return;
+    const links = BlogData.loadPageLinks();
+    if (action === "edit-link") {
+      const link = links.find((item) => item.id === id);
+      if (link) {
+        resetPageLinkForm(link);
+      }
+    }
+    if (action === "delete-link") {
+      const next = links.filter((item) => item.id !== id);
+      BlogData.savePageLinks(next);
+      renderPageLinks();
+      resetPageLinkForm();
+      pageLinkStatus.textContent = `ID ${id} を削除しました。`;
+    }
+  }
+
+  function attachSwipeHandler(element, onCommit) {
+    const body = element.querySelector(".swipe-body");
+    let startX = 0;
+    let deltaX = 0;
+    let dragging = false;
+
+    function reset() {
+      deltaX = 0;
+      dragging = false;
+      element.dataset.swipeReady = "";
+      body.style.transform = "";
+    }
+
+    function handleEnd(event) {
+      if (!dragging) return;
+      element.releasePointerCapture?.(event.pointerId);
+      const shouldCommit = deltaX > 110;
+      reset();
+      if (shouldCommit) onCommit?.();
+    }
+
+    element.addEventListener("pointerdown", (event) => {
+      startX = event.clientX;
+      dragging = true;
+      element.setPointerCapture?.(event.pointerId);
+    });
+
+    element.addEventListener("pointermove", (event) => {
+      if (!dragging) return;
+      deltaX = Math.max(0, startX - event.clientX);
+      if (!body) return;
+      body.style.transform = `translateX(${-Math.min(deltaX, 120)}px)`;
+      element.dataset.swipeReady = deltaX > 80 ? "true" : "";
+    });
+
+    element.addEventListener("pointerup", handleEnd);
+    element.addEventListener("pointercancel", handleEnd);
+  }
+
+  function renderList() {
+    const articles = BlogData.loadArticles();
+    articleList.innerHTML = "";
+    if (!articles.length) {
+      articleList.innerHTML = '<p class="muted">まだ記事がありません。フォームから追加してください。</p>';
+      return;
+    }
+
+    articles.forEach((article, idx) => {
+      const item = document.createElement("div");
+      item.className = "swipeable";
+      item.dataset.idx = String(idx);
+      item.innerHTML = `
+        <div class="swipe-delete">削除</div>
+        <div class="card swipe-body">
+          <div class="actions" style="justify-content: space-between; align-items: flex-start; flex-wrap: wrap;">
+            <div class="stack" style="gap:6px;">
+              <div class="inline-chips">
+                <span class="badge">ID ${idx}</span>
+                <span class="badge">${(article.tags || []).length || 0} タグ</span>
+              </div>
+              <h3 style="margin:0;">${article.title || "無題の記事"}</h3>
+              <p class="muted">${article.body?.slice(0, 80) || "本文がありません"}</p>
+              <div class="tag-row">${(article.tags || []).map(tag => `<a class="tag" href="/tag.html?tag=${encodeURIComponent(tag)}">#${tag}</a>`).join("") || '<span class="tag">#untagged</span>'}</div>
+            </div>
+            <div class="stack" style="gap:6px; align-items:flex-end;">
+              <button class="secondary" data-action="edit" data-idx="${idx}">編集</button>
+              <button class="secondary" data-action="delete" data-idx="${idx}">削除</button>
+            </div>
+          </div>
+        </div>
+      `;
+      attachSwipeHandler(item, () => {
+        if (confirm("この記事を削除しますか？")) {
+          BlogData.deleteArticle(idx);
+          renderList();
+          renderSettingsForm();
+        }
+      });
+      articleList.appendChild(item);
+    });
+  }
+
+  function fillForm(article, idx) {
+    document.getElementById("title").value = article?.title || "";
+    document.getElementById("body").value = article?.body || "";
+    document.getElementById("tags").value = formatTags(article?.tags);
+    imageInput.value = article?.image || "";
+    imageFile.value = "";
+    setPreview(article?.image || "");
+    editingIdx = Number.isInteger(idx) ? idx : null;
+    helper.textContent = editingIdx === null ? "新しい記事を作成します。" : `ID ${editingIdx} を編集中です。`;
+    saveBtn.textContent = editingIdx === null ? "保存する" : "更新する";
+  }
+
+  async function handleSave(event) {
+    event.preventDefault();
+    if (imageFile.files?.length && !imageData) {
+      imageStatus.textContent = "画像をリサイズ中です…";
+      try {
+        const scaled = await downscaleImage(imageFile.files[0]);
+        setPreview(scaled);
+        imageStatus.textContent = "長辺1200pxに自動リサイズして保存します。";
+      } catch (err) {
+        imageStatus.textContent = err?.message || "画像処理に失敗ました。";
+        return;
+      }
+    }
+    const payload = {
+      title: document.getElementById("title").value.trim(),
+      body: document.getElementById("body").value.trim(),
+      tags: parseTags(document.getElementById("tags").value),
+      image: imageData || imageInput.value.trim(),
+    };
+
+    BlogData.upsertArticle(payload, editingIdx);
+    fillForm({}, null);
+    renderList();
+    renderSettingsForm();
+    alert("記事を保存しました");
+  }
+
+  function handleListClick(event) {
+    const target = event.target;
+    if (!(target instanceof HTMLElement)) return;
+    const idx = parseInt(target.dataset.idx, 10);
+    if (!Number.isFinite(idx)) return;
+
+    if (target.dataset.action === "edit") {
+      const { article } = BlogData.findArticle(idx);
+      fillForm(article, idx);
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    if (target.dataset.action === "delete") {
+      if (confirm("この記事を削除しますか？")) {
+        BlogData.deleteArticle(idx);
+        renderList();
+        renderSettingsForm();
+      }
+    }
+  }
+
+  function handleSettingsSave(event) {
+    event.preventDefault();
+    const heroId = heroSelect.value === "" ? null : parseInt(heroSelect.value, 10);
+    const featuredId = featuredSelect.value === "" ? null : parseInt(featuredSelect.value, 10);
+    const footerIds = Array.from(pinnedChoices.querySelectorAll('input[type="checkbox"]:checked'))
+      .map((input) => parseInt(input.value, 10))
+      .filter(Number.isInteger);
+    const homeFeaturedIds = Array.from(homeFeaturedSelect.selectedOptions)
+      .map((opt) => parseInt(opt.value, 10))
+      .filter(Number.isInteger);
+    const homeLatestIds = Array.from(homeLatestSelect.selectedOptions)
+      .map((opt) => parseInt(opt.value, 10))
+      .filter(Number.isInteger);
+    const normalized = BlogData.saveSettings({ heroId, featuredId, footerIds, homeFeaturedIds, homeLatestIds });
+    settingsStatus.textContent = `ヒーロー: ${Number.isInteger(normalized.heroId) ? `ID ${normalized.heroId}` : "未指定"} / 注目: ${Number.isInteger(normalized.featuredId) ? `ID ${normalized.featuredId}` : "未指定"} / トップ注目 ${normalized.homeFeaturedIds.length} 件 / トップ最新 ${normalized.homeLatestIds.length} 件 / 固定 ${normalized.footerIds.length} 件 保存しました`;
+  }
+
+  function handleCopySave(event) {
+    event.preventDefault();
+    const formData = new FormData(copyForm);
+    const payload = {};
+    for (const [key, value] of formData.entries()) {
+      payload[key] = value;
+    }
+    const normalized = BlogData.saveCopy(payload);
+    copyStatus.textContent = "保存しました。ブログ一覧で即座に反映されます。";
+    Object.entries(normalized).forEach(([key, value]) => {
+      const input = copyForm.querySelector(`[name="${key}"]`);
+      if (input) input.value = value;
+    });
+  }
+
+  document.addEventListener("DOMContentLoaded", () => {
+    setSessionBadge();
+    renderList();
+    fillForm({}, null);
+    renderSettingsForm();
+    renderCopyForm();
+    renderCopyExtras();
+    renderPageLinks();
+    resetPageLinkForm();
+  });
+
+  form.addEventListener("submit", handleSave);
+  articleList.addEventListener("click", handleListClick);
+  imageFile.addEventListener("change", handleFileSelect);
+  imageInput.addEventListener("input", (event) => setPreview(event.target.value.trim()));
+  clearImageBtn.addEventListener("click", () => {
+    imageInput.value = "";
+    imageFile.value = "";
+    setPreview("");
+  });
+  document.getElementById("newBtn").addEventListener("click", () => fillForm({}, null));
+  settingsForm.addEventListener("submit", handleSettingsSave);
+  copyForm.addEventListener("submit", handleCopySave);
+  copyExtraForm.addEventListener("submit", handleCopyExtraAdd);
+  copyList.addEventListener("click", (event) => {
+    const target = event.target;
+    if (!(target instanceof HTMLElement)) return;
+    if (target.dataset.action === "delete" && target.dataset.id) {
+      removeCopyExtra(target.dataset.id);
+    }
+  });
+  applyCopySourceBtn.addEventListener("click", applyCopySource);
+  pageLinkForm.addEventListener("submit", handlePageLinkSave);
+  pageLinkReset.addEventListener("click", () => resetPageLinkForm());
+  pageLinkList.addEventListener("click", handlePageLinkListClick);
+</script>
+</body>
+</html>

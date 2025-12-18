@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="ja">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Emperor News Admin</title>
+<link rel="stylesheet" href="/assets/base.css">
+<body>
+  <header class="site-header">
+    <div class="brand">
+      <div class="logo">E</div>
+      <div>
+        <h1>Emperor News Admin</h1>
+        <p>管理者ログインと管理UI</p>
+      </div>
+    </div>
+    <div class="actions">
+      <a class="pill" href="/">公開サイトへ戻る</a>
+    </div>
+  </header>
+
+  <main class="container" style="max-width:780px;">
+    <section class="hero" id="loginPanel">
+      <div class="inline-chips">
+        <span class="badge">管理専用</span>
+        <span class="badge">スマホ / タブレット / PC</span>
+      </div>
+      <h2>ログイン</h2>
+      <p>ユーザー名とパスワードを入力してください。認証後は管理リンクが解放されます。</p>
+      <form class="stack" id="loginForm">
+        <div class="form-row">
+          <label for="username" class="tiny">ユーザー名</label>
+          <input id="username" name="username" type="text" autocomplete="username" placeholder="admin" required>
+        </div>
+        <div class="form-row">
+          <label for="password" class="tiny">パスワード</label>
+          <input id="password" name="password" type="password" autocomplete="current-password" placeholder="admin" required>
+        </div>
+        <div class="actions">
+          <button type="submit" class="primary">ログイン</button>
+          <p class="tiny">初期認証情報: <strong>admin / admin</strong></p>
+        </div>
+      </form>
+      <div class="badge" style="display:none; background: rgba(248,113,113,0.18); color: #fecdd3;" id="errorMessage">ユーザー名またはパスワードが違います。</div>
+    </section>
+
+    <section class="hero" id="adminPanel" style="display:none;">
+      <div class="actions" style="justify-content: space-between; align-items: flex-start; flex-wrap: wrap;">
+        <div class="stack">
+          <div class="badge" id="statusBadge">ログイン中</div>
+          <h2 style="margin:0;">管理UI</h2>
+          <p class="muted">ログイン済みの管理者のみが閲覧できます。記事編集やアップロードに進めます。</p>
+        </div>
+        <button class="secondary" id="logoutBtn">ログアウト</button>
+      </div>
+      <div class="stack">
+        <div class="actions">
+          <a class="pill primary" href="/blog-edit.html" id="openManager">記事編集ページ</a>
+          <a class="pill ghost" href="/blog-list.html">一覧ビューを開く</a>
+        </div>
+        <p class="tiny">管理リンクは認証済みセッションでのみ利用できます。</p>
+      </div>
+    </section>
+  </main>
+
+<script src="/assets/lightbox.js"></script>
+<script>
+  const SESSION_KEY = "emperor_admin_token";
+  const loginPanel = document.getElementById("loginPanel");
+  const adminPanel = document.getElementById("adminPanel");
+  const errorMessage = document.getElementById("errorMessage");
+  const statusBadge = document.getElementById("statusBadge");
+  const redirectParam = new URLSearchParams(location.search).get("redirect");
+  const redirectTarget = redirectParam && redirectParam.startsWith("/") ? redirectParam : null;
+
+  function isAuthenticated() {
+    return sessionStorage.getItem(SESSION_KEY) === "active";
+  }
+
+  function setSession() {
+    sessionStorage.setItem(SESSION_KEY, "active");
+  }
+
+  function clearSession() {
+    sessionStorage.removeItem(SESSION_KEY);
+  }
+
+  function toggleView(authenticated) {
+    loginPanel.style.display = authenticated ? "none" : "grid";
+    adminPanel.style.display = authenticated ? "grid" : "none";
+    if (authenticated) {
+      statusBadge.textContent = "ログイン中: admin";
+    }
+  }
+
+  function handleRedirectIfNeeded() {
+    if (redirectTarget) {
+      location.href = redirectTarget;
+    }
+  }
+
+  document.getElementById("loginForm").addEventListener("submit", (event) => {
+    event.preventDefault();
+    const username = document.getElementById("username").value.trim();
+    const password = document.getElementById("password").value.trim();
+
+    if (username === "admin" && password === "admin") {
+      setSession();
+      errorMessage.style.display = "none";
+      toggleView(true);
+      handleRedirectIfNeeded();
+    } else {
+      errorMessage.style.display = "inline-flex";
+    }
+  });
+
+  document.getElementById("logoutBtn").addEventListener("click", () => {
+    clearSession();
+    toggleView(false);
+  });
+
+  document.getElementById("openManager").addEventListener("click", (e) => {
+    if (!isAuthenticated()) {
+      e.preventDefault();
+      location.href = "/admin.html";
+    }
+  });
+
+  document.addEventListener("DOMContentLoaded", () => {
+    const authed = isAuthenticated();
+    toggleView(authed);
+    if (authed && redirectTarget) {
+      handleRedirectIfNeeded();
+    }
+  });
+</script>
+</body>
+</html>

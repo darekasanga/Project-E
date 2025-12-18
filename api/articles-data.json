@@ -1,0 +1,22 @@
+{
+  "articles": [
+    {
+      "title": "スクロールスナップで魅せるiPad特集",
+      "body": "iPadOSのオーバースクロールに合わせた柔らかなカードUI。モバイルファーストの編集フローを紹介。",
+      "tags": ["iPad", "UI", "ScrollSnap"],
+      "image": "https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?auto=format&fit=crop&w=900&q=80"
+    },
+    {
+      "title": "LINE配信テンプレート付き記事運用",
+      "body": "配信用のOGPとLINEシェアURLをワンクリック生成。チャット経由での下書きアップロードにも対応。",
+      "tags": ["LINE", "OGP", "Automation"],
+      "image": "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=900&q=80"
+    },
+    {
+      "title": "ChatGPT→ブログ 直貼りワークフロー",
+      "body": "ChatGPTで生成した文章をそのままペースト。カバー画像とタグを加えて即公開。",
+      "tags": ["ChatGPT", "Workflow", "Creator"],
+      "image": "https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=900&q=80"
+    }
+  ]
+}

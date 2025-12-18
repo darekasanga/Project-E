@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="ja">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>月別ページ | Emperor News</title>
+<link rel="stylesheet" href="/assets/blog-shared.css">
+<body>
+  <header class="site-header">
+    <div class="brand">
+      <div class="logo">E</div>
+      <div>
+        <h1>月別アーカイブ</h1>
+        <p>タグページから遷移できる月別まとめ</p>
+      </div>
+    </div>
+    <div class="actions">
+      <a class="pill" href="/tag.html">タグまとめ</a>
+      <a class="pill ghost" href="/">トップ</a>
+    </div>
+  </header>
+
+  <main class="container">
+    <section class="panel">
+      <div class="section-title">
+        <h3>月別リンク</h3>
+        <span class="tiny">最新12か月のプレースホルダー</span>
+      </div>
+      <div class="list card-layout" id="monthList"></div>
+    </section>
+  </main>
+
+  <script>
+    const monthList = document.getElementById("monthList");
+    const now = new Date();
+
+    function formatLabel(date) {
+      const year = date.getFullYear();
+      const month = date.getMonth() + 1;
+      return `${year}年${month.toString().padStart(2, "0")}月`;
+    }
+
+    function renderMonths() {
+      for (let i = 0; i < 12; i += 1) {
+        const next = new Date(now.getFullYear(), now.getMonth() - i, 1);
+        const card = document.createElement("article");
+        card.className = "card";
+        card.innerHTML = `
+          <h3>${formatLabel(next)}</h3>
+          <p class="muted">この月のアーカイブページのリンクを配置予定。</p>
+        `;
+        monthList.appendChild(card);
+      }
+    }
+
+    document.addEventListener("DOMContentLoaded", renderMonths);
+  </script>
+</body>
+</html>
