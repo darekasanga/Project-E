@@ -31,7 +31,7 @@ td.col-remark, th.col-remark {
 .selection-panel {
   margin-bottom: 8px;
 }
-/* 預り保育セル（右寄せ2列：預り保育 / 預り保育料金） */
+/* 預かり保育セル（右寄せ2列：預かり保育 / 預かり保育料金） */
 .col-azukari,
 .col-azukarif {
   text-align: center;
@@ -412,12 +412,12 @@ td.col-remark, th.col-remark {
 /* 日の列の幅を固定して細くする */
 th.col-day,
 td.col-day {
-  width: 68px;   /* 好みで 60〜80 に調整OK */
+  width: 96px;   /* ゆったり表示できるよう少し広めに */
   padding: 0;
 }
 .col-day .daycard {
-  width: 75px;   /* カード自体の幅 */
-  height: 122px;  /* 高さもそろえる */
+  width: 92px;   /* カード自体の幅 */
+  height: 130px;  /* 高さもそろえる */
   margin: 0px auto;
 }
     th,td {
@@ -1863,7 +1863,7 @@ const rowsHtml = list.map(item=>{
         (hasChange ? 'has-change' : 'no-change') +
         '" data-index="' + item.recordIndex + '">↩ 元に戻す</button>' +
     '</div>';
-  // ★ 預り保育（いまは 0 初期でもOK）
+  // ★ 預かり保育（いまは 0 初期でもOK）
   const azukariMinutes = item.azukariMinutes || 0;
   const azukariFee     = item.azukariFee     || 0;
   return (
@@ -1945,7 +1945,7 @@ const rowsHtml = list.map(item=>{
           '</div>'+
         '</div>'+
       '</td>'+
-      // ★ 預り保育
+      // ★ 預かり保育
       '<td class="col-azukari">'+
         '<div class="azukari-box" data-index="'+item.recordIndex+'">'+
           '<div class="azukari-total">'+azukariMinutes+'分</div>'+
@@ -1958,7 +1958,7 @@ const rowsHtml = list.map(item=>{
       '<td class="col-over">'+overText+'</td>'+
       '<td class="col-extu">'+item.extUnits+'</td>'+
       '<td class="col-extf">'+extText+'</td>'+
-      // ★ 預り保育料金（将来計算に使う：今は 0 でもOK）
+      // ★ 預かり保育料金（将来計算に使う：今は 0 でもOK）
       '<td class="col-azukarif">'+azukariFee+'円</td>'+
       '<td class="col-totalf">'+totalText+'</td>'+
       '<td class="col-remark">'+remarkHtml+'</td>'+
@@ -1991,13 +1991,13 @@ const rowsHtml = list.map(item=>{
   '<th class="col-buffer">バッファ</th>'+
   '<th class="col-arrive">登園時刻</th>'+
   '<th class="col-leave">降園時刻</th>'+
-  // ★ 新列：預り保育
-  '<th class="col-azukari">預り保育</th>'+
+  // ★ 新列：預かり保育
+  '<th class="col-azukari">預かり保育</th>'+
   '<th class="col-over">延長時間(分)</th>'+
   '<th class="col-extu">延長回数</th>'+
   '<th class="col-extf">延長保育料金</th>'+
-  // ★ 新列：預り保育料金
-  '<th class="col-azukarif">預り保育料金</th>'+
+  // ★ 新列：預かり保育料金
+  '<th class="col-azukarif">預かり保育料金</th>'+
   '<th class="col-totalf">合計料金</th>'+
   '<th class="col-remark">備考</th>'+
 '</tr></thead>'+
