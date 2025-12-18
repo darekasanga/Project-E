@@ -628,25 +628,30 @@ td.col-day {
       margin:0 auto;
       position:relative;   /* ★ 左バー用に必須 */
     }
-    /* デフォルト：標準（青） */
-    .daycard::before {
-      content:"";
-      position:absolute;
-      left:0;
-      top:0;
-      width:4px;
-      height:100%;
-      border-radius:4px 0 0 4px;
-      background:#3b82f6;  /* 標準：青 */
-    }
-    /* 休園：グレー */
-    .daycard.status-closed::before {
-      background:#9ca3af;
-    }
-    /* 欠園：赤 */
-    .daycard.status-absent::before {
-      background:#ef4444;
-    }
+/* デフォルト：標準（青） */
+.daycard::before {
+  content:"";
+  position:absolute;
+  left:0;
+  top:0;
+  width:4px;
+  height:100%;
+  border-radius:4px 0 0 4px;
+  background:#3b82f6;  /* 標準：青 */
+}
+/* 休園：グレー */
+.daycard.status-closed::before {
+  background:#9ca3af;
+}
+/* 欠園：赤 */
+.daycard.status-absent::before {
+  background:#ef4444;
+}
+/* [FIX] 状態色を優先させる */
+.daycard.status-closed,
+.daycard.status-absent {
+  background:#f3f4f6;
+}
     .daycard-week {
       font-size:10px;
       font-weight:600;
@@ -1136,6 +1141,7 @@ td.col-type {
 // ===== 追加：保存用のキーなど =====
 const STORAGE_VERSION = 'v2';           // [AZUKARI]
 let currentFileKey    = null;
+const DISPLAY_OPTIONS_KEY = 'encho-tool:displayOptions'; // [FIX]
 // 園児アイコン（園 + クラス + 名前 -> 絵文字）
 let iconByChild = {};
     // 時間定義
@@ -1210,8 +1216,15 @@ let azukariMonthlyCap = AZUKARI_DEFAULT_MONTH_CAP;  // [AZUKARI]
 let currentIconChildKey = null;
 const iconPickerBackdrop = document.getElementById('iconPickerBackdrop');
 const iconPicker         = document.getElementById('iconPicker');
-// この日のこの子を一意に表すキー（CSV 行ベース）
-function makeRecordKeyFromRow(row){
+// [FIX] ダウンロードボタンの活性/非活性を統一管理
+function updateDownloadButtons(){
+  const enabled = !!lastResult;
+  downloadButton.disabled     = !enabled;
+  downloadPageButton.disabled = !enabled;
+  downloadTextButton.disabled = !enabled;
+}
+    // この日のこの子を一意に表すキー（CSV 行ベース）
+    function makeRecordKeyFromRow(row){
   const date   = (row[columns.date]   || '').trim();
   const name   = (row[columns.name]   || '').trim();
   const school = (row[columns.school] || '').trim();
@@ -1230,6 +1243,33 @@ function makeRecordKeyFromDetail(d){
 function makeChildKey(school, clazz, name){
   return [school || '', clazz || '', name || ''].join('|');
 }
+// [FIX] ダウンロードファイル名を安定生成
+function buildDownloadFileName(suffix, ext){
+  const file = fileInput.files && fileInput.files[0];
+  const base = file && file.name ? file.name.replace(/\.[^.]+$/, '') : 'result';
+  const now  = new Date();
+  const stamp = [
+    now.getFullYear(),
+    String(now.getMonth()+1).padStart(2,'0'),
+    String(now.getDate()).padStart(2,'0'),
+    '-',
+    String(now.getHours()).padStart(2,'0'),
+    String(now.getMinutes()).padStart(2,'0'),
+    String(now.getSeconds()).padStart(2,'0')
+  ].join('');
+  return `${base}-${suffix}-${stamp}.${ext}`;
+}
+// [FIX] Blob ダウンロードの共通処理
+function triggerBlobDownload(blob, filename){
+  const url = URL.createObjectURL(blob);
+  const a   = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(()=>URL.revokeObjectURL(url), 0);
+}
     // サイドバー開閉
     if (toggleSidebarBtn) {
       toggleSidebarBtn.addEventListener('click',()=>{
@@ -1247,6 +1287,55 @@ function makeChildKey(school, clazz, name){
       if(e.target===helpModal) helpModal.style.display='none';
     });
     // ===== 列表示トグル（年・月・基準終了・バッファ・延長回数など） =====
+    // [FIX] 表示オプションを保存/復元
+    function loadDisplayOptions(){
+      const raw = localStorage.getItem(DISPLAY_OPTIONS_KEY);
+      if (!raw) return;
+      try{
+        const data = JSON.parse(raw);
+        [
+          [hideHeaderYear,   'hideHeaderYear'],
+          [hideHeaderMonth,  'hideHeaderMonth'],
+          [hideHeaderDay,    'hideHeaderDay'],
+          [hideHeaderWeekday,'hideHeaderWeekday'],
+          [hideHeaderType,   'hideHeaderType'],
+          [hideHeaderEnd,    'hideHeaderEnd'],
+          [hideHeaderBuffer, 'hideHeaderBuffer'],
+          [hideHeaderArrive, 'hideHeaderArrive'],
+          [hideHeaderLeave,  'hideHeaderLeave'],
+          [hideHeaderOver,   'hideHeaderOver'],
+          [hideHeaderExtU,   'hideHeaderExtU'],
+          [hideHeaderExtF,   'hideHeaderExtF'],
+          [hideHeaderRemark, 'hideHeaderRemark']
+        ].forEach(([el,key])=>{
+          if (el && key in data) el.checked = !!data[key];
+        });
+      }catch(e){
+        console.warn('表示オプションの復元に失敗', e);
+      }
+    }
+    function saveDisplayOptions(){
+      const payload = {
+        hideHeaderYear:   hideHeaderYear.checked,
+        hideHeaderMonth:  hideHeaderMonth.checked,
+        hideHeaderDay:    hideHeaderDay.checked,
+        hideHeaderWeekday:hideHeaderWeekday.checked,
+        hideHeaderType:   hideHeaderType.checked,
+        hideHeaderEnd:    hideHeaderEnd.checked,
+        hideHeaderBuffer: hideHeaderBuffer.checked,
+        hideHeaderArrive: hideHeaderArrive.checked,
+        hideHeaderLeave:  hideHeaderLeave.checked,
+        hideHeaderOver:   hideHeaderOver.checked,
+        hideHeaderExtU:   hideHeaderExtU.checked,
+        hideHeaderExtF:   hideHeaderExtF.checked,
+        hideHeaderRemark: hideHeaderRemark.checked
+      };
+      try{
+        localStorage.setItem(DISPLAY_OPTIONS_KEY, JSON.stringify(payload));
+      }catch(e){
+        console.warn('表示オプションの保存に失敗', e);
+      }
+    }
     // 一括で反映する関数
     function applyColumnVisibility(){
       // いったん全部リセット
@@ -1296,6 +1385,7 @@ function makeChildKey(school, clazz, name){
     hideHeaderBuffer.checked = true;
     hideHeaderExtU.checked   = true;
     // 備考はデフォルト表示にしたければ checked = false のまま
+    loadDisplayOptions(); // [FIX]
     applyColumnVisibility();
     // チェックが変わったら毎回再適用
     [
@@ -1315,7 +1405,10 @@ function makeChildKey(school, clazz, name){
       hideHeaderRemark
     ].forEach(cb=>{
       if (!cb) return;
-      cb.addEventListener('change', applyColumnVisibility);
+      cb.addEventListener('change', ()=>{
+        applyColumnVisibility();
+        saveDisplayOptions(); // [FIX]
+      });
     });
 // 「計算する」ボタン
 calculateButton.addEventListener('click', () => {
@@ -1351,9 +1444,8 @@ calculateButton.addEventListener('click', () => {
       renderSummary(result.summary);
       renderDetails(result.details);
       // ダウンロード系ボタンを有効化
-      downloadButton.disabled     = false;
-      downloadPageButton.disabled = false;
-      downloadTextButton.disabled = false;
+      updateDownloadButtons(); // [FIX]
+      saveStateToStorage();    // [FIX]
     } catch (e) {
       console.error(e);
       alert('CSVの読み込みまたは計算中にエラーが発生しました。');
@@ -1362,10 +1454,86 @@ calculateButton.addEventListener('click', () => {
   // 実際に読み込み開始
   reader.readAsText(file);
 });
+// [FIX] 再計算＋描画＋保存をまとめる
+function recalcAndPersist(){
+  const result = calculate(originalRows, originalBuffer);
+  lastResult   = result;
+  renderSummary(result.summary);
+  renderDetails(result.details);
+  saveStateToStorage();
+  updateDownloadButtons();
+}
+// [FIX] ダウンロード用データ整形
+function buildSummaryTsv(){
+  if (!lastResult) return '';
+  const header = [
+    '名前','月','標準延長回数','短時間延長回数','合計回数','延長保育料金','合計料金','備考'
+  ];
+  const lines = [header.join('\t')];
+  lastResult.summary.forEach(item=>{
+    const noteParts = [];
+    if (item.switched) noteParts.push('区分変更あり');
+    if (item.extFee < item.extRawFee) noteParts.push('延長保育上限3,000円適用');
+    lines.push([
+      item.name,
+      item.month,
+      item.extStdUnits,
+      item.extShortUnits,
+      item.extUnitsTotal,
+      item.extFee,
+      item.totalFee,
+      noteParts.join('／')
+    ].join('\t'));
+  });
+  return lines.join('\r\n');
+}
+function buildDetailsText(){
+  if (!lastResult) return '';
+  const lines = [];
+  lines.push('【サマリー】');
+  lastResult.summary.forEach(item=>{
+    const noteParts = [];
+    if (item.switched) noteParts.push('区分変更あり');
+    if (item.extFee < item.extRawFee) noteParts.push('延長保育上限3,000円適用');
+    lines.push(
+      `${item.name} ${item.month} 標準:${item.extStdUnits} 短時間:${item.extShortUnits} 合計:${item.extUnitsTotal} 料金:${item.extFee}円 備考:${noteParts.join('／')}`
+    );
+  });
+  lines.push('');
+  lines.push('【日次明細】');
+  lastResult.details.forEach(d=>{
+    lines.push(
+      `${d.date} ${d.name} ${d.type} 登園:${d.arrive || '-'} 降園:${d.leave || '-'} 延長:${d.extMinutes}分 (${d.extFee}円)`
+    );
+  });
+  return lines.join('\n');
+}
+// [FIX] ダウンロードボタン
+downloadButton.addEventListener('click',()=>{
+  if (!lastResult) return;
+  const tsv = buildSummaryTsv();
+  if (!tsv) return;
+  const blob = new Blob([tsv], { type:'text/tab-separated-values;charset=utf-8;' });
+  triggerBlobDownload(blob, buildDownloadFileName('summary', 'tsv'));
+});
+downloadTextButton.addEventListener('click',()=>{
+  if (!lastResult) return;
+  const text = buildDetailsText();
+  if (!text) return;
+  const blob = new Blob([text], { type:'text/plain;charset=utf-8;' });
+  triggerBlobDownload(blob, buildDownloadFileName('detail', 'txt'));
+});
+downloadPageButton.addEventListener('click',()=>{
+  if (!lastResult) return;
+  const html = '<!DOCTYPE html>\n' + document.documentElement.outerHTML;
+  const blob = new Blob([html], { type:'text/html;charset=utf-8;' });
+  triggerBlobDownload(blob, buildDownloadFileName('page', 'html'));
+});
 // ===== 変更内容・タブ選択・アイコンを localStorage に保存 =====
 function saveStateToStorage(){
   if (!lastResult || !originalRows.length || !currentFileKey) return;
-  const data = {
+  const existingRaw = localStorage.getItem(currentFileKey);
+  let merged = {
     version: STORAGE_VERSION,
     azukariUnitFee,
     azukariMonthlyCap,
@@ -1374,12 +1542,27 @@ function saveStateToStorage(){
     iconByChild,
     overrides: {}
   };
+  if (existingRaw) {
+    try {
+      const parsed = JSON.parse(existingRaw);
+      if (parsed && typeof parsed === 'object') {
+        merged = {
+          ...merged,
+          ...parsed,
+          iconByChild: { ...(parsed.iconByChild || {}), ...iconByChild },
+          overrides:   { ...(parsed.overrides   || {}) }
+        };
+      }
+    } catch(e) {
+      console.warn('保存済みデータのマージに失敗', e);
+    }
+  }
   // overrides（行ごとの変更）を日付+園+クラス+名前で保存
   lastResult.details.forEach(d=>{
     const o = overrides.get(d.recordIndex);
     if (!o) return;
     const key = makeRecordKeyFromDetail(d);
-    data.overrides[key] = {
+    merged.overrides[key] = {
       baseType:      o.baseType      ?? null,
       type:          o.type          ?? null,
       arriveMinutes: o.arriveMinutes ?? null,
@@ -1387,8 +1570,9 @@ function saveStateToStorage(){
       azukariMinutes:o.azukariMinutes?? null  // [AZUKARI]
     };
   });
+  merged.version = STORAGE_VERSION; // [FIX]
   try{
-    localStorage.setItem(currentFileKey, JSON.stringify(data));
+    localStorage.setItem(currentFileKey, JSON.stringify(merged));
   }catch(e){
     console.warn('状態保存に失敗しました', e);
   }
@@ -1532,6 +1716,8 @@ function calculate(rows, bufferMinutes){
     const baseTypeFromOverride = oRow.baseType || detectType(name);
     const rowTypeOverride      = oRow.type || null;
     const typeKey = rowTypeOverride || baseTypeFromOverride; // 'standard' / 'short' / '1gou'
+    const azukariMinutes = oRow.azukariMinutes || 0; // [FIX]
+    const azukariFee     = oRow.azukariFee     || 0; // [FIX]
     // ★ 区分ごとの基準時間
     let baseStart, baseEnd;
     if (typeKey === 'short') {
@@ -1613,7 +1799,9 @@ function calculate(rows, bufferMinutes){
       azukariUnits,      // [AZUKARI]
       azukariFeeRaw,     // [AZUKARI]
       school,
-      clazz
+      clazz,
+      azukariMinutes,
+      azukariFee
     });
     entry.detailRefs.push(detail); // [AZUKARI]
     details.push(detail);
@@ -1687,7 +1875,9 @@ function buildDetail({
   azukariUnits,      // [AZUKARI]
   azukariFeeRaw,     // [AZUKARI]
   school,
-  clazz
+  clazz,
+  azukariMinutes,
+  azukariFee
 }){
   const extFee=extUnits*EXT_UNIT_FEE;
   return{
@@ -1727,7 +1917,9 @@ function buildDetail({
     azukariFeeRaw: azukariFeeRaw||0,        // [AZUKARI]
     azukariFee: azukariFeeRaw||0,           // [AZUKARI]
     extFee,
-    totalFee:extFee
+    totalFee:extFee,
+    azukariMinutes, // [FIX]
+    azukariFee      // [FIX]
   };
 }
     // コピー完了トースト表示
@@ -1996,6 +2188,11 @@ const rowsHtml = list.map(item=>{
   const hasChange     = hasOverride || statusChanged;
   const safeHtml = escapeHtml(remark).replace(/\n/g, '<br>');
   const safeCopy = escapeHtml(remarkForCopy);
+  const statusClass = // [FIX] 状態優先のため明示
+    item.attendLabel === "休園" ? "closed" :
+    item.attendLabel === "欠園" ? "absent" :
+    "attend";
+  const typeClassForCard = statusClass === "attend" ? (' type-' + item.typeKey) : ''; // [FIX]
   const remarkHtml =
     '<div class="remark-text">' + safeHtml + '</div>' +
     '<div class="remark-actions">' +
@@ -2158,6 +2355,7 @@ applyColumnVisibility();
       lastSelectedSchool = sc;
       lastSelectedClass  = null;
       renderDetails(details);
+      saveStateToStorage(); // [FIX]
     });
   });
   // クラスタブクリック
@@ -2167,6 +2365,7 @@ applyColumnVisibility();
       const cl = btn.getAttribute('data-class');
       lastSelectedClass = cl;
       renderDetails(details);
+      saveStateToStorage(); // [FIX]
     });
   });
   // （この下の tab-button / timeAdjustBtn / personTypeBtn などは今のままでOK）
@@ -2194,21 +2393,33 @@ applyColumnVisibility();
   // 備考コピー
   const copyButtons = detailContainer.querySelectorAll('.copyRemarkBtn');
   copyButtons.forEach(btn=>{
-    btn.addEventListener('click',(e)=>{
+    btn.addEventListener('click',async(e)=>{
       e.stopPropagation();
       const text = btn.getAttribute('data-remark') || '';
       if (!text) return;
+      let copied = false;
+      // [FIX] クリップボード API 優先＋フォールバック
       if (navigator.clipboard && navigator.clipboard.writeText) {
-        navigator.clipboard.writeText(text).catch(()=>{});
-      } else {
+        try{
+          await navigator.clipboard.writeText(text);
+          copied = true;
+        }catch(e){
+          copied = false;
+        }
+      }
+      if (!copied) {
         const ta = document.createElement('textarea');
         ta.value = text;
         document.body.appendChild(ta);
         ta.select();
-        try { document.execCommand('copy'); } catch(e) {}
+        try { copied = document.execCommand('copy'); } catch(e) { copied = false; }
         document.body.removeChild(ta);
       }
-      showCopyToast('コピーしました');
+      if (copied) {
+        showCopyToast('コピーしました');
+      } else {
+        alert('コピーに失敗しました。');
+      }
       btn.classList.add('active');
       setTimeout(()=>btn.classList.remove('active'),300);
     });
@@ -2324,7 +2535,7 @@ personTypeButtons.forEach(btn=>{
           after:
             newType === "short" ? "短時間" :
             newType === "1gou"  ? "1号認定" :
-            "標準時間"
+          "標準時間"
         });
       }
     });
@@ -2508,6 +2719,7 @@ personTypeButtons.forEach(btn=>{
         .replace(/"/g,'&quot;')
         .replace(/'/g,'&#39;');
     }
+    updateDownloadButtons(); // [FIX]
   </script>
 </body>
 </html>
