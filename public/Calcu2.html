@@ -137,13 +137,13 @@
     .tab-panel.active{display:block;}
 
     /* 日カード */
-    th.col-day,td.col-day{width:86px;padding:0;border:none;}
+    th.col-day,td.col-day{width:118px;padding:0;border:none;}
     .daycard{
-      width:86px;min-height:132px;
+      width:108px;min-height:148px;
       border:1px solid #e5e7eb;border-radius:10px;
       margin:0 auto;background:#fff;
-      position:relative;padding:6px 6px 8px;
-      display:flex;flex-direction:column;gap:4px;align-items:center;
+      position:relative;padding:6px 6px 10px;
+      display:flex;flex-direction:column;gap:6px;align-items:center;
     }
     .daycard::before{
       content:"";position:absolute;left:0;top:0;height:100%;width:5px;
@@ -155,15 +155,16 @@
     .daycard.status-absent::before{background:#ef4444;}
     .daycard.status-closed::before{background:#9ca3af;}
 
-    .dc-week{font-size:10px;color:#6b7280;font-weight:700;}
+    .dc-head{display:flex;align-items:center;gap:6px;}
+    .dc-week{font-size:11px;color:#6b7280;font-weight:800;}
     .dc-date{font-size:18px;font-weight:900;}
     .pill{
       font-size:11px;border-radius:999px;padding:2px 8px;
       border:1px solid #d1d5db;background:#fff;color:#374151;font-weight:700;
     }
-    .pill.attend{border-color:#16a34a;color:#166534;}
-    .pill.absent{border-color:#b91c1c;color:#7f1d1d;}
-    .pill.closed{border-color:#ea580c;color:#9a3412;}
+    .pill.attend{border-color:#16a34a;color:#166534;background:#dcfce7;}
+    .pill.absent{border-color:#b91c1c;color:#7f1d1d;background:#fee2e2;}
+    .pill.closed{border-color:#ea580c;color:#9a3412;background:#ffedd5;}
     .dc-tags{display:flex;flex-wrap:wrap;gap:4px;justify-content:center;min-height:18px;}
     .tag{
       font-size:9px;border-radius:999px;padding:1px 6px;
@@ -183,8 +184,8 @@
     .typeBtn.active{background:var(--accent);border-color:var(--accent);color:#fff;}
 
     .vac-btn{
-      width:92px;border-radius:12px;
-      border:1px solid #d1d5db;background:#fff;color:#374151;
+      width:100%;border-radius:10px;
+      border:1px dashed #d1d5db;background:#f8fafc;color:#374151;
       padding:6px 8px;font-weight:800;font-size:11px;
     }
     .vac-btn.active{background:#fef3c7;border-color:#f59e0b;color:#92400e;}
@@ -198,6 +199,28 @@
     .az-chip.off{border-color:#d4d4d8;background:#f8fafc;color:#6b7280;}
     .az-chip .fee{font-size:12px;font-weight:900;}
     .auto-note{font-size:10px;color:#6b7280;}
+
+    .day-actions{width:100%;display:flex;flex-direction:column;gap:4px;}
+    .day-chip{
+      width:100%;border-radius:10px;border:1px solid #d1d5db;
+      background:#f9fafb;color:#374151;font-weight:800;font-size:11px;
+      padding:6px 8px;cursor:pointer;
+      transition:background .2s,border-color .2s,color .2s;
+    }
+    .day-chip.primary{background:#dcfce7;border-color:#16a34a;color:#166534;}
+    .day-chip.ghost{background:#f9fafb;}
+    .day-chip:hover{background:#eef2ff;border-color:#c7d2fe;}
+
+    .time-cell{display:flex;flex-direction:column;gap:6px;align-items:flex-start;}
+    .time-input-row{display:flex;align-items:center;gap:8px;}
+    .time-buttons{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:4px;width:100%;}
+    .time-btn{
+      padding:4px 8px;border-radius:10px;border:none;font-weight:800;font-size:11px;cursor:pointer;
+      color:#fff;display:flex;align-items:center;justify-content:center;
+    }
+    .time-btn.minus5,.time-btn.plus5{background:#3b82f6;}
+    .time-btn.minus1,.time-btn.plus1{background:#22c55e;}
+    .time-btn:hover{opacity:.92;}
 
     .row-selected td{outline:2px solid #38bdf8;outline-offset:-2px;}
     .detail-filters{
@@ -740,6 +763,7 @@ function renderDetails(details){
 
       const tagAz = item.azukariFee>0 ? `<span class="tag az on">${esc(item.azukariLabel || "預り")}</span>` : `<span class="tag az">預り</span>`;
       const tagType = item.typeKey==="1gou" ? `<span class="tag on">1号</span>` : `<span class="tag">区分</span>`;
+      const typeLabel = item.typeKey==="1gou" ? "1号" : (item.typeKey==="short" ? "短時間" : "標準");
 
       const vacationBtnLabel =
         item.vacationMode==="ALL" ? "長期休暇(1日)" :
@@ -757,13 +781,19 @@ function renderDetails(details){
       `;
 
       return `
-        <tr class="detail-row" data-index="${item.recordIndex}" data-rk="${esc(item.recordKey)}">
+        <tr class="detail-row" data-index="${item.recordIndex}" data-rk="${esc(item.recordKey)}" data-type="${esc(item.typeKey)}">
           <td class="col-day">
             <div class="daycard ${dcType} status-${statusCls}">
-              <div class="dc-week">${esc(item.weekday)}</div>
-              <div class="dc-date">${esc(item.day)}</div>
-              <div><span class="pill ${statusCls}">${esc(item.attendLabel)}</span></div>
-              <button type="button" class="${vacationBtnClass}" data-rk="${esc(item.recordKey)}">${vacationBtnLabel}</button>
+              <div class="dc-head">
+                <div class="dc-week">${esc(item.weekday)}</div>
+                <div class="dc-date">${esc(item.day)}</div>
+              </div>
+              <div class="day-actions">
+                <div class="day-chip primary" aria-label="${esc(item.attendLabel)}">${esc(item.attendLabel)}</div>
+                <button type="button" class="${vacationBtnClass}" data-rk="${esc(item.recordKey)}">${vacationBtnLabel}</button>
+                <button type="button" class="day-chip ghost timeEditBtn" data-rk="${esc(item.recordKey)}">時間変更</button>
+                <button type="button" class="day-chip ghost typeCycleBtn" data-rk="${esc(item.recordKey)}" data-type="${esc(item.typeKey)}">区分変更 (${typeLabel})</button>
+              </div>
               <div class="dc-tags">${tagType}${tagAz}</div>
               ${azChip}
               ${autoTypeTag ? `<div class="auto-note">8:30〜16:30 自動判定</div>` : ``}
@@ -777,12 +807,32 @@ function renderDetails(details){
             </div>
           </td>
           <td>
-            <input class="time-input arriveInput" data-rk="${esc(item.recordKey)}" value="${esc(item.arrive)}" placeholder="HH:MM">
-            <div class="diff">${formatDiff(item.deltaArrive)}</div>
+            <div class="time-cell" data-rk="${esc(item.recordKey)}" data-field="arrive">
+              <div class="time-input-row">
+                <input class="time-input arriveInput" data-rk="${esc(item.recordKey)}" data-original="${esc(item.arrive)}" value="${esc(item.arrive)}" placeholder="HH:MM">
+                <div class="diff">${formatDiff(item.deltaArrive)}</div>
+              </div>
+              <div class="time-buttons" data-rk="${esc(item.recordKey)}" data-field="arrive">
+                <button type="button" class="time-btn minus5 time-adjust-btn" data-delta="-5">-5分</button>
+                <button type="button" class="time-btn plus5 time-adjust-btn" data-delta="5">+5分</button>
+                <button type="button" class="time-btn minus1 time-adjust-btn" data-delta="-1">-1分</button>
+                <button type="button" class="time-btn plus1 time-adjust-btn" data-delta="1">+1分</button>
+              </div>
+            </div>
           </td>
           <td>
-            <input class="time-input leaveInput" data-rk="${esc(item.recordKey)}" value="${esc(item.leave)}" placeholder="HH:MM">
-            <div class="diff">${formatDiff(item.deltaLeave)}</div>
+            <div class="time-cell" data-rk="${esc(item.recordKey)}" data-field="leave">
+              <div class="time-input-row">
+                <input class="time-input leaveInput" data-rk="${esc(item.recordKey)}" data-original="${esc(item.leave)}" value="${esc(item.leave)}" placeholder="HH:MM">
+                <div class="diff">${formatDiff(item.deltaLeave)}</div>
+              </div>
+              <div class="time-buttons" data-rk="${esc(item.recordKey)}" data-field="leave">
+                <button type="button" class="time-btn minus5 time-adjust-btn" data-delta="-5">-5分</button>
+                <button type="button" class="time-btn plus5 time-adjust-btn" data-delta="5">+5分</button>
+                <button type="button" class="time-btn minus1 time-adjust-btn" data-delta="-1">-1分</button>
+                <button type="button" class="time-btn plus1 time-adjust-btn" data-delta="1">+1分</button>
+              </div>
+            </div>
           </td>
           <td>${item.extMinutes>0 ? `${item.extMinutes}分` : "-"}</td>
           <td>${item.extFee.toLocaleString()}円</td>
@@ -890,10 +940,51 @@ function renderDetails(details){
 
   // 行選択の見た目
   const rows = detailContainer.querySelectorAll("tr.detail-row");
+  const selectRowByKey = (rk)=>{
+    rows.forEach(r=>{
+      if(r.dataset.rk===rk) r.classList.add("row-selected");
+      else r.classList.remove("row-selected");
+    });
+  };
   rows.forEach(tr=>{
     tr.addEventListener("click",()=>{
       rows.forEach(r=>r.classList.remove("row-selected"));
       tr.classList.add("row-selected");
+    });
+  });
+
+  // 時刻調整ボタン
+  detailContainer.querySelectorAll(".time-adjust-btn").forEach(btn=>{
+    btn.addEventListener("click",(e)=>{
+      e.stopPropagation();
+      const wrap = btn.closest(".time-buttons");
+      if(!wrap) return;
+      const rk = wrap.dataset.rk;
+      const field = wrap.dataset.field;
+      adjustTime(rk, field, Number(btn.dataset.delta||0));
+      selectRowByKey(rk);
+    });
+  });
+
+  // 時間変更ボタン（フォーカス用）
+  detailContainer.querySelectorAll(".timeEditBtn").forEach(btn=>{
+    btn.addEventListener("click",(e)=>{
+      e.stopPropagation();
+      const rk = btn.dataset.rk;
+      selectRowByKey(rk);
+      const target = detailContainer.querySelector(`.arriveInput[data-rk="${cssEscape(rk)}"]`) || detailContainer.querySelector(`.leaveInput[data-rk="${cssEscape(rk)}"]`);
+      target?.focus();
+      target?.select();
+    });
+  });
+
+  // 区分変更ボタン（循環）
+  detailContainer.querySelectorAll(".typeCycleBtn").forEach(btn=>{
+    btn.addEventListener("click",(e)=>{
+      e.stopPropagation();
+      const rk = btn.dataset.rk;
+      const current = btn.dataset.type || "standard";
+      cycleType(rk, current);
     });
   });
 }
@@ -907,6 +998,32 @@ function rerun(){
   lastResult = result;
   renderSummary(result.summary);
   renderDetails(result.details);
+}
+
+function adjustTime(rk, which, delta){
+  if(!rk || !which) return;
+  const selector = which==="arrive"
+    ? `.arriveInput[data-rk="${cssEscape(rk)}"]`
+    : `.leaveInput[data-rk="${cssEscape(rk)}"]`;
+  const input = detailContainer.querySelector(selector);
+  if(!input) return;
+  const base = sanitizeHHMM(input.value) || sanitizeHHMM(input.dataset.original) || "";
+  const baseMinutes = parseTimeToMinutes(base);
+  if(baseMinutes==null) return;
+  const next = Math.max(0, Math.min(23*60+59, baseMinutes + delta));
+  input.value = minutesToTime(next);
+  applyTimeEdit(input, which);
+}
+
+function cycleType(rk, currentType){
+  const order = ["standard","short","1gou"];
+  const idx = order.indexOf(currentType);
+  const next = order[(idx>=0 ? idx+1 : 0) % order.length];
+  const o = state.overridesByKey[rk] || {};
+  o.type = next;
+  state.overridesByKey[rk] = o;
+  saveState();
+  rerun();
 }
 
 function applyTimeEdit(inputEl, which){
@@ -1025,6 +1142,13 @@ function clampInt(v,min,max){
   const n = Number(v);
   if(Number.isNaN(n)) return min;
   return Math.max(min, Math.min(max, Math.floor(n)));
+}
+
+function cssEscape(v){
+  if(typeof CSS !== "undefined" && CSS.escape){
+    return CSS.escape(v);
+  }
+  return String(v??"").replace(/"/g,'\\"');
 }
 
 function makeRecordKey({rawDate, school, clazz, name}){
