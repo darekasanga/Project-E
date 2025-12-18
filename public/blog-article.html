@@ -2,184 +2,402 @@
 <html lang="ja">
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>記事ページ | Emperor News</title>
-<link rel="stylesheet" href="/assets/blog-shared.css">
+<title>記事ビュー | Emperor News</title>
+<style>
+  :root {
+    --bg: #050505;
+    --panel: #0b0b0b;
+    --text: #f7f7f7;
+    --muted: #9ca3af;
+    --line: #06c755;
+    --border: #1f1f1f;
+    --radius: 16px;
+    --shadow: 0 18px 50px rgba(0,0,0,0.45);
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: "SF Pro Display", "Inter", "Noto Sans JP", system-ui, sans-serif;
+    background: radial-gradient(120% 120% at 10% 10%, rgba(6,199,85,0.14), transparent),
+                radial-gradient(120% 120% at 90% 0%, rgba(6,199,85,0.08), transparent),
+                var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+  }
+  a { color: inherit; }
+  header {
+    position: sticky;
+    top: 0;
+    z-index: 8;
+    padding: 14px 18px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    background: rgba(5,5,5,0.92);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+  }
+  .brand { display: flex; align-items: center; gap: 10px; }
+  .logo {
+    width: 42px;
+    height: 42px;
+    border-radius: 14px;
+    display: grid;
+    place-items: center;
+    border: 1px solid var(--border);
+    background: linear-gradient(145deg, #0f0f0f, #0a0a0a);
+    color: var(--line);
+    font-weight: 700;
+  }
+  .brand h1 { margin: 0; font-size: 18px; letter-spacing: 0.01em; }
+  .brand p { margin: 4px 0 0; color: var(--muted); font-size: 12px; }
+  .pill {
+    padding: 8px 12px;
+    border-radius: 999px;
+    border: 1px solid var(--border);
+    background: var(--panel);
+    text-decoration: none;
+    font-size: 13px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .pill.primary { background: var(--line); color: #041902; font-weight: 700; border-color: #0f2f14; }
+
+  main { padding: 20px 18px 36px; display: grid; gap: 16px; }
+  .hero {
+    background: linear-gradient(130deg, rgba(6,199,85,0.16), rgba(6,199,85,0.05) 35%, rgba(8,8,8,0.95));
+    border: 1px solid var(--border);
+    border-radius: 24px;
+    padding: 18px;
+    display: grid;
+    gap: 12px;
+    box-shadow: var(--shadow);
+  }
+  .hero h2 { margin: 0; font-size: 24px; letter-spacing: 0.01em; }
+  .hero p { margin: 0; color: var(--muted); line-height: 1.7; }
+  .meta-row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; color: var(--muted); font-size: 12px; }
+  .chip { padding: 6px 10px; border-radius: 999px; border: 1px solid var(--border); background: rgba(255,255,255,0.04); }
+
+  .article-card {
+    --card-bg: #ffffff;
+    --card-text: #0a0a0a;
+    --card-weak: #334155;
+    --card-border: #e5e7eb;
+    --card-accent: rgba(0,0,0,0.04);
+    background: var(--card-bg);
+    color: var(--card-text);
+    border: 1px solid var(--card-border);
+    border-radius: 20px;
+    padding: 16px;
+    display: grid;
+    gap: 14px;
+    box-shadow: var(--shadow);
+  }
+  .cover {
+    width: 100%;
+    border-radius: 16px;
+    aspect-ratio: 16 / 9;
+    object-fit: cover;
+    border: 1px solid var(--card-border, #e5e7eb);
+  }
+  .title-block h3 { margin: 0; font-size: 22px; color: var(--card-text); }
+  .title-block p { margin: 6px 0 0; color: var(--card-weak); line-height: 1.6; }
+  .tag-row { display: flex; gap: 8px; flex-wrap: wrap; }
+  .tag { padding: 6px 10px; border-radius: 999px; border: 1px solid var(--card-border, #e5e7eb); background: var(--card-accent, #f5f7fb); font-size: 12px; color: var(--card-text, #0f172a); text-decoration: none; }
+  .body { display: grid; gap: 12px; line-height: 1.7; color: var(--card-text); }
+  .body p { margin: 0; }
+
+  .share-row { display: grid; grid-template-columns: 1fr; gap: 10px; width: 100%; }
+  .share { padding: 12px 14px; min-height: 48px; border-radius: 12px; border: none; background: #0f0f0f; text-decoration: none; font-size: 13px; display: inline-flex; align-items: center; gap: 8px; justify-content: center; width: 100%; }
+  .share.line { background: var(--line); color: #041902; font-weight: 700; }
+  .share:active { transform: translateY(1px); }
+
+  footer { padding: 0 18px 24px; color: var(--muted); font-size: 12px; }
+  @media (max-width: 720px) { header { flex-direction: column; align-items: flex-start; } .share-row { width: 100%; } }
+</style>
 <body>
-  <header class="site-header">
+  <header>
     <div class="brand">
       <div class="logo">E</div>
       <div>
-        <h1>記事ページ</h1>
-        <p>スマホ・タブレット・PCの本文ビュー</p>
+        <h1>Emperor News</h1>
+        <p>記事ビュー / 黒ベースのシンプル読書体験</p>
       </div>
     </div>
     <div class="actions">
-      <a class="pill" href="/blog-list.html">一覧へ</a>
-      <a class="pill ghost" href="/">トップ</a>
+      <a class="pill" href="/blog-public.html">公開一覧</a>
+      <a class="pill" href="/blog.html">アップロード</a>
     </div>
   </header>
 
-  <main class="container">
-    <section class="hero" id="articleHero">
-      <div class="inline-chips" id="articleMeta"></div>
-      <h2 id="articleTitle">記事タイトル</h2>
-      <p id="articleLead" class="muted">本文の冒頭をここに表示します。</p>
-      <div class="actions" id="shareRow"></div>
-    </section>
-
-    <section class="grid-2">
-      <article class="card" id="articleBody"></article>
-      <aside class="card">
-        <h3>デバイス別の読みやすさ</h3>
-        <div class="device-grid">
-          <div class="device-card">
-            <strong>スマホ</strong>
-            <span class="mobile-hint">本文を1カラムで表示し、ボタンを大きめに。</span>
-          </div>
-          <div class="device-card">
-            <strong>タブレット</strong>
-            <span class="tablet-hint">本文幅を少し広げ、サイド余白を確保。</span>
-          </div>
-          <div class="device-card">
-            <strong>PC</strong>
-            <span class="pc-hint">最大1200pxのカラムで視線移動を最小化。</span>
-          </div>
-        </div>
-      </aside>
-    </section>
-
-    <section class="panel stack" id="commentSection">
-      <div class="section-title">
-        <h3>コメント</h3>
-        <span class="tiny" id="commentStatus">記事への感想を残せます。</span>
+  <main>
+    <section class="hero">
+      <div class="meta-row">
+        <span class="chip">公開記事</span>
+        <span class="chip">LINE公式シェア対応</span>
       </div>
-      <form class="stack" id="commentForm">
-        <div class="grid-2" style="gap:12px;">
-          <div class="form-row">
-            <label class="tiny" for="commentAuthor">名前</label>
-            <input id="commentAuthor" name="commentAuthor" placeholder="匿名でも投稿できます">
-          </div>
-          <div class="form-row">
-            <label class="tiny" for="commentBody">コメント</label>
-            <textarea id="commentBody" name="commentBody" rows="3" required placeholder="本文への感想や質問"></textarea>
-          </div>
-        </div>
-        <div class="actions" style="justify-content: space-between; align-items: center; flex-wrap: wrap;">
-          <button class="primary" type="submit">投稿する</button>
-          <span class="tiny">ローカルに保存されるため即時表示されます。</span>
-        </div>
-      </form>
-      <div class="stack" id="commentList" style="gap:10px;"></div>
+      <h2 id="heroTitle">記事タイトル</h2>
+      <p id="heroLead">記事本文の冒頭をここに表示します。iPhone / iPadのダークモードに合わせた黒基調のレイアウトです。</p>
+      <div class="share-row">
+        <a class="share line" id="lineShare" target="_blank" rel="noreferrer">公式LINEで共有</a>
+        <a class="share" id="copyLink" href="#">リンクをコピー</a>
+      </div>
     </section>
+
+    <article class="article-card" id="article">
+      <img class="cover" id="cover" alt="カバー画像">
+      <div class="title-block">
+        <h3 id="title">記事タイトル</h3>
+        <p id="excerpt">記事の概要テキストを表示します。</p>
+      </div>
+      <div class="tag-row" id="tags"></div>
+      <div class="body" id="body"></div>
+    </article>
   </main>
 
-<script src="/assets/lightbox.js"></script>
-<script src="/assets/blog-data.js"></script>
+  <footer>
+    Emperor News — 公式LINEアカウント連携ビュー
+  </footer>
+
 <script>
-  const params = new URLSearchParams(location.search);
-  const articleIdx = parseInt(params.get("id"), 10) || 0;
-  const { article } = BlogData.findArticle(articleIdx);
-  const commentForm = document.getElementById("commentForm");
-  const commentAuthor = document.getElementById("commentAuthor");
-  const commentBody = document.getElementById("commentBody");
-  const commentList = document.getElementById("commentList");
-  const commentStatus = document.getElementById("commentStatus");
+  const officialLineAccountId = "@projecte_official";
+  const officialLinePage = "https://page.line.me/projecte_official";
+  const baseArticles = [
+    {
+      id: "post-201",
+      title: "iPadスクロール特集 — 公式LINEで読む",
+      body: "黒背景とオーバースクロールを活かしたカードレイアウト。公式LINEアカウントへの配信リンクを同梱。",
+      tags: ["iPad", "Scroll", "LINE公式"],
+      image: "https://images.unsplash.com/photo-1472289065668-ce650ac443d2?auto=format&fit=crop&w=1200&q=80",
+    },
+    {
+      id: "post-202",
+      title: "ChatGPTから即公開",
+      body: "チャットで生成した原稿をそのまま貼り付け。タグとカバーを足すだけで読者向けカードを生成します。",
+      tags: ["ChatGPT", "Workflow"],
+      image: "https://images.unsplash.com/photo-1507138451611-3001135909a5?auto=format&fit=crop&w=1200&q=80",
+    },
+    {
+      id: "post-203",
+      title: "LINEシェアリンクをワンクリック",
+      body: "公式LINEアカウントと連動した共有ボタンを自動生成。外部ブラウザでも快適に閲覧できるOGP調整済み。",
+      tags: ["LINE", "Share", "OGP"],
+      image: "https://images.unsplash.com/photo-1508766206392-8bd5cf550d1b?auto=format&fit=crop&w=1200&q=80",
+    },
+  ];
 
-  function renderArticle() {
-    const hero = document.getElementById("articleHero");
-    const titleEl = document.getElementById("articleTitle");
-    const leadEl = document.getElementById("articleLead");
-    const bodyEl = document.getElementById("articleBody");
-    const shareRow = document.getElementById("shareRow");
-    const meta = document.getElementById("articleMeta");
-    const safeArticle = article || { title: "記事がありません", body: "管理ページから追加してください", tags: [] };
+  const themeCache = new Map();
+  const fallbackTheme = { bg: "#ffffff", text: "#0a0a0a", weak: "#334155", border: "#e5e7eb", accent: "rgba(0,0,0,0.04)" };
 
-    titleEl.textContent = safeArticle.title || "無題の記事";
-    leadEl.textContent = safeArticle.body?.slice(0, 120) || "本文を入力してください";
-
-    meta.innerHTML = `
-      <span class="badge">ID ${articleIdx}</span>
-      <span class="badge">レスポンシブ本文</span>
-      ${(safeArticle.tags || []).map(tag => `<a class=\"tag\" href=\"/tag.html?tag=${encodeURIComponent(tag)}\">#${tag}</a>`).join("")}
-    `;
-
-    if (safeArticle.image) {
-      const img = document.createElement("img");
-      img.src = safeArticle.image;
-      img.alt = safeArticle.title;
-      img.className = "hero-img";
-      hero.appendChild(img);
-      Lightbox.enhanceImages(hero);
-    }
-
-    bodyEl.classList.add("article-body");
-    bodyEl.innerHTML = (safeArticle.body || "本文がありません").split(/\n+/).map(p => `<p>${p}</p>`).join("");
-
-    const articleUrl = `${location.origin}/blog-article.html?id=${articleIdx}`;
-    const shareUrl = BlogData.buildOfficialLineShare(articleUrl);
-    shareRow.innerHTML = `
-      <a class="share line" href="${shareUrl}" target="_blank" rel="noreferrer">LINEで共有</a>
-      <a class="share" href="${articleUrl}" target="_blank">リンクをコピー</a>
-    `;
+  function luminance(r, g, b) {
+    return (0.299 * r + 0.587 * g + 0.114 * b) / 255;
   }
 
-  function formatRelativeTime(timestamp) {
-    const diffMs = Date.now() - timestamp;
-    const diffMinutes = Math.floor(diffMs / 60000);
-    if (diffMinutes < 60) return `${diffMinutes || 1}分前`;
-    const diffHours = Math.floor(diffMinutes / 60);
-    if (diffHours < 24) return `${diffHours}時間前`;
-    const diffDays = Math.floor(diffHours / 24);
-    return `${diffDays}日前`;
+  function toTheme(r, g, b) {
+    const soften = (v) => (v > 128 ? Math.round(v * 0.5) : v);
+    r = soften(r); g = soften(g); b = soften(b);
+    const text = luminance(r, g, b) > 0.58 ? "#0a0a0a" : "#f7f7f7";
+    const weak = text === "#f7f7f7" ? "rgba(247,247,247,0.82)" : "rgba(10,10,10,0.72)";
+    return {
+      bg: `rgb(${r}, ${g}, ${b})`,
+      text,
+      weak,
+      border: `rgba(${r}, ${g}, ${b}, 0.38)`,
+      accent: text === "#f7f7f7" ? "rgba(255,255,255,0.12)" : "rgba(0,0,0,0.06)",
+    };
   }
 
-  function renderComments() {
-    const comments = BlogData.loadComments(articleIdx);
-    commentList.innerHTML = "";
-    if (!comments.length) {
-      commentList.innerHTML = '<p class="muted">まだコメントがありません。最初の感想を投稿してください。</p>';
-      return;
-    }
-    comments.forEach((item) => {
-      const row = document.createElement("article");
-      row.className = "card comment-card";
-      const header = document.createElement("div");
-      header.className = "comment-header";
-      const author = document.createElement("strong");
-      author.textContent = item.author || "名無しさん";
-      const time = document.createElement("span");
-      time.className = "tiny";
-      time.textContent = formatRelativeTime(item.createdAt);
-      header.appendChild(author);
-      header.appendChild(time);
-      const body = document.createElement("p");
-      body.className = "comment-body";
-      body.textContent = item.body;
-      row.appendChild(header);
-      row.appendChild(body);
-      commentList.appendChild(row);
+  function extractThemeFromImage(src) {
+    if (!src) return Promise.resolve(fallbackTheme);
+    if (themeCache.has(src)) return Promise.resolve(themeCache.get(src));
+
+    return new Promise((resolve) => {
+      const img = new Image();
+      img.crossOrigin = "anonymous";
+      img.src = src;
+      img.onload = () => {
+        try {
+          const canvas = document.createElement("canvas");
+          canvas.width = canvas.height = 24;
+          const ctx = canvas.getContext("2d", { willReadFrequently: true });
+          ctx.drawImage(img, 0, 0, 24, 24);
+          const data = ctx.getImageData(0, 0, 24, 24).data;
+          let r = 0, g = 0, b = 0;
+          const count = data.length / 4;
+          for (let i = 0; i < data.length; i += 4) {
+            r += data[i];
+            g += data[i + 1];
+            b += data[i + 2];
+          }
+          const theme = toTheme(Math.round(r / count), Math.round(g / count), Math.round(b / count));
+          themeCache.set(src, theme);
+          resolve(theme);
+        } catch (err) {
+          themeCache.set(src, fallbackTheme);
+          resolve(fallbackTheme);
+        }
+      };
+      img.onerror = () => {
+        themeCache.set(src, fallbackTheme);
+        resolve(fallbackTheme);
+      };
     });
   }
 
-  function handleCommentSubmit(event) {
-    event.preventDefault();
-    const author = commentAuthor.value.trim();
-    const body = commentBody.value.trim();
-    if (!body) {
-      commentStatus.textContent = "コメントを入力してください。";
-      return;
+  function applyCardTheme(el, image) {
+    extractThemeFromImage(image).then((theme) => {
+      el.style.setProperty("--card-bg", theme.bg);
+      el.style.setProperty("--card-text", theme.text);
+      el.style.setProperty("--card-weak", theme.weak);
+      el.style.setProperty("--card-border", theme.border);
+      el.style.setProperty("--card-accent", theme.accent);
+    });
+  }
+
+  function uid() {
+    return crypto.randomUUID?.() || `post-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+  }
+
+  function isValidId(id) {
+    return typeof id === "string" && (/^post-[a-z0-9-]{8,}$/i.test(id) || /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(id));
+  }
+
+  function normalizeArticles(list) {
+    return list.map(item => ({ ...item, id: isValidId(item.id) ? item.id : uid() }));
+  }
+
+  function cleanSavedText(raw) {
+    if (typeof raw !== "string") return raw;
+    const lines = raw.split(/\r?\n/).filter(Boolean);
+    const filtered = lines.filter(line => {
+      const trimmed = line.trim();
+      return trimmed && !trimmed.startsWith("<<<<<<<") && !trimmed.startsWith("=======") && !trimmed.startsWith(">>>>>>>");
+    });
+    return filtered.join("\n");
+  }
+
+  function tagLink(tag) {
+    const safe = encodeURIComponent(tag);
+    return `<a class="tag" href="/blog-tag.html?tag=${safe}">#${tag}</a>`;
+  }
+
+  function storedArticles() {
+    const raw = localStorage.getItem("emperor_articles");
+    const cleaned = cleanSavedText(raw);
+    if (cleaned && cleaned !== raw) {
+      localStorage.setItem("emperor_articles", cleaned);
     }
-    const next = BlogData.addComment(articleIdx, { author, body });
-    commentBody.value = "";
-    commentStatus.textContent = `${next.length}件のコメント`;
-    renderComments();
+    if (!cleaned) return [...baseArticles];
+    try {
+      const parsed = JSON.parse(cleaned);
+      return Array.isArray(parsed) ? parsed : [...baseArticles];
+    } catch (err) {
+      console.warn("saved articles were corrupted, resetting", err);
+      return [...baseArticles];
+    }
+  }
+
+  function loadArticles() {
+    const data = normalizeArticles(storedArticles());
+    localStorage.setItem("emperor_articles", JSON.stringify(data));
+    return data;
+  }
+
+  function findArticle() {
+    const params = new URLSearchParams(location.search);
+    const id = params.get("id");
+    const list = loadArticles();
+    let idx = 0;
+
+    if (id) {
+      const byId = list.findIndex(item => String(item.id) === id);
+      if (byId >= 0) {
+        idx = byId;
+      } else {
+        const numeric = parseInt(id, 10);
+        if (Number.isFinite(numeric) && list[numeric]) {
+          idx = numeric;
+        }
+      }
+    }
+
+    const article = list[idx] || list[0];
+    return { article, list, idx };
+  }
+
+  function paragraphize(text) {
+    if (!text) return ["本文が追加されていません。アップロードフォームから本文を入れてください。"]; 
+    return text.split(/\n{2,}/).map(chunk => chunk.trim()).filter(Boolean);
+  }
+
+  function buildOfficialLineShare(url) {
+    return `https://social-plugins.line.me/lineit/share?url=${encodeURIComponent(url)}&accountId=${encodeURIComponent(officialLineAccountId)}`;
+  }
+
+  function render(article, idx) {
+    const safeBody = paragraphize(article.body);
+    const cover = document.getElementById("cover");
+    const title = document.getElementById("title");
+    const heroTitle = document.getElementById("heroTitle");
+    const heroLead = document.getElementById("heroLead");
+    const excerpt = document.getElementById("excerpt");
+    const tags = document.getElementById("tags");
+    const body = document.getElementById("body");
+    const lineShare = document.getElementById("lineShare");
+    const articleCard = document.getElementById("article");
+    const hero = document.querySelector(".hero");
+
+    title.textContent = article.title || "無題の記事";
+    heroTitle.textContent = article.title || "無題の記事";
+    heroLead.textContent = safeBody[0] || "本文がありません。";
+    excerpt.textContent = safeBody[0] || "本文がありません。";
+
+    tags.innerHTML = (article.tags || []).length
+      ? article.tags.map(tagLink).join("")
+      : '<span class="tag">#untagged</span>';
+
+    body.innerHTML = safeBody.map(p => `<p>${p}</p>`).join("");
+
+    if (article.image) {
+      cover.src = article.image;
+      cover.alt = article.title;
+      cover.style.display = "block";
+    } else {
+      cover.style.display = "none";
+    }
+
+    applyCardTheme(articleCard, article.image);
+    extractThemeFromImage(article.image).then((theme) => {
+      hero.style.setProperty("--card-bg", theme.bg);
+      hero.style.setProperty("--card-text", theme.text);
+      hero.style.setProperty("--card-weak", theme.weak);
+      hero.style.borderColor = theme.border;
+      hero.style.background = `linear-gradient(135deg, ${theme.bg}, rgba(0,0,0,0.75))`;
+      heroTitle.style.color = theme.text;
+      heroLead.style.color = theme.weak;
+      title.style.color = theme.text;
+      excerpt.style.color = theme.weak;
+    });
+
+    const canonicalId = article.id;
+    const canonical = `${location.origin}${location.pathname}?id=${canonicalId}`;
+    lineShare.href = buildOfficialLineShare(canonical);
+    lineShare.textContent = `${officialLineAccountId} で共有`;
+
+    document.getElementById("copyLink").addEventListener("click", (e) => {
+      e.preventDefault();
+      navigator.clipboard?.writeText(canonical).then(() => {
+        alert("記事リンクをコピーしました。LINEに貼り付けて共有できます。");
+      }).catch(() => alert("コピーに失敗しました"));
+    });
   }
 
   document.addEventListener("DOMContentLoaded", () => {
-    renderArticle();
-    renderComments();
+    const { article, idx } = findArticle();
+    render(article, idx);
   });
-  commentForm.addEventListener("submit", handleCommentSubmit);
 </script>
 </body>
 </html>

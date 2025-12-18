@@ -304,7 +304,7 @@ td.col-remark, th.col-remark {
       font-family:"Noto Sans JP",system-ui,-apple-system,"Segoe UI",sans-serif;
       margin:0;
       padding:0;
-      background:#fff;
+      background:#f8fafc;
       color:var(--text);
       line-height:1.5;
     }
@@ -613,7 +613,7 @@ td.col-day {
       color:#b91c1c;
     }
     /* ==== ミニカレンダーカードデザイン（左ステータスバー付き） ==== */
-    .daycard {
+.daycard {
       display:flex;
       flex-direction:column;
       align-items:center;
@@ -627,6 +627,7 @@ td.col-day {
       box-sizing:border-box;
       margin:0 auto;
       position:relative;   /* ★ 左バー用に必須 */
+      overflow:hidden;     /* 角のはみ出しを防ぐ */
     }
 /* デフォルト：標準（青） */
 .daycard::before {
@@ -777,6 +778,8 @@ tr.row-3gou td {
     .hide-h-extu    th.col-extu,    .hide-h-extu    td.col-extu    {display:none;}
     .hide-h-extf    th.col-extf,    .hide-h-extf    td.col-extf    {display:none;}
     .hide-h-remark th.col-remark, .hide-h-remark td.col-remark {display:none;}
+    .hide-h-azukari th.col-azukari, .hide-h-azukari td.col-azukari {display:none;}
+    .hide-h-azukarif th.col-azukarif, .hide-h-azukarif td.col-azukarif {display:none;}
     details.options summary {
       cursor:pointer;
       list-style:none;
@@ -1080,6 +1083,8 @@ td.col-type {
             <label><input type="checkbox" id="hideHeaderOver" /> 延長時間列</label>
             <label><input type="checkbox" id="hideHeaderExtU" checked /> 延長回数列</label>
             <label><input type="checkbox" id="hideHeaderExtF" /> 延長料金列</label>
+            <label><input type="checkbox" id="hideHeaderAzukari" /> 預り保育列</label>
+            <label><input type="checkbox" id="hideHeaderAzukariFee" /> 預り保育料金列</label>
             <label><input type="checkbox" id="hideHeaderRemark" /> 備考列</label>
           </div>
         </details>
@@ -1170,6 +1175,8 @@ let azukariMonthlyCap = AZUKARI_DEFAULT_MONTH_CAP;  // [AZUKARI]
     const detailContainer    = document.getElementById('detailContainer');
     const logContainer       = document.getElementById('logContainer');
     const dateRangeLabel     = document.getElementById('dateRangeLabel');
+    const azukariUnitFeeInput    = document.getElementById('azukariUnitFee');
+    const azukariMonthlyCapInput = document.getElementById('azukariMonthlyCap');
     const toggleSidebarBtn   = document.getElementById('toggleSidebar');
     const helpCsvBtn         = document.getElementById('helpCsv');
     const helpModal          = document.getElementById('helpModal');
@@ -1187,10 +1194,14 @@ let azukariMonthlyCap = AZUKARI_DEFAULT_MONTH_CAP;  // [AZUKARI]
     const hideHeaderOver    = document.getElementById('hideHeaderOver');
     const hideHeaderExtU    = document.getElementById('hideHeaderExtU');
     const hideHeaderExtF    = document.getElementById('hideHeaderExtF');
+    const hideHeaderAzukari   = document.getElementById('hideHeaderAzukari');
+    const hideHeaderAzukariFee= document.getElementById('hideHeaderAzukariFee');
     const hideHeaderRemark  = document.getElementById('hideHeaderRemark');
     let lastResult    = null;
     let originalRows  = [];
     let originalBuffer= 0;
+    let originalAzukariUnitFee = 0;
+    let originalAzukariMonthlyCap = 0;
     let lastDateRange = null;
     let changeLogs    = [];
     let originalStatusList = []; // ← もう入ってるならそのままでOK
@@ -1353,6 +1364,8 @@ function triggerBlobDownload(blob, filename){
         'hide-h-over',
         'hide-h-extu',
         'hide-h-extf',
+        'hide-h-azukari',
+        'hide-h-azukarif',
         'hide-h-remark'
       );
       // チェックされているものだけ付け直す
@@ -1370,6 +1383,8 @@ function triggerBlobDownload(blob, filename){
         [hideHeaderOver,   'hide-h-over'],
         [hideHeaderExtU,   'hide-h-extu'],
         [hideHeaderExtF,   'hide-h-extf'],
+        [hideHeaderAzukari,   'hide-h-azukari'],
+        [hideHeaderAzukariFee,'hide-h-azukarif'],
         [hideHeaderRemark, 'hide-h-remark']   // ★ 備考もここで制御
       ].forEach(([cb, cls])=>{
         if (!cb) return;
@@ -1402,6 +1417,8 @@ function triggerBlobDownload(blob, filename){
       hideHeaderOver,
       hideHeaderExtU,
       hideHeaderExtF,
+      hideHeaderAzukari,
+      hideHeaderAzukariFee,
       hideHeaderRemark
     ].forEach(cb=>{
       if (!cb) return;
@@ -1410,16 +1427,39 @@ function triggerBlobDownload(blob, filename){
         saveDisplayOptions(); // [FIX]
       });
     });
+// 預り保育設定変更時は即計算に反映
+if (azukariUnitFeeInput) {
+  azukariUnitFeeInput.addEventListener('change', ()=>{
+    originalAzukariUnitFee = Math.max(0, Number(azukariUnitFeeInput.value || 0));
+    if (lastResult) recalcAndRender();
+  });
+}
+if (azukariMonthlyCapInput) {
+  azukariMonthlyCapInput.addEventListener('change', ()=>{
+    originalAzukariMonthlyCap = Math.max(0, Number(azukariMonthlyCapInput.value || 0));
+    if (lastResult) recalcAndRender();
+  });
+}
 // 「計算する」ボタン
 calculateButton.addEventListener('click', () => {
   const file = (fileInput.files && fileInput.files[0]) || null;
   const bufferMinutes = Number(bufferInput.value || 0);
+  const azukariUnitFee = Number(azukariUnitFeeInput.value || 0);
+  const azukariMonthlyCap = Number(azukariMonthlyCapInput.value || 0);
   if (!file) {
     alert('CSVファイルを選択してください。');
     return;
   }
   if (Number.isNaN(bufferMinutes) || bufferMinutes < 0) {
     alert('バッファは0以上で入力してください。');
+    return;
+  }
+  if (Number.isNaN(azukariUnitFee) || azukariUnitFee < 0) {
+    alert('預り保育単価は0以上で入力してください。');
+    return;
+  }
+  if (Number.isNaN(azukariMonthlyCap) || azukariMonthlyCap < 0) {
+    alert('月額上限は0以上で入力してください。');
     return;
   }
   // 一旦リセット
@@ -1437,9 +1477,11 @@ calculateButton.addEventListener('click', () => {
       originalRows        = rows;
       originalRowsBackup  = rows.map(r => ({ ...r }));        // 元データ退避
       originalBuffer      = bufferMinutes;
+      originalAzukariUnitFee = Number(azukariUnitFeeInput.value || azukariUnitFee || 0);
+      originalAzukariMonthlyCap = Number(azukariMonthlyCapInput.value || azukariMonthlyCap || 0);
       originalStatusList  = rows.map(row => (row[columns.status] || '').trim());
       // 計算して表示
-      const result = calculate(rows, bufferMinutes);
+      const result = calculate(rows, bufferMinutes, originalAzukariUnitFee, originalAzukariMonthlyCap);
       lastResult   = result;
       renderSummary(result.summary);
       renderDetails(result.details);
@@ -1540,6 +1582,8 @@ function saveStateToStorage(){
     lastSelectedSchool,
     lastSelectedClass,
     iconByChild,
+    azukariUnitFee: Number(azukariUnitFeeInput?.value || originalAzukariUnitFee || 0),
+    azukariMonthlyCap: Number(azukariMonthlyCapInput?.value || originalAzukariMonthlyCap || 0),
     overrides: {}
   };
   if (existingRaw) {
@@ -1611,6 +1655,19 @@ function loadStateFromStorage(rows){
     console.warn('状態復元に失敗しました', e);
   }
 }
+function recalcAndRender(){
+  if (!originalRows.length) return;
+  const result = calculate(
+    originalRows,
+    originalBuffer,
+    originalAzukariUnitFee,
+    originalAzukariMonthlyCap
+  );
+  lastResult = result;
+  renderSummary(result.summary);
+  renderDetails(result.details);
+  saveStateToStorage();
+}
 // ===== CSVパース（ヘッダー行を自動検出） =====
 function parseCSV(text){
   const linesRaw = [];
@@ -1680,7 +1737,9 @@ function parseCSV(text){
   return records;
 }
 // ===== 集計 =====
-function calculate(rows, bufferMinutes){
+function calculate(rows, bufferMinutes, azukariUnitFee, azukariMonthlyCap){
+  const unitFee = Number(azukariUnitFee || 0);
+  const monthlyCap = Number(azukariMonthlyCap || 0);
   const summaryMap = new Map();
   const details    = [];
   const capValue   = azukariMonthlyCap>0 ? azukariMonthlyCap : Infinity; // [AZUKARI]
@@ -1837,6 +1896,7 @@ function calculate(rows, bufferMinutes){
         azukariMinutesTotal:item.azukariMinutes || 0,           // [AZUKARI]
         totalFee:      extFee + azFee,                          // [AZUKARI]
         capped:   extFee<extRaw,
+        azukariCapped: azukariFee < item.azukariRawFee,
         switched: item.extStdUnits>0 && item.extShortUnits>0
       };
     })
@@ -1880,6 +1940,7 @@ function buildDetail({
   azukariFee
 }){
   const extFee=extUnits*EXT_UNIT_FEE;
+  const totalFee=extFee + (azukariFee || 0);
   return{
     recordIndex:index,
     name,
@@ -1979,6 +2040,9 @@ if (iconPicker && iconPickerBackdrop) {
         const extText=item.extUnitsTotal
           ?`${item.extFee.toLocaleString()}円（200円×${item.extUnitsTotal}回／上限3,000円）`
           :'0円';
+        const azukariText=item.azukariUnits
+          ?`${item.azukariFee.toLocaleString()}円（${AZUKARI_UNIT_MINUTES}分×${item.azukariUnits}回）`
+          :'0円';
         const totalText=item.totalFee.toLocaleString()+'円';
         return(
           '<tr>'+
@@ -1988,6 +2052,8 @@ if (iconPicker && iconPickerBackdrop) {
             '<td>'+item.extShortUnits+'</td>'+
             '<td>'+item.extUnitsTotal+'</td>'+
             '<td>'+extText+'</td>'+
+            '<td>'+item.azukariUnits+'</td>'+
+            '<td>'+azukariText+'</td>'+
             '<td>'+totalText+'</td>'+
             '<td>'+escapeHtml(noteText)+'</td>'+
           '</tr>'
@@ -1995,10 +2061,18 @@ if (iconPicker && iconPickerBackdrop) {
       }).join('');
       summaryContainer.innerHTML=
         '<div class="chip">延長保育：30分200円（3,000円上限）</div>'+
+        '<div class="chip">預り保育：'+
+          Number(originalAzukariUnitFee || 0).toLocaleString()+
+          '円/'+AZUKARI_UNIT_MINUTES+'分'+
+          (originalAzukariMonthlyCap>0
+            ? '（上限'+Number(originalAzukariMonthlyCap||0).toLocaleString()+'円）'
+            : '（上限なし）'
+          )+
+        '</div>'+
         '<table>'+
           '<caption>人別・月別集計</caption>'+
           '<thead><tr>'+
-            '<th>名前</th><th>月</th><th>標準延長回数</th><th>短時間延長回数</th><th>合計回数</th><th>延長保育料金</th><th>合計料金</th><th>備考</th>'+
+            '<th>名前</th><th>月</th><th>標準延長回数</th><th>短時間延長回数</th><th>合計回数</th><th>延長保育料金</th><th>預り保育回数</th><th>預り保育料金</th><th>合計料金</th><th>備考</th>'+
           '</tr></thead>'+
           '<tbody>'+rows+'</tbody>'+
         '</table>';
@@ -2204,6 +2278,9 @@ const rowsHtml = list.map(item=>{
   // ★ 預かり保育（いまは 0 初期でもOK）
   const azukariMinutes = item.azukariMinutes || 0;
   const azukariFee     = item.azukariFee     || 0;
+  const azukariDisplay = azukariMinutes
+    ? (azukariMinutes + '分 / ' + azukariFee.toLocaleString() + '円')
+    : '0分';
   return (
     '<tr class="detail-row '+rowTypeClass+vacationCls+'" data-index="'+item.recordIndex+'">'+
       '<td class="col-year '+dateCls+'">'+escapeHtml(item.year)+'</td>'+
@@ -2288,7 +2365,7 @@ const rowsHtml = list.map(item=>{
       // ★ 預かり保育
       '<td class="col-azukari">'+
         '<div class="azukari-box" data-index="'+item.recordIndex+'">'+
-          '<div class="azukari-total">'+azukariMinutes+'分</div>'+
+          '<div class="azukari-total">'+azukariDisplay+'</div>'+
           '<div class="azukari-buttons">'+
             '<button type="button" class="azukariBtn minus" data-index="'+item.recordIndex+'" data-delta="-15">-15分</button>'+
             '<button type="button" class="azukariBtn plus"  data-index="'+item.recordIndex+'" data-delta="15">+15分</button>'+

@@ -1,7 +1,8 @@
 import fs from "fs";
 import path from "path";
 
-const DATA_PATH = path.join(process.cwd(), "api", "articles-data.json");
+const BUNDLE_DATA_PATH = path.join(process.cwd(), "api", "articles-data.json");
+const RUNTIME_DATA_PATH = process.env.ARTICLES_DATA_PATH || path.join("/tmp", "articles-data.json");
 const seedArticles = [
   {
     title: "スクロールスナップで魅せるiPad特集",
@@ -25,7 +26,7 @@ const seedArticles = [
 
 function readSeedPayload() {
   try {
-    return JSON.parse(fs.readFileSync(DATA_PATH, "utf8"));
+    return JSON.parse(fs.readFileSync(BUNDLE_DATA_PATH, "utf8"));
   } catch (err) {
     return { articles: seedArticles };
   }
@@ -35,7 +36,7 @@ const defaultPayload = readSeedPayload();
 
 function readArticles() {
   try {
-    const raw = fs.readFileSync(DATA_PATH, "utf8");
+    const raw = fs.readFileSync(RUNTIME_DATA_PATH, "utf8");
     const parsed = JSON.parse(raw);
     if (Array.isArray(parsed)) return parsed;
     if (Array.isArray(parsed.articles)) return parsed.articles;
@@ -54,7 +55,7 @@ async function readJSON(req) {
 
 function persistArticles(articles) {
   fs.writeFileSync(
-    DATA_PATH,
+    RUNTIME_DATA_PATH,
     JSON.stringify({ articles }, null, 2),
     "utf8"
   );
@@ -76,7 +77,10 @@ export default async function handler(req, res) {
       persistArticles(nextArticles);
       return res.status(200).json({ ok: true, count: nextArticles.length });
     } catch (err) {
-      return res.status(400).json({ error: "invalid payload" });
+      if (err instanceof SyntaxError) {
+        return res.status(400).json({ error: "invalid payload" });
+      }
+      return res.status(500).json({ error: "unable to persist articles" });
     }
   }
 
