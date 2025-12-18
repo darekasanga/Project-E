@@ -719,17 +719,23 @@ td.col-day {
       color:#ffffff;
       border-color:#f97316;
     }
-    .time-cell { white-space:nowrap; }
+    .time-cell {
+      white-space:nowrap;
+      text-align:center;
+      vertical-align:middle;
+    }
     .time-buttons {
       margin-top:4px;
       display:flex;
       flex-direction:column;
       gap:2px;
+      align-items:center;
     }
     .time-buttons-row {
       display:flex;
       flex-wrap:nowrap;
       gap:4px;
+      justify-content:center;
     }
     .time-buttons-row.row-5 button { background:var(--btn5); }
     .time-buttons-row.row-1 button { background:var(--btn1); }
@@ -743,11 +749,23 @@ td.col-day {
       padding:3px 6px;
       border-radius:6px;
       border:1px solid var(--border);
-      margin-bottom:2px;
+      margin:0 auto 2px;
+      text-align:center;
     }
     td.col-leave {
       font-size:16px;
       font-weight:600;
+    }
+    .col-type,
+    .col-weekday {
+      text-align:center;
+    }
+    .col-over,
+    .col-extu,
+    .col-extf,
+    .col-azukarif,
+    .col-totalf {
+      text-align:right;
     }
     .log-list {
       list-style:none;
