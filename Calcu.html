@@ -872,6 +872,26 @@ td.col-type {
       border-color:#0ea5e9;
       color:#0369a1;
     }
+/* [VACATION] 長期休暇のピルと背景 */
+.status-pill-vacation {  /* [VACATION] */
+  border-color: #f59e0b; /* [VACATION] */
+  color: #92400e;        /* [VACATION] */
+  background: #fffbeb;   /* [VACATION] */
+}                        /* [VACATION] */
+.daycard.status-vacation {    /* [VACATION] */
+  background: #ffffff;        /* [VACATION] */
+}                             /* [VACATION] */
+.daycard.status-vacation::before { /* [VACATION] */
+  background: #e5e7eb;            /* [VACATION] */
+}                                  /* [VACATION] */
+.row-vacation td { /* [VACATION] */
+  background: #ffffff !important;
+}
+.day-tag-vacation.active { /* [VACATION] */
+  background: #f59e0b;
+  color: #ffffff;
+  border-color: #f59e0b;
+}
     @media(max-width:720px){
       header h1{font-size:18px;}
       main{display:block;}
@@ -1074,7 +1094,7 @@ td.col-type {
   </div>
   <script>
 // ===== 追加：保存用のキーなど =====
-const STORAGE_VERSION = 'v1';
+const STORAGE_VERSION = 'v2';           // [AZUKARI]
 let currentFileKey    = null;
 // 園児アイコン（園 + クラス + 名前 -> 絵文字）
 let iconByChild = {};
@@ -1085,7 +1105,13 @@ let iconByChild = {};
     const END_SHORT      = 16*60+30;
 // ★ 1号認定（8:30〜16:30）
 const START_1GOU     = 8*60+30;   // 1号認定  8:30
-const END_1GOU       = 16*60+30;  // 1号認定 16:
+const END_1GOU       = 16*60+30;  // 1号認定 16:30
+// [AZUKARI] 預り保育の単価と上限
+const AZUKARI_UNIT_MINUTES      = 30;           // [AZUKARI]
+const AZUKARI_DEFAULT_UNIT_FEE  = 200;          // [AZUKARI]
+const AZUKARI_DEFAULT_MONTH_CAP = 0;            // 0=上限なし  [AZUKARI]
+let azukariUnitFee    = AZUKARI_DEFAULT_UNIT_FEE;   // [AZUKARI]
+let azukariMonthlyCap = AZUKARI_DEFAULT_MONTH_CAP;  // [AZUKARI]
     const EXT_UNIT_FEE   = 200;
     const MONTHLY_CAP    = 3000;
     const fileInput          = document.getElementById('csvFile');
@@ -1124,7 +1150,7 @@ const END_1GOU       = 16*60+30;  // 1号認定 16:
     let originalRowsBackup = []; // ★ 追加：最初の行データのバックアップ
     let lastSelectedSchool = null;  // ★ 最後に選んだ園
     let lastSelectedClass  = null;  // ★ 最後に選んだクラス
-    // overrides: index -> { baseType?, type?, arriveMinutes?, leaveMinutes? }
+    // overrides: index -> { baseType?, type?, arriveMinutes?, leaveMinutes?, azukariMinutes? } // [AZUKARI]
     const overrides   = new Map();
     // index -> 元の出欠（休園 / 欠園 / 登園 など）を退避しておく
     const originalStatusBackup = new Map();
@@ -1295,6 +1321,8 @@ function saveStateToStorage(){
   if (!lastResult || !originalRows.length || !currentFileKey) return;
   const data = {
     version: STORAGE_VERSION,
+    azukariUnitFee,
+    azukariMonthlyCap,
     lastSelectedSchool,
     lastSelectedClass,
     iconByChild,
@@ -1309,7 +1337,8 @@ function saveStateToStorage(){
       baseType:      o.baseType      ?? null,
       type:          o.type          ?? null,
       arriveMinutes: o.arriveMinutes ?? null,
-      leaveMinutes:  o.leaveMinutes  ?? null
+      leaveMinutes:  o.leaveMinutes  ?? null,
+      azukariMinutes:o.azukariMinutes?? null  // [AZUKARI]
     };
   });
   try{
@@ -1331,6 +1360,10 @@ function loadStateFromStorage(rows){
     lastSelectedSchool = data.lastSelectedSchool || null;
     lastSelectedClass  = data.lastSelectedClass  || null;
     iconByChild        = data.iconByChild || {};
+    azukariUnitFee     = data.azukariUnitFee != null ? Number(data.azukariUnitFee) : AZUKARI_DEFAULT_UNIT_FEE;       // [AZUKARI]
+    azukariMonthlyCap  = data.azukariMonthlyCap != null ? Number(data.azukariMonthlyCap) : AZUKARI_DEFAULT_MONTH_CAP; // [AZUKARI]
+    if (Number.isNaN(azukariUnitFee))    azukariUnitFee    = AZUKARI_DEFAULT_UNIT_FEE;       // [AZUKARI]
+    if (Number.isNaN(azukariMonthlyCap)) azukariMonthlyCap = AZUKARI_DEFAULT_MONTH_CAP;      // [AZUKARI]
     const savedOverrides = data.overrides || {};
     rows.forEach((row, index)=>{
       const key = makeRecordKeyFromRow(row);
@@ -1341,6 +1374,7 @@ function loadStateFromStorage(rows){
       if (o.type)                    base.type          = o.type;
       if (o.arriveMinutes != null)   base.arriveMinutes = o.arriveMinutes;
       if (o.leaveMinutes  != null)   base.leaveMinutes  = o.leaveMinutes;
+      if (o.azukariMinutes!= null)   base.azukariMinutes= o.azukariMinutes; // [AZUKARI]
       if (Object.keys(base).length)  overrides.set(index, base);
     });
   }catch(e){
@@ -1419,11 +1453,15 @@ function parseCSV(text){
 function calculate(rows, bufferMinutes){
   const summaryMap = new Map();
   const details    = [];
+  const capValue   = azukariMonthlyCap>0 ? azukariMonthlyCap : Infinity; // [AZUKARI]
   let minKey = null, maxKey = null;
   rows.forEach((row,index)=>{
     const status = (row[columns.status]||'').trim();
+    const isVacation = /長期|長休|夏休み|冬休み|春休み|連休|休暇/.test(status); // [VACATION]
     let attendLabel = '休園';
-    if (status && /欠/.test(status)) {
+    if (isVacation) {
+      attendLabel = '長期休暇'; // [VACATION]
+    } else if (status && /欠/.test(status)) {
       attendLabel = '欠園';
     } else if (status && /登|出|○/.test(status)) {
       attendLabel = '登園';
@@ -1465,7 +1503,7 @@ function calculate(rows, bufferMinutes){
     const weekday   = getWeekdayLabel(rawDate);
     const zeroPair = (effArrive === 0 && effLeave === 0);
     let extMinutes = 0;
-    if(!zeroPair){
+    if(!zeroPair && !isVacation){ // [VACATION]
       if(effArrive!=null){
         const tStart = baseStart - bufferMinutes;
         if(effArrive<tStart) extMinutes += (tStart-effArrive);
@@ -1476,6 +1514,13 @@ function calculate(rows, bufferMinutes){
       }
     }
     const extUnits = extMinutes>0 ? Math.ceil(extMinutes/30) : 0;
+    // [AZUKARI] 預り保育（手動入力）
+    const azOverride    = Math.max(0, oRow.azukariMinutes || 0); // [AZUKARI]
+    const azukariMinutes= isVacation ? 0 : azOverride;           // [AZUKARI]
+    const azukariUnits  = azukariMinutes>0                        // [AZUKARI]
+      ? Math.ceil(azukariMinutes / AZUKARI_UNIT_MINUTES)         // [AZUKARI]
+      : 0;                                                       // [AZUKARI]
+    const azukariFeeRaw = azukariUnits * azukariUnitFee;         // [AZUKARI]
     const monthKey = `${year}-${month}`;
     const key = `${rawName}__${school}__${monthKey}`;
     if(!summaryMap.has(key)){
@@ -1483,13 +1528,20 @@ function calculate(rows, bufferMinutes){
         name,
         month: monthKey,
         extStdUnits: 0,   // 標準＋1号認定はこちら
-        extShortUnits: 0  // 短時間はこちら
+        extShortUnits: 0,  // 短時間はこちら
+        azukariUnits: 0,   // [AZUKARI]
+        azukariMinutes:0,  // [AZUKARI]
+        azukariRawFee: 0,  // [AZUKARI]
+        detailRefs: []     // [AZUKARI]
       });
     }
     const entry = summaryMap.get(key);
     const bucket = (typeKey === 'short') ? 'short' : 'standard';
     if (bucket === 'short') entry.extShortUnits += extUnits;
     else                    entry.extStdUnits   += extUnits;
+    entry.azukariUnits   += azukariUnits;      // [AZUKARI]
+    entry.azukariMinutes += azukariMinutes;    // [AZUKARI]
+    entry.azukariRawFee  += azukariFeeRaw;     // [AZUKARI]
     const baseArriveForDiff = (baseArrive === 0 ? null : baseArrive);
     const baseLeaveForDiff  = (baseLeave  === 0 ? null : baseLeave);
     const deltaArrive =
@@ -1510,9 +1562,14 @@ function calculate(rows, bufferMinutes){
       extMinutes,extUnits,
       weekday,
       attendLabel,
+      isVacation,        // [VACATION]
+      azukariMinutes,    // [AZUKARI]
+      azukariUnits,      // [AZUKARI]
+      azukariFeeRaw,     // [AZUKARI]
       school,
       clazz
     });
+    entry.detailRefs.push(detail); // [AZUKARI]
     details.push(detail);
   });
   const summary = Array.from(summaryMap.values())
@@ -1520,12 +1577,31 @@ function calculate(rows, bufferMinutes){
       const extTotal = item.extStdUnits + item.extShortUnits;
       const extRaw   = extTotal * EXT_UNIT_FEE;
       const extFee   = Math.min(extRaw, MONTHLY_CAP);
+      const azRaw    = item.azukariRawFee || 0;                 // [AZUKARI]
+      const azFee    = Math.min(azRaw, capValue);               // [AZUKARI]
+      const detailRefs = item.detailRefs || [];                 // [AZUKARI]
+      if (detailRefs.length) {                                  // [AZUKARI]
+        let remaining = capValue;                               // [AZUKARI]
+        detailRefs.sort((a,b)=>a.dateKey-b.dateKey);            // [AZUKARI]
+        detailRefs.forEach(d=>{                                 // [AZUKARI]
+          const rawFee = d.azukariFeeRaw || 0;                  // [AZUKARI]
+          const applied = Math.min(rawFee, remaining);          // [AZUKARI]
+          d.azukariFee = applied;                               // [AZUKARI]
+          d.totalFee   = d.extFee + applied;                    // [AZUKARI]
+          remaining    = Math.max(0, remaining - applied);      // [AZUKARI]
+        });                                                     // [AZUKARI]
+      }                                                         // [AZUKARI]
+      const {detailRefs: _drop, ...rest} = item;                // [AZUKARI]
       return{
-        ...item,
+        ...rest,                                                // [AZUKARI]
         extUnitsTotal: extTotal,
         extRawFee:     extRaw,
         extFee,
-        totalFee:      extFee,
+        azukariRawFee: azRaw,                                // [AZUKARI]
+        azukariFee:    azFee,                                   // [AZUKARI]
+        azukariUnitsTotal: item.azukariUnits || 0,              // [AZUKARI]
+        azukariMinutesTotal:item.azukariMinutes || 0,           // [AZUKARI]
+        totalFee:      extFee + azFee,                          // [AZUKARI]
         capped:   extFee<extRaw,
         switched: item.extStdUnits>0 && item.extShortUnits>0
       };
@@ -1560,6 +1636,10 @@ function buildDetail({
   extMinutes,extUnits,
   weekday,
   attendLabel,
+  isVacation,        // [VACATION]
+  azukariMinutes,    // [AZUKARI]
+  azukariUnits,      // [AZUKARI]
+  azukariFeeRaw,     // [AZUKARI]
   school,
   clazz
 }){
@@ -1595,6 +1675,11 @@ function buildDetail({
     deltaLeave,
     extMinutes,
     extUnits,
+    isVacation: !!isVacation,               // [VACATION]
+    azukariMinutes: azukariMinutes||0,      // [AZUKARI]
+    azukariUnits: azukariUnits||0,          // [AZUKARI]
+    azukariFeeRaw: azukariFeeRaw||0,        // [AZUKARI]
+    azukariFee: azukariFeeRaw||0,           // [AZUKARI]
     extFee,
     totalFee:extFee
   };
@@ -1647,6 +1732,11 @@ if (iconPicker && iconPickerBackdrop) {
         const notes=[];
         if(item.switched)notes.push('区分変更あり');
         if(item.extFee<item.extRawFee)notes.push('延長保育上限3,000円適用');
+        if(item.azukariFee>0){
+          const rawAz = item.azukariRawFee || 0; // [AZUKARI]
+          if (rawAz>item.azukariFee) notes.push('預り保育上限適用'); // [AZUKARI]
+          notes.push(`預り保育：${item.azukariUnitsTotal||0}単位/${item.azukariFee.toLocaleString()}円`); // [AZUKARI]
+        }
         const noteText=notes.join('／');
         const extText=item.extUnitsTotal
           ?`${item.extFee.toLocaleString()}円（200円×${item.extUnitsTotal}回／上限3,000円）`
@@ -1819,6 +1909,7 @@ const rowsHtml = list.map(item=>{
     item.typeKey === '2gou'    ? 'row-2gou'   :
     item.typeKey === '3gou'    ? 'row-3gou'   :
     'row-standard';
+  const vacationCls = item.isVacation ? ' row-vacation' : ''; // [VACATION]
   const o = overrides.get(item.recordIndex) || {};
   const hasTypeOverride  = !!o.type;
   const hasTimeOverride  = (o.arriveMinutes != null) || (o.leaveMinutes != null);
@@ -1828,9 +1919,13 @@ const rowsHtml = list.map(item=>{
   const timeClass = hasTimeOverride
     ? 'day-tag day-tag-time active'
     : 'day-tag day-tag-time';
+  const vacationTag = item.isVacation                 // [VACATION]
+    ? '<span class="day-tag day-tag-vacation active">長期休暇</span>'  // [VACATION]
+    : '';                                             // [VACATION]
   const dayTagsHtml =
     '<span class="'+typeClass+'">区分変更</span>'+
-    '<span class="'+timeClass+'">時間変更</span>';
+    '<span class="'+timeClass+'">時間変更</span>'+
+    vacationTag;
   // 備考
   let remark = '';
   let remarkForCopy = '';
@@ -1864,16 +1959,17 @@ const rowsHtml = list.map(item=>{
         '" data-index="' + item.recordIndex + '">↩ 元に戻す</button>' +
     '</div>';
   // ★ 預り保育（いまは 0 初期でもOK）
-  const azukariMinutes = item.azukariMinutes || 0;
-  const azukariFee     = item.azukariFee     || 0;
+  const azukariMinutes = item.azukariMinutes || 0; // [AZUKARI]
+  const azukariFee     = item.azukariFee     || 0; // [AZUKARI]
   return (
-    '<tr class="detail-row '+rowTypeClass+'" data-index="'+item.recordIndex+'">'+
+    '<tr class="detail-row '+rowTypeClass+vacationCls+'" data-index="'+item.recordIndex+'">'+
       '<td class="col-year '+dateCls+'">'+escapeHtml(item.year)+'</td>'+
       '<td class="col-month '+dateCls+'">'+escapeHtml(item.month)+'</td>'+
       '<td class="col-day '+dateCls+' day-cell" data-index="'+item.recordIndex+'">'+
         '<div class="daycard status-' +
           (item.attendLabel === "休園" ? "closed" :
            item.attendLabel === "欠園" ? "absent" :
+           item.attendLabel === "長期休暇" ? "vacation" :  // [VACATION]
            "attend") +
           ' type-' + item.typeKey +
         '">'+
@@ -1884,6 +1980,7 @@ const rowsHtml = list.map(item=>{
               : item.attendLabel === "欠園" ? "status-pill-absent"
               : item.attendLabel === "休園" ? "status-pill-closed"
               : item.attendLabel === "降園" ? "status-pill-leave"
+              : item.attendLabel === "長期休暇" ? "status-pill-vacation"  // [VACATION]
               : "")
             + '">'+escapeHtml(item.attendLabel || "登園")+'</span></div>'+
           '<div class="daycard-tags">'+dayTagsHtml+'</div>'+
@@ -2114,8 +2211,43 @@ applyColumnVisibility();
         }
         addLog({recordIndex:idx,name:d.name,date:d.date,kind:'降園時間変更',before,after});
       }
+      saveStateToStorage(); // [AZUKARI]
       const result=calculate(originalRows,originalBuffer);
       lastResult=result;
+      renderSummary(result.summary);
+      renderDetails(result.details);
+    });
+  });
+  // [AZUKARI] 預り保育 +/- ボタン
+  const azButtons = detailContainer.querySelectorAll('.azukariBtn');
+  azButtons.forEach(btn=>{
+    btn.addEventListener('click',(e)=>{
+      e.stopPropagation();
+      if(!lastResult) return;
+      const idx   = Number(btn.getAttribute('data-index'));
+      const delta = Number(btn.getAttribute('data-delta')) || 0;
+      const d = lastResult.details.find(x=>x.recordIndex===idx);
+      if(!d) return;
+      const prev = overrides.get(idx) || {};
+      const before = prev.azukariMinutes || 0;
+      let next = before + delta;
+      if (next < 0) next = 0;
+      if (next === 0) {
+        clearOverrideField(idx, 'azukariMinutes');
+      } else {
+        overrides.set(idx, { ...prev, azukariMinutes: next });
+      }
+      addLog({
+        recordIndex: idx,
+        name: d.name,
+        date: d.date,
+        kind: "預り保育変更", // [AZUKARI]
+        before: `${before}分`,
+        after: `${next}分`
+      });
+      saveStateToStorage(); // [AZUKARI]
+      const result = calculate(originalRows, originalBuffer);
+      lastResult = result;
       renderSummary(result.summary);
       renderDetails(result.details);
     });
@@ -2154,6 +2286,7 @@ personTypeButtons.forEach(btn=>{
       }
     });
     // 再計算 + 再描画
+    saveStateToStorage(); // [AZUKARI]
     const result = calculate(originalRows, originalBuffer);
     lastResult = result;
     renderSummary(result.summary);
@@ -2190,6 +2323,7 @@ personTypeButtons.forEach(btn=>{
                                 '標準時間'
       });
       // ★ 区分変更後に再計算＋再描画
+      saveStateToStorage(); // [AZUKARI]
       const result = calculate(originalRows, originalBuffer);
       lastResult   = result;
       renderSummary(result.summary);
@@ -2216,6 +2350,7 @@ personTypeButtons.forEach(btn=>{
         before: "編集後",
         after: "初期状態"
       });
+      saveStateToStorage(); // [AZUKARI]
       const result = calculate(originalRows, originalBuffer);
       lastResult   = result;
       renderSummary(result.summary);
@@ -2281,9 +2416,10 @@ personTypeButtons.forEach(btn=>{
       if (!prev) return;
       delete prev[field];
       if (!prev.baseType &&
-          !prev.type &&
-          prev.arriveMinutes == null &&
-          prev.leaveMinutes == null) {
+      !prev.type &&
+      prev.arriveMinutes == null &&
+      prev.leaveMinutes == null &&
+      prev.azukariMinutes == null) { // [AZUKARI]
         overrides.delete(idx);
       } else {
         overrides.set(idx, prev);
