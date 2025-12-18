@@ -154,17 +154,22 @@
     .typeBtn{width:92px;white-space:normal;line-height:1.15;}
     .typeBtn.active{background:var(--accent);border-color:var(--accent);color:#fff;}
 
-    .az-cell{
-      text-align:center;min-width:110px;
+    .vac-btn{
+      width:92px;border-radius:12px;
+      border:1px solid #d1d5db;background:#fff;color:#374151;
+      padding:6px 8px;font-weight:800;font-size:11px;
     }
-    .az-box{
-      display:flex;flex-direction:column;gap:4px;align-items:center;
+    .vac-btn.active{background:#fef3c7;border-color:#f59e0b;color:#92400e;}
+
+    .az-chip{
+      width:100%;border:1px dashed #f59e0b;border-radius:10px;
+      padding:4px 6px;background:#fffbeb;
+      display:flex;flex-direction:column;gap:2px;align-items:center;
+      font-size:11px;font-weight:700;color:#92400e;
     }
-    .az-fee{
-      background:#fef9c3;border:1px solid #f59e0b;border-radius:8px;
-      padding:4px 8px;font-weight:900;font-size:12px;
-    }
-    .az-label{font-size:11px;color:#6b7280;font-weight:700;}
+    .az-chip.off{border-color:#d4d4d8;background:#f8fafc;color:#6b7280;}
+    .az-chip .fee{font-size:12px;font-weight:900;}
+    .auto-note{font-size:10px;color:#6b7280;}
 
     .row-selected td{outline:2px solid #38bdf8;outline-offset:-2px;}
   </style>
@@ -230,9 +235,9 @@
       <section class="panel">
         <h2>メモ</h2>
         <div class="muted">
-          - 通常預り：1号認定で「判定時刻」以降まで在園 → 500円<br>
-          - CSVが 8:30〜16:30 をカバー → 自動で預り500（1号のみ）<br>
-          - 日カードの「長期休暇」ボタンはタップで循環（OFF→1日→午前→午後→OFF）
+          - 基本区分が1号認定で 8:30〜16:30 をカバー → 自動で「1号＋預り保育（500円）」<br>
+          - 日カードの「長期休暇」ボタンはタップで循環（OFF→1日(1,000円)→午前(500円)→午後(500円)→OFF）<br>
+          - 長期休暇を付けた日は出欠に関わらず「登園」扱いで集計
         </div>
       </section>
     </div>
@@ -410,10 +415,6 @@ function calculate(rows){
     const recKey = makeRecordKey({rawDate, school, clazz, name});
     const o = state.overridesByKey[recKey] || {};
 
-    // 基本区分（デフォは標準、必要ならここを拡張）
-    const baseType = o.baseType || "standard";
-    const typeKey = o.type || baseType; // 'standard' | 'short' | '1gou'
-
     // 時刻（CSV→分）
     const baseArrive = parseTimeToMinutes(str(row["登園時刻"]));
     const baseLeave  = parseTimeToMinutes(str(row["降園時刻"]));
@@ -425,6 +426,15 @@ function calculate(rows){
     // バッファ適用（判定用）
     const arriveAdj = (effArrive!=null) ? effArrive + arriveBuf : null;
     const leaveAdj  = (effLeave !=null) ? effLeave  - leaveBuf  : null;
+
+    // 基本区分（デフォは標準、必要ならここを拡張）
+    const baseType = o.baseType || "standard";
+    let typeKey = o.type || baseType; // 'standard' | 'short' | '1gou'
+
+    // 8:30-16:30 をカバーしているか（1号の自動判定用）
+    const coverFullRange = (arriveAdj!=null && leaveAdj!=null && arriveAdj <= START_1GOU && leaveAdj >= AZUKARI.NORMAL_END);
+    const autoOnegou = (baseType === "1gou" && coverFullRange);
+    if (autoOnegou) typeKey = "1gou";
 
     // 休日/欠席/休園でも、長期休暇ONなら登園扱い
     const vacationMode = o.vacationMode || null; // null|'ALL'|'AM'|'PM'
@@ -458,6 +468,7 @@ function calculate(rows){
     let azFee = 0;
     let azLabel = "";
     let azMinutes = 0;
+    let azAuto = false;
 
     if (attendLabel === "登園") {
       if (isVacation) {
@@ -466,16 +477,21 @@ function calculate(rows){
         if (vacationMode === "PM")  { azFee = AZUKARI.LONG_HALF; azLabel="長期休暇(午後)"; }
         // 分は表示用（なくてもOK）
         if (arriveAdj!=null && leaveAdj!=null) azMinutes = Math.max(0, leaveAdj - arriveAdj);
+      } else if (autoOnegou && leaveAdj!=null) {
+        azFee = AZUKARI.NORMAL_FEE;
+        azLabel = "預り保育（自動）";
+        azMinutes = Math.max(0, Math.min(leaveAdj, AZUKARI.NORMAL_END) - AZUKARI.NORMAL_START);
+        azAuto = true;
       } else {
         // 1号認定のときのみ
         if (typeKey === "1gou" && leaveAdj!=null) {
           // CSVが 8:30〜16:30 をカバーなら自動預り500
-          const autoCover = (arriveAdj!=null && leaveAdj!=null && arriveAdj <= START_1GOU && leaveAdj >= AZUKARI.NORMAL_END);
           const judgeOn = (leaveAdj >= azJudgeMin);
-          if (autoCover || judgeOn) {
+          if (coverFullRange || judgeOn) {
             azFee = AZUKARI.NORMAL_FEE;
-            azLabel = "預り保育";
+            azLabel = coverFullRange ? "預り保育（自動）" : "預り保育";
             azMinutes = Math.max(0, Math.min(leaveAdj, AZUKARI.NORMAL_END) - AZUKARI.NORMAL_START);
+            azAuto = coverFullRange;
           }
         }
       }
@@ -498,6 +514,8 @@ function calculate(rows){
       attendLabel,
       typeKey,
       typeLabel: typeKey==="1gou" ? "1号認定" : (typeKey==="short" ? "短時間" : "標準時間"),
+      autoOnegou,
+      coverFullRange,
 
       arrive: effArrive!=null ? minutesToTime(effArrive) : "",
       leave:  effLeave !=null ? minutesToTime(effLeave)  : "",
@@ -515,6 +533,7 @@ function calculate(rows){
       azukariMinutes: azMinutes,
       azukariFee: azFee,
       azukariLabel: azLabel,
+      azAuto,
 
       totalFee
     };
@@ -639,16 +658,25 @@ function renderDetails(details){
     const rows = list.map(item=>{
       const statusCls = item.attendLabel==="登園" ? "attend" : (item.attendLabel==="欠園" ? "absent" : "closed");
       const dcType = item.typeKey==="1gou" ? "type-1gou" : (item.typeKey==="short" ? "type-short" : "type-standard");
-      const autoTypeTag = (item.typeKey==="1gou" && item.azukariFee===AZUKARI.NORMAL_FEE && parseTimeToMinutes(item.arrive)===START_1GOU && parseTimeToMinutes(item.leave)===AZUKARI.NORMAL_END);
+      const autoTypeTag = item.autoOnegou || item.azAuto;
 
-      const tagAz = item.azukariFee>0 ? `<span class="tag az on">預り</span>` : `<span class="tag az">預り</span>`;
+      const tagAz = item.azukariFee>0 ? `<span class="tag az on">${esc(item.azukariLabel || "預り")}</span>` : `<span class="tag az">預り</span>`;
       const tagType = item.typeKey==="1gou" ? `<span class="tag on">1号</span>` : `<span class="tag">区分</span>`;
 
       const vacationBtnLabel =
-        item.vacationMode==="ALL" ? "長期(1日)" :
-        item.vacationMode==="AM"  ? "長期(午前)" :
-        item.vacationMode==="PM"  ? "長期(午後)" :
+        item.vacationMode==="ALL" ? "長期休暇(1日)" :
+        item.vacationMode==="AM"  ? "長期休暇(午前)" :
+        item.vacationMode==="PM"  ? "長期休暇(午後)" :
         "長期休暇";
+      const vacationBtnClass = `small vac-btn vacationBtn ${item.vacationMode ? 'active' : ''}`;
+
+      const azChip = `
+        <div class="az-chip ${item.azukariFee>0 ? '' : 'off'}">
+          <div>${item.azukariFee>0 ? esc(item.azukariLabel || "預り保育") : "預りなし"}</div>
+          ${item.azukariFee>0 ? `<div class="fee">${item.azukariFee.toLocaleString()}円</div>` : ``}
+          ${item.azAuto ? `<div class="auto-note">自動判定</div>` : ``}
+        </div>
+      `;
 
       return `
         <tr class="detail-row" data-index="${item.recordIndex}" data-rk="${esc(item.recordKey)}">
@@ -657,9 +685,10 @@ function renderDetails(details){
               <div class="dc-week">${esc(item.weekday)}</div>
               <div class="dc-date">${esc(item.day)}</div>
               <div><span class="pill ${statusCls}">${esc(item.attendLabel)}</span></div>
-              <button type="button" class="small warn vacationBtn" data-rk="${esc(item.recordKey)}">${vacationBtnLabel}</button>
+              <button type="button" class="${vacationBtnClass}" data-rk="${esc(item.recordKey)}">${vacationBtnLabel}</button>
               <div class="dc-tags">${tagType}${tagAz}</div>
-              ${autoTypeTag ? `<div class="muted" style="font-size:10px;">自動</div>` : ``}
+              ${azChip}
+              ${autoTypeTag ? `<div class="auto-note">8:30〜16:30 自動判定</div>` : ``}
             </div>
           </td>
           <td>
@@ -679,12 +708,6 @@ function renderDetails(details){
           </td>
           <td>${item.extMinutes>0 ? `${item.extMinutes}分` : "-"}</td>
           <td>${item.extFee.toLocaleString()}円</td>
-          <td class="az-cell">
-            <div class="az-box">
-              <div class="az-fee">${item.azukariFee>0 ? item.azukariFee.toLocaleString()+"円" : "0円"}</div>
-              <div class="az-label">${esc(item.azukariLabel||"")}</div>
-            </div>
-          </td>
           <td><b>${item.totalFee.toLocaleString()}円</b></td>
         </tr>
       `;
@@ -701,7 +724,6 @@ function renderDetails(details){
               <th>降園</th>
               <th>延長(分)</th>
               <th>延長料金</th>
-              <th>預り</th>
               <th>合計</th>
             </tr>
           </thead>
