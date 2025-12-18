@@ -38,22 +38,50 @@
     }
     header h1{margin:0;font-size:20px;font-weight:700;}
     header p{margin:2px 0 0;font-size:12px;opacity:.9;}
-    .sidebar-toggle{
+    .header-info{display:flex;flex-direction:column;gap:6px;flex:1;min-width:0;}
+    .header-flow{
+      display:inline-flex;align-items:center;gap:6px;
+      background:rgba(255,255,255,.14);
+      border:1px solid rgba(255,255,255,.26);
+      color:#fff;border-radius:999px;
+      padding:6px 12px;font-size:12px;font-weight:800;
+      width:fit-content;
+      box-shadow:0 4px 14px rgba(15,23,42,.16);
+    }
+    .header-actions{
+      display:flex;align-items:center;gap:8px;
       margin-left:auto;
+      flex-wrap:wrap;
+      justify-content:flex-end;
+    }
+    .header-chip{
       border:none;border-radius:999px;
-      padding:6px 10px;
+      padding:8px 12px;font-weight:800;cursor:pointer;
+      background:rgba(255,255,255,.18);color:#fff;
+      border:1px solid rgba(255,255,255,.3);
+      transition:background .2s,border-color .2s;
+    }
+    .header-chip:hover{background:rgba(255,255,255,.26);border-color:rgba(255,255,255,.36);}
+    .header-chip.primary{background:#0ea5e9;border-color:#38bdf8;}
+    .header-chip.ghost{background:rgba(255,255,255,.12);}
+    .sidebar-toggle{
+      border:none;
+      border-radius:999px;
+      padding:8px 14px;
       background:#0ea5e9;color:#fff;
-      font-weight:700;font-size:12px;cursor:pointer;
+      font-weight:800;font-size:12px;cursor:pointer;
     }
 
     main{
       padding:16px;
-      max-width:1200px;margin:0 auto 60px;
-      display:grid;grid-template-columns:minmax(280px,340px) 1fr;
+      max-width:1400px;width:100%;
+      margin:0 auto 60px;
+      display:grid;grid-template-columns:minmax(260px,320px) minmax(0,1fr);
       gap:16px;align-items:flex-start;
     }
     body.sidebar-collapsed main{grid-template-columns:1fr;}
     body.sidebar-collapsed .sidebar{display:none;}
+    .content{min-width:0;}
 
     .panel{
       background:#fff;border:1px solid #e5e7eb;border-radius:12px;
@@ -109,13 +137,13 @@
     .tab-panel.active{display:block;}
 
     /* 日カード */
-    th.col-day,td.col-day{width:86px;padding:0;border:none;}
+    th.col-day,td.col-day{width:118px;padding:0;border:none;}
     .daycard{
-      width:86px;min-height:132px;
+      width:108px;min-height:148px;
       border:1px solid #e5e7eb;border-radius:10px;
       margin:0 auto;background:#fff;
-      position:relative;padding:6px 6px 8px;
-      display:flex;flex-direction:column;gap:4px;align-items:center;
+      position:relative;padding:6px 6px 10px;
+      display:flex;flex-direction:column;gap:6px;align-items:center;
     }
     .daycard::before{
       content:"";position:absolute;left:0;top:0;height:100%;width:5px;
@@ -127,15 +155,16 @@
     .daycard.status-absent::before{background:#ef4444;}
     .daycard.status-closed::before{background:#9ca3af;}
 
-    .dc-week{font-size:10px;color:#6b7280;font-weight:700;}
+    .dc-head{display:flex;align-items:center;gap:6px;}
+    .dc-week{font-size:11px;color:#6b7280;font-weight:800;}
     .dc-date{font-size:18px;font-weight:900;}
     .pill{
       font-size:11px;border-radius:999px;padding:2px 8px;
       border:1px solid #d1d5db;background:#fff;color:#374151;font-weight:700;
     }
-    .pill.attend{border-color:#16a34a;color:#166534;}
-    .pill.absent{border-color:#b91c1c;color:#7f1d1d;}
-    .pill.closed{border-color:#ea580c;color:#9a3412;}
+    .pill.attend{border-color:#16a34a;color:#166534;background:#dcfce7;}
+    .pill.absent{border-color:#b91c1c;color:#7f1d1d;background:#fee2e2;}
+    .pill.closed{border-color:#ea580c;color:#9a3412;background:#ffedd5;}
     .dc-tags{display:flex;flex-wrap:wrap;gap:4px;justify-content:center;min-height:18px;}
     .tag{
       font-size:9px;border-radius:999px;padding:1px 6px;
@@ -151,32 +180,80 @@
     .diff{font-size:11px;color:#6b7280;margin-top:2px;}
 
     .type-toggle{display:flex;flex-direction:column;gap:4px;align-items:center;}
-    .typeBtn{width:92px;white-space:normal;line-height:1.15;}
+    .typeBtn{width:82px;white-space:normal;line-height:1.15;}
     .typeBtn.active{background:var(--accent);border-color:var(--accent);color:#fff;}
 
-    .az-cell{
-      text-align:center;min-width:110px;
+    .vac-btn{
+      width:100%;border-radius:10px;
+      border:1px dashed #d1d5db;background:#f8fafc;color:#374151;
+      padding:6px 8px;font-weight:800;font-size:11px;
     }
-    .az-box{
-      display:flex;flex-direction:column;gap:4px;align-items:center;
+    .vac-btn.active{background:#fef3c7;border-color:#f59e0b;color:#92400e;}
+
+    .az-chip{
+      width:100%;border:1px dashed #f59e0b;border-radius:10px;
+      padding:4px 6px;background:#fffbeb;
+      display:flex;flex-direction:column;gap:2px;align-items:center;
+      font-size:11px;font-weight:700;color:#92400e;
     }
-    .az-fee{
-      background:#fef9c3;border:1px solid #f59e0b;border-radius:8px;
-      padding:4px 8px;font-weight:900;font-size:12px;
+    .az-chip.off{border-color:#d4d4d8;background:#f8fafc;color:#6b7280;}
+    .az-chip .fee{font-size:12px;font-weight:900;}
+    .auto-note{font-size:10px;color:#6b7280;}
+
+    .day-actions{width:100%;display:flex;flex-direction:column;gap:4px;}
+    .day-chip{
+      width:100%;border-radius:10px;border:1px solid #d1d5db;
+      background:#f9fafb;color:#374151;font-weight:800;font-size:11px;
+      padding:6px 8px;cursor:pointer;
+      transition:background .2s,border-color .2s,color .2s;
     }
-    .az-label{font-size:11px;color:#6b7280;font-weight:700;}
+    .day-chip.primary{background:#dcfce7;border-color:#16a34a;color:#166534;}
+    .day-chip.ghost{background:#f9fafb;}
+    .day-chip:hover{background:#eef2ff;border-color:#c7d2fe;}
+
+    .time-cell{display:flex;flex-direction:column;gap:6px;align-items:flex-start;}
+    .time-input-row{display:flex;align-items:center;gap:8px;}
+    .time-buttons{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:4px;width:100%;}
+    .time-btn{
+      padding:4px 8px;border-radius:10px;border:none;font-weight:800;font-size:11px;cursor:pointer;
+      color:#fff;display:flex;align-items:center;justify-content:center;
+    }
+    .time-btn.minus5,.time-btn.plus5{background:#3b82f6;}
+    .time-btn.minus1,.time-btn.plus1{background:#22c55e;}
+    .time-btn:hover{opacity:.92;}
 
     .row-selected td{outline:2px solid #38bdf8;outline-offset:-2px;}
+    .detail-filters{
+      display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap;
+      margin-bottom:10px;
+    }
+    .detail-filters .filter{
+      display:flex;flex-direction:column;gap:4px;
+      min-width:140px;
+    }
+    .detail-filters select{
+      padding:8px 10px;border-radius:10px;border:1px solid var(--border);
+      font-size:13px;
+    }
+    .detail-table{width:100%;}
+    .detail-table th.col-type,.detail-table td.col-type{width:94px;}
   </style>
 </head>
 <body>
   <header>
     <div class="logo-circle">園</div>
-    <div style="flex:1;">
-      <h1>延長・預り保育 計算</h1>
-      <p>延長：30分200円（3,000円上限）／ 預り：定額（要件反映済）</p>
+    <div class="header-info">
+      <div>
+        <h1>延長・預り保育 計算</h1>
+        <p>延長：30分200円（3,000円上限）／ 預り：定額（要件反映済）</p>
+      </div>
+      <div class="header-flow">① CSV取込 → ②【標準/短/1号】区分変更 → ③ コドモンに転記</div>
     </div>
-    <button id="toggleSidebar" class="sidebar-toggle">サイドバーをとじる</button>
+    <div class="header-actions">
+      <button type="button" class="header-chip ghost">出力</button>
+      <button type="button" id="toggleSidebar" class="header-chip primary sidebar-toggle">表示設定</button>
+      <button type="button" class="header-chip ghost">変更履歴</button>
+    </div>
   </header>
 
   <main>
@@ -199,12 +276,12 @@
           <div>
             <label>登園バッファ（分）</label>
             <input id="arriveBuffer" type="number" min="0" step="1" value="0">
-            <div class="muted">登園が早い判定を緩める（登園時刻＋分）</div>
+            <div class="muted">早朝登園の判定を緩めるため、登園時刻に加算</div>
           </div>
           <div>
             <label>降園バッファ（分）</label>
             <input id="leaveBuffer" type="number" min="0" step="1" value="0">
-            <div class="muted">降園が遅い判定を緩める（降園時刻−分）</div>
+            <div class="muted">遅い降園の判定を緩めるため、降園時刻から減算</div>
           </div>
         </div>
 
@@ -230,9 +307,9 @@
       <section class="panel">
         <h2>メモ</h2>
         <div class="muted">
-          - 通常預り：1号認定で「判定時刻」以降まで在園 → 500円<br>
-          - CSVが 8:30〜16:30 をカバー → 自動で預り500（1号のみ）<br>
-          - 日カードの「長期休暇」ボタンはタップで循環（OFF→1日→午前→午後→OFF）
+          - 基本区分が1号認定で 8:30〜16:30 をカバー → 自動で「1号＋預り保育（500円）」<br>
+          - 日カードの「長期休暇」ボタンはタップで循環（OFF→1日(1,000円)→午前(500円)→午後(500円)→OFF）<br>
+          - 長期休暇を付けた日は出欠に関わらず「登園」扱いで集計
         </div>
       </section>
     </div>
@@ -263,6 +340,9 @@ const DEFAULT_SETTINGS = {
   leaveBuffer: 0,
   extBuffer: 0,
   azJudge: "15:00",
+  activeSchool: null,
+  activeClass: null,
+  activeName: null,
   // 行ごとの上書き
   overridesByKey: {} // recordKey -> { baseType?, type?, arriveMinutes?, leaveMinutes?, vacationMode? }
 };
@@ -410,10 +490,6 @@ function calculate(rows){
     const recKey = makeRecordKey({rawDate, school, clazz, name});
     const o = state.overridesByKey[recKey] || {};
 
-    // 基本区分（デフォは標準、必要ならここを拡張）
-    const baseType = o.baseType || "standard";
-    const typeKey = o.type || baseType; // 'standard' | 'short' | '1gou'
-
     // 時刻（CSV→分）
     const baseArrive = parseTimeToMinutes(str(row["登園時刻"]));
     const baseLeave  = parseTimeToMinutes(str(row["降園時刻"]));
@@ -425,6 +501,15 @@ function calculate(rows){
     // バッファ適用（判定用）
     const arriveAdj = (effArrive!=null) ? effArrive + arriveBuf : null;
     const leaveAdj  = (effLeave !=null) ? effLeave  - leaveBuf  : null;
+
+    // 基本区分（デフォは標準、必要ならここを拡張）
+    const baseType = o.baseType || "standard";
+    let typeKey = o.type || baseType; // 'standard' | 'short' | '1gou'
+
+    // 8:30-16:30 をカバーしているか（1号の自動判定用）
+    const coverFullRange = (arriveAdj!=null && leaveAdj!=null && arriveAdj <= START_1GOU && leaveAdj >= AZUKARI.NORMAL_END);
+    const autoOnegou = (baseType === "1gou" && coverFullRange);
+    if (autoOnegou) typeKey = "1gou";
 
     // 休日/欠席/休園でも、長期休暇ONなら登園扱い
     const vacationMode = o.vacationMode || null; // null|'ALL'|'AM'|'PM'
@@ -458,6 +543,7 @@ function calculate(rows){
     let azFee = 0;
     let azLabel = "";
     let azMinutes = 0;
+    let azAuto = false;
 
     if (attendLabel === "登園") {
       if (isVacation) {
@@ -466,16 +552,21 @@ function calculate(rows){
         if (vacationMode === "PM")  { azFee = AZUKARI.LONG_HALF; azLabel="長期休暇(午後)"; }
         // 分は表示用（なくてもOK）
         if (arriveAdj!=null && leaveAdj!=null) azMinutes = Math.max(0, leaveAdj - arriveAdj);
+      } else if (autoOnegou && leaveAdj!=null) {
+        azFee = AZUKARI.NORMAL_FEE;
+        azLabel = "預り保育（自動）";
+        azMinutes = Math.max(0, Math.min(leaveAdj, AZUKARI.NORMAL_END) - AZUKARI.NORMAL_START);
+        azAuto = true;
       } else {
         // 1号認定のときのみ
         if (typeKey === "1gou" && leaveAdj!=null) {
           // CSVが 8:30〜16:30 をカバーなら自動預り500
-          const autoCover = (arriveAdj!=null && leaveAdj!=null && arriveAdj <= START_1GOU && leaveAdj >= AZUKARI.NORMAL_END);
           const judgeOn = (leaveAdj >= azJudgeMin);
-          if (autoCover || judgeOn) {
+          if (coverFullRange || judgeOn) {
             azFee = AZUKARI.NORMAL_FEE;
-            azLabel = "預り保育";
+            azLabel = coverFullRange ? "預り保育（自動）" : "預り保育";
             azMinutes = Math.max(0, Math.min(leaveAdj, AZUKARI.NORMAL_END) - AZUKARI.NORMAL_START);
+            azAuto = coverFullRange;
           }
         }
       }
@@ -498,6 +589,8 @@ function calculate(rows){
       attendLabel,
       typeKey,
       typeLabel: typeKey==="1gou" ? "1号認定" : (typeKey==="short" ? "短時間" : "標準時間"),
+      autoOnegou,
+      coverFullRange,
 
       arrive: effArrive!=null ? minutesToTime(effArrive) : "",
       leave:  effLeave !=null ? minutesToTime(effLeave)  : "",
@@ -515,6 +608,7 @@ function calculate(rows){
       azukariMinutes: azMinutes,
       azukariFee: azFee,
       azukariLabel: azLabel,
+      azAuto,
 
       totalFee
     };
@@ -618,12 +712,16 @@ function renderDetails(details){
 
   // 園→クラス→氏名で絞るUI（シンプル）
   const schools = uniq(details.map(d=>d.school)).sort((a,b)=>a.localeCompare(b,'ja'));
-  const activeSchool = schools[0];
+  let activeSchool = state.activeSchool && schools.includes(state.activeSchool) ? state.activeSchool : schools[0];
   const inSchool = details.filter(d=>d.school===activeSchool);
 
   const classes = uniq(inSchool.map(d=>d.clazz)).sort((a,b)=>a.localeCompare(b,'ja'));
-  const activeClass = classes[0];
+  let activeClass = state.activeClass && classes.includes(state.activeClass) ? state.activeClass : classes[0];
   const filtered = inSchool.filter(d=>d.clazz===activeClass);
+
+  let stateChanged = false;
+  if (state.activeSchool !== activeSchool){ state.activeSchool = activeSchool; stateChanged = true; }
+  if (state.activeClass !== activeClass){ state.activeClass = activeClass; stateChanged = true; }
 
   const byName = new Map();
   filtered.forEach(d=>{
@@ -631,38 +729,77 @@ function renderDetails(details){
     byName.get(d.name).push(d);
   });
   const names = Array.from(byName.keys()).sort((a,b)=>a.localeCompare(b,'ja'));
+  let activeName = state.activeName && names.includes(state.activeName) ? state.activeName : names[0];
+  if (state.activeName !== activeName){ state.activeName = activeName; stateChanged = true; }
+  if (stateChanged) saveState();
 
-  let tabs = `<div class="tabs">` + names.map((n,i)=>`<button class="tab-button ${i===0?'active':''}" data-tab="p${i}">${esc(n)}</button>`).join("") + `</div>`;
+  const schoolOptions = schools.map(s=>`<option value="${esc(s)}" ${s===activeSchool?'selected':''}>${esc(s)}</option>`).join("");
+  const classOptions = classes.map(c=>`<option value="${esc(c)}" ${c===activeClass?'selected':''}>${esc(c)}</option>`).join("");
+  const filterRow = `
+    <div class="detail-filters">
+      <div class="filter">
+        <label>園</label>
+        <select id="schoolSelect">${schoolOptions}</select>
+      </div>
+      <div class="filter">
+        <label>クラス</label>
+        <select id="classSelect">${classOptions}</select>
+      </div>
+    </div>
+  `;
+
+  let tabs = `<div class="tabs">` + names.map((n,i)=>{
+    const isActive = n===activeName;
+    return `<button class="tab-button ${isActive?'active':''}" data-tab="p${i}" data-name="${esc(n)}">${esc(n)}</button>`;
+  }).join("") + `</div>`;
   let panels = names.map((n,i)=>{
+    const isActive = n===activeName;
     const list = byName.get(n);
 
     const rows = list.map(item=>{
       const statusCls = item.attendLabel==="登園" ? "attend" : (item.attendLabel==="欠園" ? "absent" : "closed");
       const dcType = item.typeKey==="1gou" ? "type-1gou" : (item.typeKey==="short" ? "type-short" : "type-standard");
-      const autoTypeTag = (item.typeKey==="1gou" && item.azukariFee===AZUKARI.NORMAL_FEE && parseTimeToMinutes(item.arrive)===START_1GOU && parseTimeToMinutes(item.leave)===AZUKARI.NORMAL_END);
+      const autoTypeTag = item.autoOnegou || item.azAuto;
 
-      const tagAz = item.azukariFee>0 ? `<span class="tag az on">預り</span>` : `<span class="tag az">預り</span>`;
+      const tagAz = item.azukariFee>0 ? `<span class="tag az on">${esc(item.azukariLabel || "預り")}</span>` : `<span class="tag az">預り</span>`;
       const tagType = item.typeKey==="1gou" ? `<span class="tag on">1号</span>` : `<span class="tag">区分</span>`;
+      const typeLabel = item.typeKey==="1gou" ? "1号" : (item.typeKey==="short" ? "短時間" : "標準");
 
       const vacationBtnLabel =
-        item.vacationMode==="ALL" ? "長期(1日)" :
-        item.vacationMode==="AM"  ? "長期(午前)" :
-        item.vacationMode==="PM"  ? "長期(午後)" :
+        item.vacationMode==="ALL" ? "長期休暇(1日)" :
+        item.vacationMode==="AM"  ? "長期休暇(午前)" :
+        item.vacationMode==="PM"  ? "長期休暇(午後)" :
         "長期休暇";
+      const vacationBtnClass = `small vac-btn vacationBtn ${item.vacationMode ? 'active' : ''}`;
+
+      const azChip = `
+        <div class="az-chip ${item.azukariFee>0 ? '' : 'off'}">
+          <div>${item.azukariFee>0 ? esc(item.azukariLabel || "預り保育") : "預りなし"}</div>
+          ${item.azukariFee>0 ? `<div class="fee">${item.azukariFee.toLocaleString()}円</div>` : ``}
+          ${item.azAuto ? `<div class="auto-note">自動判定</div>` : ``}
+        </div>
+      `;
 
       return `
-        <tr class="detail-row" data-index="${item.recordIndex}" data-rk="${esc(item.recordKey)}">
+        <tr class="detail-row" data-index="${item.recordIndex}" data-rk="${esc(item.recordKey)}" data-type="${esc(item.typeKey)}">
           <td class="col-day">
             <div class="daycard ${dcType} status-${statusCls}">
-              <div class="dc-week">${esc(item.weekday)}</div>
-              <div class="dc-date">${esc(item.day)}</div>
-              <div><span class="pill ${statusCls}">${esc(item.attendLabel)}</span></div>
-              <button type="button" class="small warn vacationBtn" data-rk="${esc(item.recordKey)}">${vacationBtnLabel}</button>
+              <div class="dc-head">
+                <div class="dc-week">${esc(item.weekday)}</div>
+                <div class="dc-date">${esc(item.day)}</div>
+              </div>
+              <div class="day-actions">
+                <div class="day-chip primary" aria-label="${esc(item.attendLabel)}">${esc(item.attendLabel)}</div>
+                <button type="button" class="${vacationBtnClass}" data-rk="${esc(item.recordKey)}">${vacationBtnLabel}</button>
+                <button type="button" class="day-chip ghost timeEditBtn" data-rk="${esc(item.recordKey)}">時間変更</button>
+                <button type="button" class="day-chip ghost typeCycleBtn" data-rk="${esc(item.recordKey)}" data-type="${esc(item.typeKey)}">区分変更 (${typeLabel})</button>
+              </div>
               <div class="dc-tags">${tagType}${tagAz}</div>
-              ${autoTypeTag ? `<div class="muted" style="font-size:10px;">自動</div>` : ``}
+              ${azChip}
+              ${autoTypeTag ? `<div class="auto-note">8:30〜16:30 自動判定</div>` : ``}
             </div>
           </td>
-          <td>
+          <td class="col-type">
             <div class="type-toggle" data-rk="${esc(item.recordKey)}">
               <button type="button" class="small typeBtn ${item.typeKey==='standard'?'primary':''}" data-type="standard">標準</button>
               <button type="button" class="small typeBtn ${item.typeKey==='short'?'primary':''}" data-type="short">短時間</button>
@@ -670,38 +807,51 @@ function renderDetails(details){
             </div>
           </td>
           <td>
-            <input class="time-input arriveInput" data-rk="${esc(item.recordKey)}" value="${esc(item.arrive)}" placeholder="HH:MM">
-            <div class="diff">${formatDiff(item.deltaArrive)}</div>
+            <div class="time-cell" data-rk="${esc(item.recordKey)}" data-field="arrive">
+              <div class="time-input-row">
+                <input class="time-input arriveInput" data-rk="${esc(item.recordKey)}" data-original="${esc(item.arrive)}" value="${esc(item.arrive)}" placeholder="HH:MM">
+                <div class="diff">${formatDiff(item.deltaArrive)}</div>
+              </div>
+              <div class="time-buttons" data-rk="${esc(item.recordKey)}" data-field="arrive">
+                <button type="button" class="time-btn minus5 time-adjust-btn" data-delta="-5">-5分</button>
+                <button type="button" class="time-btn plus5 time-adjust-btn" data-delta="5">+5分</button>
+                <button type="button" class="time-btn minus1 time-adjust-btn" data-delta="-1">-1分</button>
+                <button type="button" class="time-btn plus1 time-adjust-btn" data-delta="1">+1分</button>
+              </div>
+            </div>
           </td>
           <td>
-            <input class="time-input leaveInput" data-rk="${esc(item.recordKey)}" value="${esc(item.leave)}" placeholder="HH:MM">
-            <div class="diff">${formatDiff(item.deltaLeave)}</div>
+            <div class="time-cell" data-rk="${esc(item.recordKey)}" data-field="leave">
+              <div class="time-input-row">
+                <input class="time-input leaveInput" data-rk="${esc(item.recordKey)}" data-original="${esc(item.leave)}" value="${esc(item.leave)}" placeholder="HH:MM">
+                <div class="diff">${formatDiff(item.deltaLeave)}</div>
+              </div>
+              <div class="time-buttons" data-rk="${esc(item.recordKey)}" data-field="leave">
+                <button type="button" class="time-btn minus5 time-adjust-btn" data-delta="-5">-5分</button>
+                <button type="button" class="time-btn plus5 time-adjust-btn" data-delta="5">+5分</button>
+                <button type="button" class="time-btn minus1 time-adjust-btn" data-delta="-1">-1分</button>
+                <button type="button" class="time-btn plus1 time-adjust-btn" data-delta="1">+1分</button>
+              </div>
+            </div>
           </td>
           <td>${item.extMinutes>0 ? `${item.extMinutes}分` : "-"}</td>
           <td>${item.extFee.toLocaleString()}円</td>
-          <td class="az-cell">
-            <div class="az-box">
-              <div class="az-fee">${item.azukariFee>0 ? item.azukariFee.toLocaleString()+"円" : "0円"}</div>
-              <div class="az-label">${esc(item.azukariLabel||"")}</div>
-            </div>
-          </td>
           <td><b>${item.totalFee.toLocaleString()}円</b></td>
         </tr>
       `;
     }).join("");
 
     return `
-      <div class="tab-panel ${i===0?'active':''}" id="p${i}">
-        <table>
+      <div class="tab-panel ${isActive?'active':''}" id="p${i}">
+        <table class="detail-table">
           <thead>
             <tr>
               <th class="col-day">日</th>
-              <th>区分</th>
+              <th class="col-type">区分</th>
               <th>登園</th>
               <th>降園</th>
               <th>延長(分)</th>
               <th>延長料金</th>
-              <th>預り</th>
               <th>合計</th>
             </tr>
           </thead>
@@ -711,7 +861,25 @@ function renderDetails(details){
     `;
   }).join("");
 
-  detailContainer.innerHTML = tabs + panels;
+  detailContainer.innerHTML = filterRow + tabs + panels;
+
+  const schoolSelect = detailContainer.querySelector("#schoolSelect");
+  const classSelect = detailContainer.querySelector("#classSelect");
+  schoolSelect?.addEventListener("change", ()=>{
+    const nextSchool = schoolSelect.value;
+    state.activeSchool = nextSchool;
+    const nextClasses = uniq(details.filter(d=>d.school===nextSchool).map(d=>d.clazz)).sort((a,b)=>a.localeCompare(b,'ja'));
+    state.activeClass = nextClasses.includes(state.activeClass) ? state.activeClass : nextClasses[0] || null;
+    state.activeName = null;
+    saveState();
+    renderDetails(details);
+  });
+  classSelect?.addEventListener("change", ()=>{
+    state.activeClass = classSelect.value;
+    state.activeName = null;
+    saveState();
+    renderDetails(details);
+  });
 
   // タブ切替
   const tabButtons = detailContainer.querySelectorAll(".tab-button");
@@ -724,6 +892,8 @@ function renderDetails(details){
       btn.classList.add("active");
       const panel = detailContainer.querySelector("#"+id);
       if(panel) panel.classList.add("active");
+      state.activeName = btn.dataset.name || null;
+      saveState();
     });
   });
 
@@ -770,10 +940,51 @@ function renderDetails(details){
 
   // 行選択の見た目
   const rows = detailContainer.querySelectorAll("tr.detail-row");
+  const selectRowByKey = (rk)=>{
+    rows.forEach(r=>{
+      if(r.dataset.rk===rk) r.classList.add("row-selected");
+      else r.classList.remove("row-selected");
+    });
+  };
   rows.forEach(tr=>{
     tr.addEventListener("click",()=>{
       rows.forEach(r=>r.classList.remove("row-selected"));
       tr.classList.add("row-selected");
+    });
+  });
+
+  // 時刻調整ボタン
+  detailContainer.querySelectorAll(".time-adjust-btn").forEach(btn=>{
+    btn.addEventListener("click",(e)=>{
+      e.stopPropagation();
+      const wrap = btn.closest(".time-buttons");
+      if(!wrap) return;
+      const rk = wrap.dataset.rk;
+      const field = wrap.dataset.field;
+      adjustTime(rk, field, Number(btn.dataset.delta||0));
+      selectRowByKey(rk);
+    });
+  });
+
+  // 時間変更ボタン（フォーカス用）
+  detailContainer.querySelectorAll(".timeEditBtn").forEach(btn=>{
+    btn.addEventListener("click",(e)=>{
+      e.stopPropagation();
+      const rk = btn.dataset.rk;
+      selectRowByKey(rk);
+      const target = detailContainer.querySelector(`.arriveInput[data-rk="${cssEscape(rk)}"]`) || detailContainer.querySelector(`.leaveInput[data-rk="${cssEscape(rk)}"]`);
+      target?.focus();
+      target?.select();
+    });
+  });
+
+  // 区分変更ボタン（循環）
+  detailContainer.querySelectorAll(".typeCycleBtn").forEach(btn=>{
+    btn.addEventListener("click",(e)=>{
+      e.stopPropagation();
+      const rk = btn.dataset.rk;
+      const current = btn.dataset.type || "standard";
+      cycleType(rk, current);
     });
   });
 }
@@ -787,6 +998,32 @@ function rerun(){
   lastResult = result;
   renderSummary(result.summary);
   renderDetails(result.details);
+}
+
+function adjustTime(rk, which, delta){
+  if(!rk || !which) return;
+  const selector = which==="arrive"
+    ? `.arriveInput[data-rk="${cssEscape(rk)}"]`
+    : `.leaveInput[data-rk="${cssEscape(rk)}"]`;
+  const input = detailContainer.querySelector(selector);
+  if(!input) return;
+  const base = sanitizeHHMM(input.value) || sanitizeHHMM(input.dataset.original) || "";
+  const baseMinutes = parseTimeToMinutes(base);
+  if(baseMinutes==null) return;
+  const next = Math.max(0, Math.min(23*60+59, baseMinutes + delta));
+  input.value = minutesToTime(next);
+  applyTimeEdit(input, which);
+}
+
+function cycleType(rk, currentType){
+  const order = ["standard","short","1gou"];
+  const idx = order.indexOf(currentType);
+  const next = order[(idx>=0 ? idx+1 : 0) % order.length];
+  const o = state.overridesByKey[rk] || {};
+  o.type = next;
+  state.overridesByKey[rk] = o;
+  saveState();
+  rerun();
 }
 
 function applyTimeEdit(inputEl, which){
@@ -907,6 +1144,13 @@ function clampInt(v,min,max){
   return Math.max(min, Math.min(max, Math.floor(n)));
 }
 
+function cssEscape(v){
+  if(typeof CSS !== "undefined" && CSS.escape){
+    return CSS.escape(v);
+  }
+  return String(v??"").replace(/"/g,'\\"');
+}
+
 function makeRecordKey({rawDate, school, clazz, name}){
   return [rawDate||"", school||"", clazz||"", name||""].join("|");
 }
@@ -935,7 +1179,7 @@ function saveState(){
 
 function applySidebarState(){
   document.body.classList.toggle("sidebar-collapsed", !!state.sidebarCollapsed);
-  toggleSidebarBtn.textContent = state.sidebarCollapsed ? "サイドバーをひらく" : "サイドバーをとじる";
+  toggleSidebarBtn.textContent = state.sidebarCollapsed ? "表示設定をひらく" : "表示設定をとじる";
 }
 
 function applySettingsToInputs(){

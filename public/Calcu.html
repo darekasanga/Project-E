@@ -31,12 +31,77 @@ td.col-remark, th.col-remark {
 .selection-panel {
   margin-bottom: 8px;
 }
-/* 預り保育セル（右寄せ2列：預り保育 / 預り保育料金） */
+/* 預かり保育セル（右寄せ2列：預かり保育 / 預かり保育料金） */
 .col-azukari,
 .col-azukarif {
   text-align: center;
   vertical-align: middle;
   width: 90px;
+}
+/* 列リサイズ用ハンドル */
+.resizable-header {
+  position: relative;
+}
+.column-resizer {
+  position: absolute;
+  top: 0;
+  right: -4px;
+  width: 8px;
+  height: 100%;
+  cursor: col-resize;
+  user-select: none;
+  touch-action: none;
+}
+.column-resizer::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+}
+/* 列の表示/非表示メニュー */
+.column-menu-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.35);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 1200;
+}
+.column-menu-backdrop.open {
+  display: flex;
+}
+.column-menu {
+  background: #fff;
+  border-radius: 12px;
+  padding: 12px;
+  width: min(320px, calc(100% - 40px));
+  box-shadow: 0 18px 36px rgba(15, 23, 42, 0.24);
+  border: 1px solid var(--border);
+  font-size: 13px;
+}
+.column-menu-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+  font-weight: 700;
+}
+.column-menu-close {
+  background: transparent;
+  border: none;
+  font-size: 18px;
+  cursor: pointer;
+  color: var(--subtext);
+}
+.column-menu-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 8px;
+}
+.column-menu-list label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
 }
 /* 合計（黄色のボックス） */
 .azukari-total {
@@ -412,12 +477,12 @@ td.col-remark, th.col-remark {
 /* 日の列の幅を固定して細くする */
 th.col-day,
 td.col-day {
-  width: 68px;   /* 好みで 60〜80 に調整OK */
+  width: 96px;   /* ゆったり表示できるよう少し広めに */
   padding: 0;
 }
 .col-day .daycard {
-  width: 75px;   /* カード自体の幅 */
-  height: 122px;  /* 高さもそろえる */
+  width: 92px;   /* カード自体の幅 */
+  height: 130px;  /* 高さもそろえる */
   margin: 0px auto;
 }
     th,td {
@@ -730,9 +795,11 @@ tr.row-3gou td {
     .hide-h-buffer  th.col-buffer,  .hide-h-buffer  td.col-buffer  {display:none;}
     .hide-h-arrive  th.col-arrive,  .hide-h-arrive  td.col-arrive  {display:none;}
     .hide-h-leave   th.col-leave,   .hide-h-leave   td.col-leave   {display:none;}
+    .hide-h-azukari   th.col-azukari,   .hide-h-azukari   td.col-azukari   {display:none;}
     .hide-h-over    th.col-over,    .hide-h-over    td.col-over    {display:none;}
     .hide-h-extu    th.col-extu,    .hide-h-extu    td.col-extu    {display:none;}
     .hide-h-extf    th.col-extf,    .hide-h-extf    td.col-extf    {display:none;}
+    .hide-h-azukarif th.col-azukarif, .hide-h-azukarif td.col-azukarif {display:none;}
     .hide-h-remark th.col-remark, .hide-h-remark td.col-remark {display:none;}
     details.options summary {
       cursor:pointer;
@@ -1034,9 +1101,11 @@ td.col-type {
             <label><input type="checkbox" id="hideHeaderBuffer" checked /> バッファ列</label>
             <label><input type="checkbox" id="hideHeaderArrive" /> 登園時刻列</label>
             <label><input type="checkbox" id="hideHeaderLeave" /> 降園時刻列</label>
+            <label><input type="checkbox" id="hideHeaderAzukari" /> 預かり保育列</label>
             <label><input type="checkbox" id="hideHeaderOver" /> 延長時間列</label>
             <label><input type="checkbox" id="hideHeaderExtU" checked /> 延長回数列</label>
             <label><input type="checkbox" id="hideHeaderExtF" /> 延長料金列</label>
+            <label><input type="checkbox" id="hideHeaderAzukarif" /> 預かり料金列</label>
             <label><input type="checkbox" id="hideHeaderRemark" /> 備考列</label>
           </div>
         </details>
@@ -1137,10 +1206,15 @@ let azukariMonthlyCap = AZUKARI_DEFAULT_MONTH_CAP;  // [AZUKARI]
     const hideHeaderBuffer  = document.getElementById('hideHeaderBuffer');
     const hideHeaderArrive  = document.getElementById('hideHeaderArrive');
     const hideHeaderLeave   = document.getElementById('hideHeaderLeave');
+    const hideHeaderAzukari = document.getElementById('hideHeaderAzukari');
     const hideHeaderOver    = document.getElementById('hideHeaderOver');
     const hideHeaderExtU    = document.getElementById('hideHeaderExtU');
     const hideHeaderExtF    = document.getElementById('hideHeaderExtF');
+    const hideHeaderAzukarif= document.getElementById('hideHeaderAzukarif');
     const hideHeaderRemark  = document.getElementById('hideHeaderRemark');
+    const COLUMN_WIDTH_STORAGE_KEY = 'encho-tool:column-widths';
+    let columnWidths = {};
+    loadColumnWidthsFromStorage();
     let lastResult    = null;
     let originalRows  = [];
     let originalBuffer= 0;
@@ -1189,6 +1263,25 @@ function makeRecordKeyFromDetail(d){
 function makeChildKey(school, clazz, name){
   return [school || '', clazz || '', name || ''].join('|');
 }
+function loadColumnWidthsFromStorage(){
+  columnWidths = {};
+  try{
+    const raw = localStorage.getItem(COLUMN_WIDTH_STORAGE_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (parsed && typeof parsed === 'object') {
+        columnWidths = parsed;
+      }
+    }
+  }catch(e){
+    columnWidths = {};
+  }
+}
+function saveColumnWidthsToStorage(){
+  try{
+    localStorage.setItem(COLUMN_WIDTH_STORAGE_KEY, JSON.stringify(columnWidths));
+  }catch(e){/* 保存失敗時は黙って無視 */}
+}
     // サイドバー開閉
     toggleSidebarBtn.addEventListener('click',()=>{
       document.body.classList.toggle('sidebar-collapsed');
@@ -1217,9 +1310,11 @@ function makeChildKey(school, clazz, name){
         'hide-h-buffer',
         'hide-h-arrive',
         'hide-h-leave',
+        'hide-h-azukari',
         'hide-h-over',
         'hide-h-extu',
         'hide-h-extf',
+        'hide-h-azukarif',
         'hide-h-remark'
       );
       // チェックされているものだけ付け直す
@@ -1233,9 +1328,11 @@ function makeChildKey(school, clazz, name){
         [hideHeaderBuffer, 'hide-h-buffer'],
         [hideHeaderArrive, 'hide-h-arrive'],
         [hideHeaderLeave,  'hide-h-leave'],
+        [hideHeaderAzukari,'hide-h-azukari'],
         [hideHeaderOver,   'hide-h-over'],
         [hideHeaderExtU,   'hide-h-extu'],
         [hideHeaderExtF,   'hide-h-extf'],
+        [hideHeaderAzukarif,'hide-h-azukarif'],
         [hideHeaderRemark, 'hide-h-remark']   // ★ 備考もここで制御
       ].forEach(([cb, cls])=>{
         if (!cb) return;
@@ -1263,14 +1360,185 @@ function makeChildKey(school, clazz, name){
       hideHeaderBuffer,
       hideHeaderArrive,
       hideHeaderLeave,
+      hideHeaderAzukari,
       hideHeaderOver,
       hideHeaderExtU,
       hideHeaderExtF,
+      hideHeaderAzukarif,
       hideHeaderRemark
     ].forEach(cb=>{
       if (!cb) return;
       cb.addEventListener('change', applyColumnVisibility);
     });
+    const columnToggleConfig = [
+      { label: '年列', checkbox: hideHeaderYear },
+      { label: '月列', checkbox: hideHeaderMonth },
+      { label: '日列', checkbox: hideHeaderDay },
+      { label: '曜日列', checkbox: hideHeaderWeekday },
+      { label: '区分列', checkbox: hideHeaderType },
+      { label: '基準終了列', checkbox: hideHeaderEnd },
+      { label: 'バッファ列', checkbox: hideHeaderBuffer },
+      { label: '登園時刻列', checkbox: hideHeaderArrive },
+      { label: '降園時刻列', checkbox: hideHeaderLeave },
+      { label: '預かり保育列', checkbox: hideHeaderAzukari },
+      { label: '延長時間列', checkbox: hideHeaderOver },
+      { label: '延長回数列', checkbox: hideHeaderExtU },
+      { label: '延長料金列', checkbox: hideHeaderExtF },
+      { label: '預かり料金列', checkbox: hideHeaderAzukarif },
+      { label: '備考列', checkbox: hideHeaderRemark }
+    ];
+    const LONG_PRESS_DURATION = 600;
+    let columnMenuBackdrop = null;
+    let columnMenuListEl = null;
+    function ensureColumnMenu(){
+      if (columnMenuBackdrop) return;
+      columnMenuBackdrop = document.createElement('div');
+      columnMenuBackdrop.className = 'column-menu-backdrop';
+      const menu = document.createElement('div');
+      menu.className = 'column-menu';
+      menu.innerHTML = ''
+        + '<div class="column-menu-header">'
+        +   '<span>列の表示/非表示</span>'
+        +   '<button type="button" class="column-menu-close" aria-label="閉じる">×</button>'
+        + '</div>'
+        + '<div class="column-menu-list"></div>';
+      columnMenuListEl = menu.querySelector('.column-menu-list');
+      columnMenuBackdrop.appendChild(menu);
+      document.body.appendChild(columnMenuBackdrop);
+      columnMenuBackdrop.addEventListener('click',(e)=>{
+        if (e.target === columnMenuBackdrop) {
+          closeColumnMenu();
+        }
+      });
+      const closeBtn = menu.querySelector('.column-menu-close');
+      if (closeBtn) closeBtn.addEventListener('click', closeColumnMenu);
+    }
+    function renderColumnMenu(){
+      ensureColumnMenu();
+      if (!columnMenuListEl) return;
+      columnMenuListEl.innerHTML = '';
+      columnToggleConfig.forEach(item=>{
+        if (!item.checkbox) return;
+        const label = document.createElement('label');
+        const input = document.createElement('input');
+        input.type = 'checkbox';
+        input.checked = item.checkbox.checked;
+        input.addEventListener('change',()=>{
+          item.checkbox.checked = input.checked;
+          applyColumnVisibility();
+        });
+        label.appendChild(input);
+        const text = document.createElement('span');
+        text.textContent = item.label;
+        label.appendChild(text);
+        columnMenuListEl.appendChild(label);
+      });
+    }
+    function openColumnMenu(){
+      renderColumnMenu();
+      if (columnMenuBackdrop) {
+        columnMenuBackdrop.classList.add('open');
+      }
+    }
+    function closeColumnMenu(){
+      if (columnMenuBackdrop) {
+        columnMenuBackdrop.classList.remove('open');
+      }
+    }
+    function attachLongPressToHeaders(root){
+      const headers = root.querySelectorAll('th');
+      headers.forEach(th=>{
+        let timer = null;
+        const clear = ()=>{
+          if (timer) {
+            clearTimeout(timer);
+            timer = null;
+          }
+        };
+        th.addEventListener('pointerdown',(e)=>{
+          if (e.target.closest('.column-resizer')) return;
+          clear();
+          timer = setTimeout(()=>{
+            openColumnMenu();
+          }, LONG_PRESS_DURATION);
+        });
+        ['pointerup','pointerleave','pointercancel'].forEach(ev=>{
+          th.addEventListener(ev, clear);
+        });
+      });
+    }
+    function getColumnKeyFromHeader(th, index){
+      const colClass = Array.from(th.classList).find(c=>c.startsWith('col-'));
+      if (colClass) return colClass;
+      const textKey = (th.textContent || '').trim().replace(/\s+/g,'_');
+      if (textKey) return 'text-' + textKey;
+      return 'index-' + index;
+    }
+    function syncColumnWidth(table, index, width){
+      const w = Math.max(60, width);
+      const headCells = table.querySelectorAll(`th:nth-child(${index+1})`);
+      headCells.forEach(cell=>{
+        cell.style.width = w + 'px';
+        cell.style.minWidth = w + 'px';
+      });
+      const bodyCells = table.querySelectorAll(`tbody tr td:nth-child(${index+1})`);
+      bodyCells.forEach(cell=>{
+        cell.style.width = w + 'px';
+        cell.style.minWidth = w + 'px';
+      });
+    }
+    function applyStoredWidthsToTable(table){
+      const headers = table.querySelectorAll('th');
+      headers.forEach((th, index)=>{
+        const key = getColumnKeyFromHeader(th, index);
+        if (key && columnWidths[key]) {
+          syncColumnWidth(table, index, columnWidths[key]);
+        }
+      });
+    }
+    function makeTableResizable(table){
+      applyStoredWidthsToTable(table);
+      const headers = table.querySelectorAll('th');
+      headers.forEach((th, index)=>{
+        th.classList.add('resizable-header');
+        const handle = document.createElement('span');
+        handle.className = 'column-resizer';
+        handle.title = 'ドラッグして列幅を変更';
+        th.appendChild(handle);
+        handle.addEventListener('pointerdown',(e)=>{
+          e.preventDefault();
+          e.stopPropagation();
+          const startX = e.clientX;
+          const startWidth = th.offsetWidth;
+          const onMove = (ev)=>{
+            const delta = ev.clientX - startX;
+            syncColumnWidth(table, index, startWidth + delta);
+          };
+          const onUp = ()=>{
+            const width = th.offsetWidth;
+            const key = getColumnKeyFromHeader(th, index);
+            if (key) {
+              columnWidths[key] = width;
+              saveColumnWidthsToStorage();
+            }
+            window.removeEventListener('pointermove', onMove);
+            window.removeEventListener('pointerup', onUp);
+            window.removeEventListener('pointercancel', onUp);
+          };
+          window.addEventListener('pointermove', onMove);
+          window.addEventListener('pointerup', onUp);
+          window.addEventListener('pointercancel', onUp);
+        });
+      });
+    }
+    function setupResizableTables(root){
+      const tables = root.querySelectorAll('table');
+      tables.forEach(table=>makeTableResizable(table));
+    }
+    function enhanceTables(root){
+      setupResizableTables(root);
+      attachLongPressToHeaders(root);
+    }
 // 「計算する」ボタン
 calculateButton.addEventListener('click', () => {
   const file = (fileInput.files && fileInput.files[0]) || null;
@@ -1763,7 +2031,8 @@ if (iconPicker && iconPickerBackdrop) {
             '<th>名前</th><th>月</th><th>標準延長回数</th><th>短時間延長回数</th><th>合計回数</th><th>延長保育料金</th><th>合計料金</th><th>備考</th>'+
           '</tr></thead>'+
           '<tbody>'+rows+'</tbody>'+
-        '</table>';
+          '</table>';
+      enhanceTables(summaryContainer);
     }
 // ===== 日次明細の描画（園→クラス→氏名タブ + ＋5/-5 & 区分ボタン） =====
 function renderDetails(details){
@@ -1958,9 +2227,9 @@ const rowsHtml = list.map(item=>{
         (hasChange ? 'has-change' : 'no-change') +
         '" data-index="' + item.recordIndex + '">↩ 元に戻す</button>' +
     '</div>';
-  // ★ 預り保育（いまは 0 初期でもOK）
-  const azukariMinutes = item.azukariMinutes || 0; // [AZUKARI]
-  const azukariFee     = item.azukariFee     || 0; // [AZUKARI]
+  // ★ 預かり保育（いまは 0 初期でもOK）
+  const azukariMinutes = item.azukariMinutes || 0;
+  const azukariFee     = item.azukariFee     || 0;
   return (
     '<tr class="detail-row '+rowTypeClass+vacationCls+'" data-index="'+item.recordIndex+'">'+
       '<td class="col-year '+dateCls+'">'+escapeHtml(item.year)+'</td>'+
@@ -2042,7 +2311,7 @@ const rowsHtml = list.map(item=>{
           '</div>'+
         '</div>'+
       '</td>'+
-      // ★ 預り保育
+      // ★ 預かり保育
       '<td class="col-azukari">'+
         '<div class="azukari-box" data-index="'+item.recordIndex+'">'+
           '<div class="azukari-total">'+azukariMinutes+'分</div>'+
@@ -2055,7 +2324,7 @@ const rowsHtml = list.map(item=>{
       '<td class="col-over">'+overText+'</td>'+
       '<td class="col-extu">'+item.extUnits+'</td>'+
       '<td class="col-extf">'+extText+'</td>'+
-      // ★ 預り保育料金（将来計算に使う：今は 0 でもOK）
+      // ★ 預かり保育料金（将来計算に使う：今は 0 でもOK）
       '<td class="col-azukarif">'+azukariFee+'円</td>'+
       '<td class="col-totalf">'+totalText+'</td>'+
       '<td class="col-remark">'+remarkHtml+'</td>'+
@@ -2088,13 +2357,13 @@ const rowsHtml = list.map(item=>{
   '<th class="col-buffer">バッファ</th>'+
   '<th class="col-arrive">登園時刻</th>'+
   '<th class="col-leave">降園時刻</th>'+
-  // ★ 新列：預り保育
-  '<th class="col-azukari">預り保育</th>'+
+  // ★ 新列：預かり保育
+  '<th class="col-azukari">預かり保育</th>'+
   '<th class="col-over">延長時間(分)</th>'+
   '<th class="col-extu">延長回数</th>'+
   '<th class="col-extf">延長保育料金</th>'+
-  // ★ 新列：預り保育料金
-  '<th class="col-azukarif">預り保育料金</th>'+
+  // ★ 新列：預かり保育料金
+  '<th class="col-azukarif">預かり保育料金</th>'+
   '<th class="col-totalf">合計料金</th>'+
   '<th class="col-remark">備考</th>'+
 '</tr></thead>'+
@@ -2377,6 +2646,7 @@ personTypeButtons.forEach(btn=>{
       }
     });
   });
+  enhanceTables(detailContainer);
 }
     // 変更履歴
     function addLog({recordIndex,name,date,kind,before,after}){
