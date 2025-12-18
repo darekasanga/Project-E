@@ -31,12 +31,11 @@ td.col-remark, th.col-remark {
 .selection-panel {
   margin-bottom: 8px;
 }
-/* 預り保育セル（右寄せ2列：預り保育 / 預り保育料金） */
-.col-azukari,
-.col-azukarif {
+/* 預かり保育セル（分と料金をまとめた1列） */
+.col-azukari {
   text-align: center;
   vertical-align: middle;
-  width: 90px;
+  width: 120px;
 }
 /* 合計（黄色のボックス） */
 .azukari-total {
@@ -75,6 +74,16 @@ td.col-remark, th.col-remark {
 /* ホバー効果 */
 .azukariBtn:hover {
   opacity: 0.85;
+}
+.azukari-fee {
+  font-size: 11px;
+  color: #92400e;
+  background: #fffbeb;
+  border: 1px dashed #f59e0b;
+  border-radius: 6px;
+  padding: 2px 6px;
+  width: fit-content;
+  margin: 0 auto;
 }
 /* 1行（園：〇〇… の1行） */
 .selection-row {
@@ -303,12 +312,14 @@ td.col-remark, th.col-remark {
     header {
       background:linear-gradient(120deg,var(--accent),#38bdf8);
       color:#fff;
-      padding:14px 20px;
+      padding:14px 20px 10px;
       box-shadow:0 2px 12px rgba(0,0,0,0.12);
       display:flex;
-      align-items:center;
-      gap:12px;
-      position:relative;
+      flex-direction:column;
+      gap:8px;
+      position:sticky;
+      top:0;
+      z-index:10;
     }
     .logo-circle {
       width:40px;height:40px;border-radius:50%;
@@ -323,8 +334,36 @@ td.col-remark, th.col-remark {
     header p {
       margin:2px 0 0;font-size:12px;color:rgba(255,255,255,0.9);
     }
+    .header-top {
+      display:flex;
+      align-items:center;
+      gap:12px;
+      width:100%;
+    }
+    .header-info { flex:1; }
+    .header-controls {
+      width:100%;
+      display:grid;
+      grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
+      gap:10px;
+    }
+    .header-card {
+      background:rgba(255,255,255,0.14);
+      border:1px solid rgba(255,255,255,0.32);
+      border-radius:12px;
+      padding:10px;
+      color:#fff;
+      box-shadow:0 4px 14px rgba(0,0,0,0.12);
+    }
+    .header-card h2 {
+      margin:0 0 6px;
+      font-size:15px;
+      color:#fff;
+    }
+    .header-card .muted { color:rgba(255,255,255,0.85); }
+    body.controls-collapsed .header-controls { display:none; }
     .sidebar-toggle {
-      position:absolute;right:20px;top:16px;
+      margin-left:auto;
     }
     /* ===== レイアウト ===== */
     main {
@@ -332,12 +371,10 @@ td.col-remark, th.col-remark {
       max-width:1200px;
       margin:0 auto 80px;
       display:grid;
-      grid-template-columns:minmax(260px,320px) 1fr;
+      grid-template-columns:1fr;
       gap:16px;
       align-items:flex-start;
     }
-    body.sidebar-collapsed main { grid-template-columns:1fr; }
-    body.sidebar-collapsed .sidebar { display:none; }
     .panel {
       background:#fff;
       border:1px solid var(--border);
@@ -412,12 +449,12 @@ td.col-remark, th.col-remark {
 /* 日の列の幅を固定して細くする */
 th.col-day,
 td.col-day {
-  width: 68px;   /* 好みで 60〜80 に調整OK */
+  width: 96px;   /* ゆったり表示できるよう少し広めに */
   padding: 0;
 }
 .col-day .daycard {
-  width: 75px;   /* カード自体の幅 */
-  height: 122px;  /* 高さもそろえる */
+  width: 92px;   /* カード自体の幅 */
+  height: 130px;  /* 高さもそろえる */
   margin: 0px auto;
 }
     th,td {
@@ -735,6 +772,7 @@ tr.row-3gou td {
     .hide-h-buffer  th.col-buffer,  .hide-h-buffer  td.col-buffer  {display:none;}
     .hide-h-arrive  th.col-arrive,  .hide-h-arrive  td.col-arrive  {display:none;}
     .hide-h-leave   th.col-leave,   .hide-h-leave   td.col-leave   {display:none;}
+    .hide-h-azukari th.col-azukari, .hide-h-azukari td.col-azukari {display:none;}
     .hide-h-over    th.col-over,    .hide-h-over    td.col-over    {display:none;}
     .hide-h-extu    th.col-extu,    .hide-h-extu    td.col-extu    {display:none;}
     .hide-h-extf    th.col-extf,    .hide-h-extf    td.col-extf    {display:none;}
@@ -877,10 +915,29 @@ td.col-type {
       border-color:#0ea5e9;
       color:#0369a1;
     }
+/* [VACATION] 長期休暇のピルと背景 */
+.status-pill-vacation {  /* [VACATION] */
+  border-color: #f59e0b; /* [VACATION] */
+  color: #92400e;        /* [VACATION] */
+  background: #fffbeb;   /* [VACATION] */
+}                        /* [VACATION] */
+.daycard.status-vacation {    /* [VACATION] */
+  background: #ffffff;        /* [VACATION] */
+}                             /* [VACATION] */
+.daycard.status-vacation::before { /* [VACATION] */
+  background: #e5e7eb;            /* [VACATION] */
+}                                  /* [VACATION] */
+.row-vacation td { /* [VACATION] */
+  background: #ffffff !important;
+}
+.day-tag-vacation.active { /* [VACATION] */
+  background: #f59e0b;
+  color: #ffffff;
+  border-color: #f59e0b;
+}
     @media(max-width:720px){
       header h1{font-size:18px;}
       main{display:block;}
-      .sidebar-toggle{display:none;}
       table{font-size:13px;}
       th,td{padding:6px 4px;}
     }
@@ -969,16 +1026,16 @@ td.col-type {
 </head>
 <body>
   <header>
-    <div class="logo-circle">園</div>
-    <div style="flex:1;">
-      <h1>標準・短時間 切り替え計算</h1>
-      <p>延長保育：30分200円（3,000円上限）／ 登園が早くても延長計算</p>
+    <div class="header-top">
+      <div class="logo-circle">園</div>
+      <div class="header-info">
+        <h1>標準・短時間 切り替え計算</h1>
+        <p>延長保育：30分200円（3,000円上限）／ 登園が早くても延長計算</p>
+      </div>
+      <button id="toggleSidebar" class="small secondary sidebar-toggle">入力・設定を隠す</button>
     </div>
-    <button id="toggleSidebar" class="small secondary sidebar-toggle">サイドバーをとじる</button>
-  </header>
-  <main>
-    <div class="sidebar">
-      <section class="panel">
+    <div class="header-controls" id="headerControls">
+      <div class="header-card">
         <h2>入力</h2>
         <div class="grid two">
           <div>
@@ -999,9 +1056,9 @@ td.col-type {
             </p>
           </div>
         </div>
-      </section>
-      <section class="panel">
-        <h2>出力・表示設定</h2>
+      </div>
+      <div class="header-card">
+        <h2>設定</h2>
         <div style="margin-bottom:10px;display:flex;flex-direction:column;gap:6px;">
           <button id="download"     type="button" class="small secondary" disabled>サマリーExcel風</button>
           <button id="downloadPage" type="button" class="small secondary" disabled>ページHTML保存</button>
@@ -1019,21 +1076,24 @@ td.col-type {
             <label><input type="checkbox" id="hideHeaderBuffer" checked /> バッファ列</label>
             <label><input type="checkbox" id="hideHeaderArrive" /> 登園時刻列</label>
             <label><input type="checkbox" id="hideHeaderLeave" /> 降園時刻列</label>
+            <label><input type="checkbox" id="hideHeaderAzukari" /> 預かり保育列</label>
             <label><input type="checkbox" id="hideHeaderOver" /> 延長時間列</label>
             <label><input type="checkbox" id="hideHeaderExtU" checked /> 延長回数列</label>
             <label><input type="checkbox" id="hideHeaderExtF" /> 延長料金列</label>
             <label><input type="checkbox" id="hideHeaderRemark" /> 備考列</label>
           </div>
         </details>
-      </section>
-      <section class="panel">
+      </div>
+      <div class="header-card">
         <h2>変更履歴</h2>
         <details id="logDetails">
           <summary>履歴を表示</summary>
           <div id="logContainer" class="muted" style="margin-top:6px;">まだ変更はありません。</div>
         </details>
-      </section>
+      </div>
     </div>
+  </header>
+  <main>
     <div class="content">
       <section class="panel">
         <h2>月別・人別サマリー</h2>
@@ -1079,7 +1139,7 @@ td.col-type {
   </div>
   <script>
 // ===== 追加：保存用のキーなど =====
-const STORAGE_VERSION = 'v1';
+const STORAGE_VERSION = 'v2';           // [AZUKARI]
 let currentFileKey    = null;
 const DISPLAY_OPTIONS_KEY = 'encho-tool:displayOptions'; // [FIX]
 // 園児アイコン（園 + クラス + 名前 -> 絵文字）
@@ -1091,7 +1151,13 @@ let iconByChild = {};
     const END_SHORT      = 16*60+30;
 // ★ 1号認定（8:30〜16:30）
 const START_1GOU     = 8*60+30;   // 1号認定  8:30
-const END_1GOU       = 16*60+30;  // 1号認定 16:
+const END_1GOU       = 16*60+30;  // 1号認定 16:30
+// [AZUKARI] 預り保育の単価と上限
+const AZUKARI_UNIT_MINUTES      = 30;           // [AZUKARI]
+const AZUKARI_DEFAULT_UNIT_FEE  = 200;          // [AZUKARI]
+const AZUKARI_DEFAULT_MONTH_CAP = 0;            // 0=上限なし  [AZUKARI]
+let azukariUnitFee    = AZUKARI_DEFAULT_UNIT_FEE;   // [AZUKARI]
+let azukariMonthlyCap = AZUKARI_DEFAULT_MONTH_CAP;  // [AZUKARI]
     const EXT_UNIT_FEE   = 200;
     const MONTHLY_CAP    = 3000;
     const fileInput          = document.getElementById('csvFile');
@@ -1117,6 +1183,7 @@ const END_1GOU       = 16*60+30;  // 1号認定 16:
     const hideHeaderBuffer  = document.getElementById('hideHeaderBuffer');
     const hideHeaderArrive  = document.getElementById('hideHeaderArrive');
     const hideHeaderLeave   = document.getElementById('hideHeaderLeave');
+    const hideHeaderAzukari = document.getElementById('hideHeaderAzukari');
     const hideHeaderOver    = document.getElementById('hideHeaderOver');
     const hideHeaderExtU    = document.getElementById('hideHeaderExtU');
     const hideHeaderExtF    = document.getElementById('hideHeaderExtF');
@@ -1130,7 +1197,7 @@ const END_1GOU       = 16*60+30;  // 1号認定 16:
     let originalRowsBackup = []; // ★ 追加：最初の行データのバックアップ
     let lastSelectedSchool = null;  // ★ 最後に選んだ園
     let lastSelectedClass  = null;  // ★ 最後に選んだクラス
-    // overrides: index -> { baseType?, type?, arriveMinutes?, leaveMinutes? }
+    // overrides: index -> { baseType?, type?, arriveMinutes?, leaveMinutes?, azukariMinutes? } // [AZUKARI]
     const overrides   = new Map();
     // index -> 元の出欠（休園 / 欠園 / 登園 など）を退避しておく
     const originalStatusBackup = new Map();
@@ -1204,13 +1271,15 @@ function triggerBlobDownload(blob, filename){
   setTimeout(()=>URL.revokeObjectURL(url), 0);
 }
     // サイドバー開閉
-    toggleSidebarBtn.addEventListener('click',()=>{
-      document.body.classList.toggle('sidebar-collapsed');
-      const collapsed = document.body.classList.contains('sidebar-collapsed');
-      toggleSidebarBtn.textContent = collapsed
-        ? 'サイドバーをひらく'
-        : 'サイドバーをとじる';
-    });
+    if (toggleSidebarBtn) {
+      toggleSidebarBtn.addEventListener('click',()=>{
+        document.body.classList.toggle('controls-collapsed');
+        const collapsed = document.body.classList.contains('controls-collapsed');
+        toggleSidebarBtn.textContent = collapsed
+          ? '入力・設定を表示'
+          : '入力・設定を隠す';
+      });
+    }
     // CSVヘルプ
     helpCsvBtn.addEventListener('click',()=>{helpModal.style.display='flex';});
     helpClose.addEventListener('click',()=>{helpModal.style.display='none';});
@@ -1280,6 +1349,7 @@ function triggerBlobDownload(blob, filename){
         'hide-h-buffer',
         'hide-h-arrive',
         'hide-h-leave',
+        'hide-h-azukari',
         'hide-h-over',
         'hide-h-extu',
         'hide-h-extf',
@@ -1296,6 +1366,7 @@ function triggerBlobDownload(blob, filename){
         [hideHeaderBuffer, 'hide-h-buffer'],
         [hideHeaderArrive, 'hide-h-arrive'],
         [hideHeaderLeave,  'hide-h-leave'],
+        [hideHeaderAzukari,'hide-h-azukari'],
         [hideHeaderOver,   'hide-h-over'],
         [hideHeaderExtU,   'hide-h-extu'],
         [hideHeaderExtF,   'hide-h-extf'],
@@ -1327,6 +1398,7 @@ function triggerBlobDownload(blob, filename){
       hideHeaderBuffer,
       hideHeaderArrive,
       hideHeaderLeave,
+      hideHeaderAzukari,
       hideHeaderOver,
       hideHeaderExtU,
       hideHeaderExtF,
@@ -1463,6 +1535,8 @@ function saveStateToStorage(){
   const existingRaw = localStorage.getItem(currentFileKey);
   let merged = {
     version: STORAGE_VERSION,
+    azukariUnitFee,
+    azukariMonthlyCap,
     lastSelectedSchool,
     lastSelectedClass,
     iconByChild,
@@ -1493,8 +1567,7 @@ function saveStateToStorage(){
       type:          o.type          ?? null,
       arriveMinutes: o.arriveMinutes ?? null,
       leaveMinutes:  o.leaveMinutes  ?? null,
-      azukariMinutes:o.azukariMinutes?? null,
-      azukariFee:    o.azukariFee    ?? null
+      azukariMinutes:o.azukariMinutes?? null  // [AZUKARI]
     };
   });
   merged.version = STORAGE_VERSION; // [FIX]
@@ -1517,6 +1590,10 @@ function loadStateFromStorage(rows){
     lastSelectedSchool = data.lastSelectedSchool || null;
     lastSelectedClass  = data.lastSelectedClass  || null;
     iconByChild        = data.iconByChild || {};
+    azukariUnitFee     = data.azukariUnitFee != null ? Number(data.azukariUnitFee) : AZUKARI_DEFAULT_UNIT_FEE;       // [AZUKARI]
+    azukariMonthlyCap  = data.azukariMonthlyCap != null ? Number(data.azukariMonthlyCap) : AZUKARI_DEFAULT_MONTH_CAP; // [AZUKARI]
+    if (Number.isNaN(azukariUnitFee))    azukariUnitFee    = AZUKARI_DEFAULT_UNIT_FEE;       // [AZUKARI]
+    if (Number.isNaN(azukariMonthlyCap)) azukariMonthlyCap = AZUKARI_DEFAULT_MONTH_CAP;      // [AZUKARI]
     const savedOverrides = data.overrides || {};
     rows.forEach((row, index)=>{
       const key = makeRecordKeyFromRow(row);
@@ -1527,8 +1604,7 @@ function loadStateFromStorage(rows){
       if (o.type)                    base.type          = o.type;
       if (o.arriveMinutes != null)   base.arriveMinutes = o.arriveMinutes;
       if (o.leaveMinutes  != null)   base.leaveMinutes  = o.leaveMinutes;
-      if (o.azukariMinutes!= null)   base.azukariMinutes= o.azukariMinutes;
-      if (o.azukariFee != null)      base.azukariFee    = o.azukariFee;
+      if (o.azukariMinutes!= null)   base.azukariMinutes= o.azukariMinutes; // [AZUKARI]
       if (Object.keys(base).length)  overrides.set(index, base);
     });
   }catch(e){
@@ -1607,11 +1683,15 @@ function parseCSV(text){
 function calculate(rows, bufferMinutes){
   const summaryMap = new Map();
   const details    = [];
+  const capValue   = azukariMonthlyCap>0 ? azukariMonthlyCap : Infinity; // [AZUKARI]
   let minKey = null, maxKey = null;
   rows.forEach((row,index)=>{
     const status = (row[columns.status]||'').trim();
+    const isVacation = /長期|長休|夏休み|冬休み|春休み|連休|休暇/.test(status); // [VACATION]
     let attendLabel = '休園';
-    if (status && /欠/.test(status)) {
+    if (isVacation) {
+      attendLabel = '長期休暇'; // [VACATION]
+    } else if (status && /欠/.test(status)) {
       attendLabel = '欠園';
     } else if (status && /登|出|○/.test(status)) {
       attendLabel = '登園';
@@ -1655,7 +1735,7 @@ function calculate(rows, bufferMinutes){
     const weekday   = getWeekdayLabel(rawDate);
     const zeroPair = (effArrive === 0 && effLeave === 0);
     let extMinutes = 0;
-    if(!zeroPair){
+    if(!zeroPair && !isVacation){ // [VACATION]
       if(effArrive!=null){
         const tStart = baseStart - bufferMinutes;
         if(effArrive<tStart) extMinutes += (tStart-effArrive);
@@ -1666,6 +1746,13 @@ function calculate(rows, bufferMinutes){
       }
     }
     const extUnits = extMinutes>0 ? Math.ceil(extMinutes/30) : 0;
+    // [AZUKARI] 預り保育（手動入力）
+    const azOverride    = Math.max(0, oRow.azukariMinutes || 0); // [AZUKARI]
+    const azukariMinutes= isVacation ? 0 : azOverride;           // [AZUKARI]
+    const azukariUnits  = azukariMinutes>0                        // [AZUKARI]
+      ? Math.ceil(azukariMinutes / AZUKARI_UNIT_MINUTES)         // [AZUKARI]
+      : 0;                                                       // [AZUKARI]
+    const azukariFeeRaw = azukariUnits * azukariUnitFee;         // [AZUKARI]
     const monthKey = `${year}-${month}`;
     const key = `${rawName}__${school}__${monthKey}`;
     if(!summaryMap.has(key)){
@@ -1673,13 +1760,20 @@ function calculate(rows, bufferMinutes){
         name,
         month: monthKey,
         extStdUnits: 0,   // 標準＋1号認定はこちら
-        extShortUnits: 0  // 短時間はこちら
+        extShortUnits: 0,  // 短時間はこちら
+        azukariUnits: 0,   // [AZUKARI]
+        azukariMinutes:0,  // [AZUKARI]
+        azukariRawFee: 0,  // [AZUKARI]
+        detailRefs: []     // [AZUKARI]
       });
     }
     const entry = summaryMap.get(key);
     const bucket = (typeKey === 'short') ? 'short' : 'standard';
     if (bucket === 'short') entry.extShortUnits += extUnits;
     else                    entry.extStdUnits   += extUnits;
+    entry.azukariUnits   += azukariUnits;      // [AZUKARI]
+    entry.azukariMinutes += azukariMinutes;    // [AZUKARI]
+    entry.azukariRawFee  += azukariFeeRaw;     // [AZUKARI]
     const baseArriveForDiff = (baseArrive === 0 ? null : baseArrive);
     const baseLeaveForDiff  = (baseLeave  === 0 ? null : baseLeave);
     const deltaArrive =
@@ -1700,11 +1794,16 @@ function calculate(rows, bufferMinutes){
       extMinutes,extUnits,
       weekday,
       attendLabel,
+      isVacation,        // [VACATION]
+      azukariMinutes,    // [AZUKARI]
+      azukariUnits,      // [AZUKARI]
+      azukariFeeRaw,     // [AZUKARI]
       school,
       clazz,
       azukariMinutes,
       azukariFee
     });
+    entry.detailRefs.push(detail); // [AZUKARI]
     details.push(detail);
   });
   const summary = Array.from(summaryMap.values())
@@ -1712,12 +1811,31 @@ function calculate(rows, bufferMinutes){
       const extTotal = item.extStdUnits + item.extShortUnits;
       const extRaw   = extTotal * EXT_UNIT_FEE;
       const extFee   = Math.min(extRaw, MONTHLY_CAP);
+      const azRaw    = item.azukariRawFee || 0;                 // [AZUKARI]
+      const azFee    = Math.min(azRaw, capValue);               // [AZUKARI]
+      const detailRefs = item.detailRefs || [];                 // [AZUKARI]
+      if (detailRefs.length) {                                  // [AZUKARI]
+        let remaining = capValue;                               // [AZUKARI]
+        detailRefs.sort((a,b)=>a.dateKey-b.dateKey);            // [AZUKARI]
+        detailRefs.forEach(d=>{                                 // [AZUKARI]
+          const rawFee = d.azukariFeeRaw || 0;                  // [AZUKARI]
+          const applied = Math.min(rawFee, remaining);          // [AZUKARI]
+          d.azukariFee = applied;                               // [AZUKARI]
+          d.totalFee   = d.extFee + applied;                    // [AZUKARI]
+          remaining    = Math.max(0, remaining - applied);      // [AZUKARI]
+        });                                                     // [AZUKARI]
+      }                                                         // [AZUKARI]
+      const {detailRefs: _drop, ...rest} = item;                // [AZUKARI]
       return{
-        ...item,
+        ...rest,                                                // [AZUKARI]
         extUnitsTotal: extTotal,
         extRawFee:     extRaw,
         extFee,
-        totalFee:      extFee,
+        azukariRawFee: azRaw,                                // [AZUKARI]
+        azukariFee:    azFee,                                   // [AZUKARI]
+        azukariUnitsTotal: item.azukariUnits || 0,              // [AZUKARI]
+        azukariMinutesTotal:item.azukariMinutes || 0,           // [AZUKARI]
+        totalFee:      extFee + azFee,                          // [AZUKARI]
         capped:   extFee<extRaw,
         switched: item.extStdUnits>0 && item.extShortUnits>0
       };
@@ -1752,6 +1870,10 @@ function buildDetail({
   extMinutes,extUnits,
   weekday,
   attendLabel,
+  isVacation,        // [VACATION]
+  azukariMinutes,    // [AZUKARI]
+  azukariUnits,      // [AZUKARI]
+  azukariFeeRaw,     // [AZUKARI]
   school,
   clazz,
   azukariMinutes,
@@ -1789,6 +1911,11 @@ function buildDetail({
     deltaLeave,
     extMinutes,
     extUnits,
+    isVacation: !!isVacation,               // [VACATION]
+    azukariMinutes: azukariMinutes||0,      // [AZUKARI]
+    azukariUnits: azukariUnits||0,          // [AZUKARI]
+    azukariFeeRaw: azukariFeeRaw||0,        // [AZUKARI]
+    azukariFee: azukariFeeRaw||0,           // [AZUKARI]
     extFee,
     totalFee:extFee,
     azukariMinutes, // [FIX]
@@ -1843,6 +1970,11 @@ if (iconPicker && iconPickerBackdrop) {
         const notes=[];
         if(item.switched)notes.push('区分変更あり');
         if(item.extFee<item.extRawFee)notes.push('延長保育上限3,000円適用');
+        if(item.azukariFee>0){
+          const rawAz = item.azukariRawFee || 0; // [AZUKARI]
+          if (rawAz>item.azukariFee) notes.push('預り保育上限適用'); // [AZUKARI]
+          notes.push(`預り保育：${item.azukariUnitsTotal||0}単位/${item.azukariFee.toLocaleString()}円`); // [AZUKARI]
+        }
         const noteText=notes.join('／');
         const extText=item.extUnitsTotal
           ?`${item.extFee.toLocaleString()}円（200円×${item.extUnitsTotal}回／上限3,000円）`
@@ -2015,6 +2147,7 @@ const rowsHtml = list.map(item=>{
     item.typeKey === '2gou'    ? 'row-2gou'   :
     item.typeKey === '3gou'    ? 'row-3gou'   :
     'row-standard';
+  const vacationCls = item.isVacation ? ' row-vacation' : ''; // [VACATION]
   const o = overrides.get(item.recordIndex) || {};
   const hasTypeOverride  = !!o.type;
   const hasTimeOverride  = (o.arriveMinutes != null) || (o.leaveMinutes != null);
@@ -2024,9 +2157,13 @@ const rowsHtml = list.map(item=>{
   const timeClass = hasTimeOverride
     ? 'day-tag day-tag-time active'
     : 'day-tag day-tag-time';
+  const vacationTag = item.isVacation                 // [VACATION]
+    ? '<span class="day-tag day-tag-vacation active">長期休暇</span>'  // [VACATION]
+    : '';                                             // [VACATION]
   const dayTagsHtml =
     '<span class="'+typeClass+'">区分変更</span>'+
-    '<span class="'+timeClass+'">時間変更</span>';
+    '<span class="'+timeClass+'">時間変更</span>'+
+    vacationTag;
   // 備考
   let remark = '';
   let remarkForCopy = '';
@@ -2064,17 +2201,20 @@ const rowsHtml = list.map(item=>{
         (hasChange ? 'has-change' : 'no-change') +
         '" data-index="' + item.recordIndex + '">↩ 元に戻す</button>' +
     '</div>';
-  // ★ 預り保育（いまは 0 初期でもOK）
+  // ★ 預かり保育（いまは 0 初期でもOK）
   const azukariMinutes = item.azukariMinutes || 0;
   const azukariFee     = item.azukariFee     || 0;
   return (
-    '<tr class="detail-row '+rowTypeClass+'" data-index="'+item.recordIndex+'">'+
+    '<tr class="detail-row '+rowTypeClass+vacationCls+'" data-index="'+item.recordIndex+'">'+
       '<td class="col-year '+dateCls+'">'+escapeHtml(item.year)+'</td>'+
       '<td class="col-month '+dateCls+'">'+escapeHtml(item.month)+'</td>'+
       '<td class="col-day '+dateCls+' day-cell" data-index="'+item.recordIndex+'">'+
         '<div class="daycard status-' +
-          statusClass +
-          typeClassForCard +
+          (item.attendLabel === "休園" ? "closed" :
+           item.attendLabel === "欠園" ? "absent" :
+           item.attendLabel === "長期休暇" ? "vacation" :  // [VACATION]
+           "attend") +
+          ' type-' + item.typeKey +
         '">'+
           '<div class="daycard-week">'+escapeHtml(item.weekday||'')+'</div>'+
           '<div class="daycard-date">'+escapeHtml(item.day)+'</div>'+
@@ -2083,6 +2223,7 @@ const rowsHtml = list.map(item=>{
               : item.attendLabel === "欠園" ? "status-pill-absent"
               : item.attendLabel === "休園" ? "status-pill-closed"
               : item.attendLabel === "降園" ? "status-pill-leave"
+              : item.attendLabel === "長期休暇" ? "status-pill-vacation"  // [VACATION]
               : "")
             + '">'+escapeHtml(item.attendLabel || "登園")+'</span></div>'+
           '<div class="daycard-tags">'+dayTagsHtml+'</div>'+
@@ -2144,7 +2285,7 @@ const rowsHtml = list.map(item=>{
           '</div>'+
         '</div>'+
       '</td>'+
-      // ★ 預り保育
+      // ★ 預かり保育
       '<td class="col-azukari">'+
         '<div class="azukari-box" data-index="'+item.recordIndex+'">'+
           '<div class="azukari-total">'+azukariMinutes+'分</div>'+
@@ -2152,13 +2293,12 @@ const rowsHtml = list.map(item=>{
             '<button type="button" class="azukariBtn minus" data-index="'+item.recordIndex+'" data-delta="-15">-15分</button>'+
             '<button type="button" class="azukariBtn plus"  data-index="'+item.recordIndex+'" data-delta="15">+15分</button>'+
           '</div>'+
+          '<div class="azukari-fee">料金 '+azukariFee.toLocaleString()+'円</div>'+
         '</div>'+
       '</td>'+
       '<td class="col-over">'+overText+'</td>'+
       '<td class="col-extu">'+item.extUnits+'</td>'+
       '<td class="col-extf">'+extText+'</td>'+
-      // ★ 預り保育料金（将来計算に使う：今は 0 でもOK）
-      '<td class="col-azukarif">'+azukariFee+'円</td>'+
       '<td class="col-totalf">'+totalText+'</td>'+
       '<td class="col-remark">'+remarkHtml+'</td>'+
     '</tr>'
@@ -2190,13 +2330,11 @@ const rowsHtml = list.map(item=>{
   '<th class="col-buffer">バッファ</th>'+
   '<th class="col-arrive">登園時刻</th>'+
   '<th class="col-leave">降園時刻</th>'+
-  // ★ 新列：預り保育
-  '<th class="col-azukari">預り保育</th>'+
+  // ★ 新列：預かり保育
+  '<th class="col-azukari">預かり保育</th>'+
   '<th class="col-over">延長時間(分)</th>'+
   '<th class="col-extu">延長回数</th>'+
   '<th class="col-extf">延長保育料金</th>'+
-  // ★ 新列：預り保育料金
-  '<th class="col-azukarif">預り保育料金</th>'+
   '<th class="col-totalf">合計料金</th>'+
   '<th class="col-remark">備考</th>'+
 '</tr></thead>'+
@@ -2327,46 +2465,45 @@ applyColumnVisibility();
         }
         addLog({recordIndex:idx,name:d.name,date:d.date,kind:'降園時間変更',before,after});
       }
-      recalcAndPersist(); // [FIX]
+      saveStateToStorage(); // [AZUKARI]
+      const result=calculate(originalRows,originalBuffer);
+      lastResult=result;
+      renderSummary(result.summary);
+      renderDetails(result.details);
     });
   });
-  // [FIX] 預り保育 +/-15 分
-  const azukariButtons = detailContainer.querySelectorAll('.azukariBtn');
-  azukariButtons.forEach(btn=>{
+  // [AZUKARI] 預り保育 +/- ボタン
+  const azButtons = detailContainer.querySelectorAll('.azukariBtn');
+  azButtons.forEach(btn=>{
     btn.addEventListener('click',(e)=>{
       e.stopPropagation();
-      if (!lastResult) return;
-      const idx   = Number(btn.getAttribute('data-index') || '-1');
-      const delta = Number(btn.getAttribute('data-delta') || 0);
-      if (idx < 0) return;
+      if(!lastResult) return;
+      const idx   = Number(btn.getAttribute('data-index'));
+      const delta = Number(btn.getAttribute('data-delta')) || 0;
+      const d = lastResult.details.find(x=>x.recordIndex===idx);
+      if(!d) return;
       const prev = overrides.get(idx) || {};
       const before = prev.azukariMinutes || 0;
       let next = before + delta;
       if (next < 0) next = 0;
-      const nextData = { ...prev };
-      if (next > 0) nextData.azukariMinutes = next;
-      else delete nextData.azukariMinutes;
-      if (nextData.azukariFee != null && nextData.azukariMinutes == null) {
-        delete nextData.azukariFee;
-      }
-      if (!nextData.baseType &&
-          !nextData.type &&
-          nextData.arriveMinutes == null &&
-          nextData.leaveMinutes == null &&
-          nextData.azukariMinutes == null) {
-        overrides.delete(idx);
+      if (next === 0) {
+        clearOverrideField(idx, 'azukariMinutes');
       } else {
-        overrides.set(idx, nextData);
+        overrides.set(idx, { ...prev, azukariMinutes: next });
       }
       addLog({
         recordIndex: idx,
-        name: (lastResult.details.find(x=>x.recordIndex===idx)?.name) || '',
-        date: (lastResult.details.find(x=>x.recordIndex===idx)?.date) || '',
-        kind: "預り保育調整",
-        before: before + "分",
-        after: next + "分"
+        name: d.name,
+        date: d.date,
+        kind: "預り保育変更", // [AZUKARI]
+        before: `${before}分`,
+        after: `${next}分`
       });
-      recalcAndPersist();
+      saveStateToStorage(); // [AZUKARI]
+      const result = calculate(originalRows, originalBuffer);
+      lastResult = result;
+      renderSummary(result.summary);
+      renderDetails(result.details);
     });
   });
 // ★ 基本区分ボタン（personTypeBtn） → 全行へ適用
@@ -2402,7 +2539,12 @@ personTypeButtons.forEach(btn=>{
         });
       }
     });
-    recalcAndPersist(); // [FIX]
+    // 再計算 + 再描画
+    saveStateToStorage(); // [AZUKARI]
+    const result = calculate(originalRows, originalBuffer);
+    lastResult = result;
+    renderSummary(result.summary);
+    renderDetails(result.details);
   });
 });
   // 区分ボタン
@@ -2435,7 +2577,11 @@ personTypeButtons.forEach(btn=>{
                                 '標準時間'
       });
       // ★ 区分変更後に再計算＋再描画
-      recalcAndPersist(); // [FIX]
+      saveStateToStorage(); // [AZUKARI]
+      const result = calculate(originalRows, originalBuffer);
+      lastResult   = result;
+      renderSummary(result.summary);
+      renderDetails(result.details);
     });
   });
   // 元に戻すボタン（日ごと）
@@ -2458,7 +2604,11 @@ personTypeButtons.forEach(btn=>{
         before: "編集後",
         after: "初期状態"
       });
-      recalcAndPersist(); // [FIX]
+      saveStateToStorage(); // [AZUKARI]
+      const result = calculate(originalRows, originalBuffer);
+      lastResult   = result;
+      renderSummary(result.summary);
+      renderDetails(result.details);
     });
   });
   // …ここまでで detailContainer.innerHTML を作り終わっている前提…
@@ -2520,11 +2670,10 @@ personTypeButtons.forEach(btn=>{
       if (!prev) return;
       delete prev[field];
       if (!prev.baseType &&
-          !prev.type &&
-          prev.arriveMinutes == null &&
-          prev.leaveMinutes == null &&
-          prev.azukariMinutes == null &&
-          prev.azukariFee == null) {
+      !prev.type &&
+      prev.arriveMinutes == null &&
+      prev.leaveMinutes == null &&
+      prev.azukariMinutes == null) { // [AZUKARI]
         overrides.delete(idx);
       } else {
         overrides.set(idx, prev);
