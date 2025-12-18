@@ -38,22 +38,50 @@
     }
     header h1{margin:0;font-size:20px;font-weight:700;}
     header p{margin:2px 0 0;font-size:12px;opacity:.9;}
-    .sidebar-toggle{
+    .header-info{display:flex;flex-direction:column;gap:6px;flex:1;min-width:0;}
+    .header-flow{
+      display:inline-flex;align-items:center;gap:6px;
+      background:rgba(255,255,255,.14);
+      border:1px solid rgba(255,255,255,.26);
+      color:#fff;border-radius:999px;
+      padding:6px 12px;font-size:12px;font-weight:800;
+      width:fit-content;
+      box-shadow:0 4px 14px rgba(15,23,42,.16);
+    }
+    .header-actions{
+      display:flex;align-items:center;gap:8px;
       margin-left:auto;
+      flex-wrap:wrap;
+      justify-content:flex-end;
+    }
+    .header-chip{
       border:none;border-radius:999px;
-      padding:6px 10px;
+      padding:8px 12px;font-weight:800;cursor:pointer;
+      background:rgba(255,255,255,.18);color:#fff;
+      border:1px solid rgba(255,255,255,.3);
+      transition:background .2s,border-color .2s;
+    }
+    .header-chip:hover{background:rgba(255,255,255,.26);border-color:rgba(255,255,255,.36);}
+    .header-chip.primary{background:#0ea5e9;border-color:#38bdf8;}
+    .header-chip.ghost{background:rgba(255,255,255,.12);}
+    .sidebar-toggle{
+      border:none;
+      border-radius:999px;
+      padding:8px 14px;
       background:#0ea5e9;color:#fff;
-      font-weight:700;font-size:12px;cursor:pointer;
+      font-weight:800;font-size:12px;cursor:pointer;
     }
 
     main{
       padding:16px;
-      max-width:1200px;margin:0 auto 60px;
-      display:grid;grid-template-columns:minmax(280px,340px) 1fr;
+      max-width:1400px;width:100%;
+      margin:0 auto 60px;
+      display:grid;grid-template-columns:minmax(260px,320px) minmax(0,1fr);
       gap:16px;align-items:flex-start;
     }
     body.sidebar-collapsed main{grid-template-columns:1fr;}
     body.sidebar-collapsed .sidebar{display:none;}
+    .content{min-width:0;}
 
     .panel{
       background:#fff;border:1px solid #e5e7eb;border-radius:12px;
@@ -151,7 +179,7 @@
     .diff{font-size:11px;color:#6b7280;margin-top:2px;}
 
     .type-toggle{display:flex;flex-direction:column;gap:4px;align-items:center;}
-    .typeBtn{width:92px;white-space:normal;line-height:1.15;}
+    .typeBtn{width:82px;white-space:normal;line-height:1.15;}
     .typeBtn.active{background:var(--accent);border-color:var(--accent);color:#fff;}
 
     .vac-btn{
@@ -172,16 +200,37 @@
     .auto-note{font-size:10px;color:#6b7280;}
 
     .row-selected td{outline:2px solid #38bdf8;outline-offset:-2px;}
+    .detail-filters{
+      display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap;
+      margin-bottom:10px;
+    }
+    .detail-filters .filter{
+      display:flex;flex-direction:column;gap:4px;
+      min-width:140px;
+    }
+    .detail-filters select{
+      padding:8px 10px;border-radius:10px;border:1px solid var(--border);
+      font-size:13px;
+    }
+    .detail-table{width:100%;}
+    .detail-table th.col-type,.detail-table td.col-type{width:94px;}
   </style>
 </head>
 <body>
   <header>
     <div class="logo-circle">園</div>
-    <div style="flex:1;">
-      <h1>延長・預り保育 計算</h1>
-      <p>延長：30分200円（3,000円上限）／ 預り：定額（要件反映済）</p>
+    <div class="header-info">
+      <div>
+        <h1>延長・預り保育 計算</h1>
+        <p>延長：30分200円（3,000円上限）／ 預り：定額（要件反映済）</p>
+      </div>
+      <div class="header-flow">① CSV取込 → ②【標準/短/1号】区分変更 → ③ コドモンに転記</div>
     </div>
-    <button id="toggleSidebar" class="sidebar-toggle">サイドバーをとじる</button>
+    <div class="header-actions">
+      <button type="button" class="header-chip ghost">出力</button>
+      <button type="button" id="toggleSidebar" class="header-chip primary sidebar-toggle">表示設定</button>
+      <button type="button" class="header-chip ghost">変更履歴</button>
+    </div>
   </header>
 
   <main>
@@ -204,12 +253,12 @@
           <div>
             <label>登園バッファ（分）</label>
             <input id="arriveBuffer" type="number" min="0" step="1" value="0">
-            <div class="muted">登園が早い判定を緩める（登園時刻＋分）</div>
+            <div class="muted">早朝登園の判定を緩めるため、登園時刻に加算</div>
           </div>
           <div>
             <label>降園バッファ（分）</label>
             <input id="leaveBuffer" type="number" min="0" step="1" value="0">
-            <div class="muted">降園が遅い判定を緩める（降園時刻−分）</div>
+            <div class="muted">遅い降園の判定を緩めるため、降園時刻から減算</div>
           </div>
         </div>
 
@@ -268,6 +317,9 @@ const DEFAULT_SETTINGS = {
   leaveBuffer: 0,
   extBuffer: 0,
   azJudge: "15:00",
+  activeSchool: null,
+  activeClass: null,
+  activeName: null,
   // 行ごとの上書き
   overridesByKey: {} // recordKey -> { baseType?, type?, arriveMinutes?, leaveMinutes?, vacationMode? }
 };
@@ -637,12 +689,16 @@ function renderDetails(details){
 
   // 園→クラス→氏名で絞るUI（シンプル）
   const schools = uniq(details.map(d=>d.school)).sort((a,b)=>a.localeCompare(b,'ja'));
-  const activeSchool = schools[0];
+  let activeSchool = state.activeSchool && schools.includes(state.activeSchool) ? state.activeSchool : schools[0];
   const inSchool = details.filter(d=>d.school===activeSchool);
 
   const classes = uniq(inSchool.map(d=>d.clazz)).sort((a,b)=>a.localeCompare(b,'ja'));
-  const activeClass = classes[0];
+  let activeClass = state.activeClass && classes.includes(state.activeClass) ? state.activeClass : classes[0];
   const filtered = inSchool.filter(d=>d.clazz===activeClass);
+
+  let stateChanged = false;
+  if (state.activeSchool !== activeSchool){ state.activeSchool = activeSchool; stateChanged = true; }
+  if (state.activeClass !== activeClass){ state.activeClass = activeClass; stateChanged = true; }
 
   const byName = new Map();
   filtered.forEach(d=>{
@@ -650,9 +706,31 @@ function renderDetails(details){
     byName.get(d.name).push(d);
   });
   const names = Array.from(byName.keys()).sort((a,b)=>a.localeCompare(b,'ja'));
+  let activeName = state.activeName && names.includes(state.activeName) ? state.activeName : names[0];
+  if (state.activeName !== activeName){ state.activeName = activeName; stateChanged = true; }
+  if (stateChanged) saveState();
 
-  let tabs = `<div class="tabs">` + names.map((n,i)=>`<button class="tab-button ${i===0?'active':''}" data-tab="p${i}">${esc(n)}</button>`).join("") + `</div>`;
+  const schoolOptions = schools.map(s=>`<option value="${esc(s)}" ${s===activeSchool?'selected':''}>${esc(s)}</option>`).join("");
+  const classOptions = classes.map(c=>`<option value="${esc(c)}" ${c===activeClass?'selected':''}>${esc(c)}</option>`).join("");
+  const filterRow = `
+    <div class="detail-filters">
+      <div class="filter">
+        <label>園</label>
+        <select id="schoolSelect">${schoolOptions}</select>
+      </div>
+      <div class="filter">
+        <label>クラス</label>
+        <select id="classSelect">${classOptions}</select>
+      </div>
+    </div>
+  `;
+
+  let tabs = `<div class="tabs">` + names.map((n,i)=>{
+    const isActive = n===activeName;
+    return `<button class="tab-button ${isActive?'active':''}" data-tab="p${i}" data-name="${esc(n)}">${esc(n)}</button>`;
+  }).join("") + `</div>`;
   let panels = names.map((n,i)=>{
+    const isActive = n===activeName;
     const list = byName.get(n);
 
     const rows = list.map(item=>{
@@ -691,7 +769,7 @@ function renderDetails(details){
               ${autoTypeTag ? `<div class="auto-note">8:30〜16:30 自動判定</div>` : ``}
             </div>
           </td>
-          <td>
+          <td class="col-type">
             <div class="type-toggle" data-rk="${esc(item.recordKey)}">
               <button type="button" class="small typeBtn ${item.typeKey==='standard'?'primary':''}" data-type="standard">標準</button>
               <button type="button" class="small typeBtn ${item.typeKey==='short'?'primary':''}" data-type="short">短時間</button>
@@ -714,12 +792,12 @@ function renderDetails(details){
     }).join("");
 
     return `
-      <div class="tab-panel ${i===0?'active':''}" id="p${i}">
-        <table>
+      <div class="tab-panel ${isActive?'active':''}" id="p${i}">
+        <table class="detail-table">
           <thead>
             <tr>
               <th class="col-day">日</th>
-              <th>区分</th>
+              <th class="col-type">区分</th>
               <th>登園</th>
               <th>降園</th>
               <th>延長(分)</th>
@@ -733,7 +811,25 @@ function renderDetails(details){
     `;
   }).join("");
 
-  detailContainer.innerHTML = tabs + panels;
+  detailContainer.innerHTML = filterRow + tabs + panels;
+
+  const schoolSelect = detailContainer.querySelector("#schoolSelect");
+  const classSelect = detailContainer.querySelector("#classSelect");
+  schoolSelect?.addEventListener("change", ()=>{
+    const nextSchool = schoolSelect.value;
+    state.activeSchool = nextSchool;
+    const nextClasses = uniq(details.filter(d=>d.school===nextSchool).map(d=>d.clazz)).sort((a,b)=>a.localeCompare(b,'ja'));
+    state.activeClass = nextClasses.includes(state.activeClass) ? state.activeClass : nextClasses[0] || null;
+    state.activeName = null;
+    saveState();
+    renderDetails(details);
+  });
+  classSelect?.addEventListener("change", ()=>{
+    state.activeClass = classSelect.value;
+    state.activeName = null;
+    saveState();
+    renderDetails(details);
+  });
 
   // タブ切替
   const tabButtons = detailContainer.querySelectorAll(".tab-button");
@@ -746,6 +842,8 @@ function renderDetails(details){
       btn.classList.add("active");
       const panel = detailContainer.querySelector("#"+id);
       if(panel) panel.classList.add("active");
+      state.activeName = btn.dataset.name || null;
+      saveState();
     });
   });
 
@@ -957,7 +1055,7 @@ function saveState(){
 
 function applySidebarState(){
   document.body.classList.toggle("sidebar-collapsed", !!state.sidebarCollapsed);
-  toggleSidebarBtn.textContent = state.sidebarCollapsed ? "サイドバーをひらく" : "サイドバーをとじる";
+  toggleSidebarBtn.textContent = state.sidebarCollapsed ? "表示設定をひらく" : "表示設定をとじる";
 }
 
 function applySettingsToInputs(){
