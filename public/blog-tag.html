@@ -144,6 +144,8 @@
     const heroTitle = document.getElementById("heroTitle");
     const heroLead = document.getElementById("heroLead");
     const tagBadge = document.getElementById("tagBadge");
+    const lightbox = document.getElementById("lightbox");
+    const lightboxImg = document.getElementById("lightboxImg");
 
     const baseArticles = [
       { id: "post-101", title: "スクロールスナップで魅せるiPad特集", body: "iPadOSのオーバースクロールに合わせた柔らかなカードUI。モバイルファーストの編集フローを紹介。", tags: ["iPad", "UI", "ScrollSnap"], image: "https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?auto=format&fit=crop&w=900&q=80" },
@@ -221,6 +223,46 @@
         el.style.setProperty("--card-accent", theme.accent);
       });
     }
+
+  function openLightbox(src, alt) {
+    if (!src) return;
+    lightboxImg.src = src;
+    lightboxImg.alt = alt || "拡大表示";
+    lightbox.classList.add("open");
+      lightbox.setAttribute("aria-hidden", "false");
+    }
+
+    function closeLightbox() {
+      lightbox.classList.remove("open");
+      lightbox.setAttribute("aria-hidden", "true");
+    }
+
+  function registerPreview(img) {
+    if (!img || img.dataset.previewBound) return;
+    img.dataset.previewBound = "true";
+    img.style.cursor = "zoom-in";
+    img.setAttribute("role", "button");
+      img.setAttribute("tabindex", "0");
+      img.setAttribute("aria-label", "画像を拡大表示");
+      const show = () => openLightbox(img.src, img.alt);
+      img.addEventListener("click", show);
+      img.addEventListener("keydown", (e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+        show();
+      }
+    });
+  }
+
+  function delegatePreviewClicks() {
+    document.addEventListener("click", (e) => {
+      const img = e.target.closest(".hero-img");
+      if (img) {
+        e.preventDefault();
+        openLightbox(img.src, img.alt);
+      }
+    });
+  }
 
     function uid() {
       return crypto.randomUUID?.() || `post-${Date.now()}-${Math.random().toString(16).slice(2)}`;
