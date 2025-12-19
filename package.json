@@ -1,0 +1,9 @@
+{
+  "name": "project-e",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "echo \"No tests configured\""
+  }
+}
