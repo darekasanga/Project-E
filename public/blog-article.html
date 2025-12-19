@@ -113,47 +113,11 @@
   .share { padding: 12px 14px; min-height: 48px; border-radius: 12px; border: none; background: #0f0f0f; text-decoration: none; font-size: 13px; display: inline-flex; align-items: center; gap: 8px; justify-content: center; width: 100%; }
   .share.line { background: var(--line); color: #041902; font-weight: 700; }
   .share:active { transform: translateY(1px); }
-  .lightbox {
-    position: fixed;
-    inset: 0;
-    background: rgba(0, 0, 0, 0.82);
-    display: none;
-    align-items: center;
-    justify-content: center;
-    padding: 16px;
-    z-index: 999;
-  }
-  .lightbox.open { display: flex; }
-  .lightbox img {
-    max-width: min(960px, 94vw);
-    max-height: 88vh;
-    border-radius: 16px;
-    border: 1px solid rgba(255,255,255,0.18);
-    box-shadow: 0 22px 80px rgba(0,0,0,0.6);
-    object-fit: contain;
-    background: #000;
-  }
-  .lightbox button {
-    position: absolute;
-    top: 14px;
-    right: 14px;
-    border: none;
-    background: rgba(0,0,0,0.6);
-    color: #f7f7f7;
-    padding: 10px 12px;
-    border-radius: 12px;
-    cursor: pointer;
-    font-weight: 700;
-  }
 
   footer { padding: 0 18px 24px; color: var(--muted); font-size: 12px; }
   @media (max-width: 720px) { header { flex-direction: column; align-items: flex-start; } .share-row { width: 100%; } }
 </style>
 <body>
-  <div class="lightbox" id="lightbox" aria-hidden="true">
-    <button type="button" aria-label="閉じる">閉じる</button>
-    <img id="lightboxImg" alt="拡大表示" />
-  </div>
   <header>
     <div class="brand">
       <div class="logo">E</div>
@@ -200,8 +164,6 @@
 <script>
   const officialLineAccountId = "@projecte_official";
   const officialLinePage = "https://page.line.me/projecte_official";
-  const lightbox = document.getElementById("lightbox");
-  const lightboxImg = document.getElementById("lightboxImg");
   const baseArticles = [
     {
       id: "post-201",
@@ -294,46 +256,6 @@
     });
   }
 
-  function openLightbox(src, alt) {
-    if (!src) return;
-    lightboxImg.src = src;
-    lightboxImg.alt = alt || "拡大表示";
-    lightbox.classList.add("open");
-    lightbox.setAttribute("aria-hidden", "false");
-  }
-
-  function closeLightbox() {
-    lightbox.classList.remove("open");
-    lightbox.setAttribute("aria-hidden", "true");
-  }
-
-  function registerPreview(img) {
-    if (!img || img.dataset.previewBound) return;
-    img.dataset.previewBound = "true";
-    img.style.cursor = "zoom-in";
-    img.setAttribute("role", "button");
-    img.setAttribute("tabindex", "0");
-    img.setAttribute("aria-label", "画像を拡大表示");
-    const show = () => openLightbox(img.src, img.alt);
-    img.addEventListener("click", show);
-    img.addEventListener("keydown", (e) => {
-      if (e.key === "Enter" || e.key === " ") {
-        e.preventDefault();
-        show();
-      }
-    });
-  }
-
-  function delegatePreviewClicks() {
-    document.addEventListener("click", (e) => {
-      const img = e.target.closest(".cover, .hero-img");
-      if (img) {
-        e.preventDefault();
-        openLightbox(img.src, img.alt);
-      }
-    });
-  }
-
   function uid() {
     return crypto.randomUUID?.() || `post-${Date.now()}-${Math.random().toString(16).slice(2)}`;
   }
@@ -346,6 +268,16 @@
     return list.map(item => ({ ...item, id: isValidId(item.id) ? item.id : uid() }));
   }
 
+  function cleanSavedText(raw) {
+    if (typeof raw !== "string") return raw;
+    const lines = raw.split(/\r?\n/).filter(Boolean);
+    const filtered = lines.filter(line => {
+      const trimmed = line.trim();
+      return trimmed && !trimmed.startsWith("<<<<<<<") && !trimmed.startsWith("=======") && !trimmed.startsWith(">>>>>>>");
+    });
+    return filtered.join("\n");
+  }
+
   function tagLink(tag) {
     const safe = encodeURIComponent(tag);
     return `<a class="tag" href="/blog-tag.html?tag=${safe}">#${tag}</a>`;
@@ -353,9 +285,13 @@
 
   function storedArticles() {
     const raw = localStorage.getItem("emperor_articles");
-    if (!raw) return [...baseArticles];
+    const cleaned = cleanSavedText(raw);
+    if (cleaned && cleaned !== raw) {
+      localStorage.setItem("emperor_articles", cleaned);
+    }
+    if (!cleaned) return [...baseArticles];
     try {
-      const parsed = JSON.parse(raw);
+      const parsed = JSON.parse(cleaned);
       return Array.isArray(parsed) ? parsed : [...baseArticles];
     } catch (err) {
       console.warn("saved articles were corrupted, resetting", err);
@@ -428,7 +364,6 @@
       cover.src = article.image;
       cover.alt = article.title;
       cover.style.display = "block";
-      registerPreview(cover);
     } else {
       cover.style.display = "none";
     }
@@ -462,17 +397,6 @@
   document.addEventListener("DOMContentLoaded", () => {
     const { article, idx } = findArticle();
     render(article, idx);
-    delegatePreviewClicks();
-  });
-
-  lightbox.addEventListener("click", (e) => {
-    if (e.target === lightbox || e.target.tagName === "BUTTON") {
-      closeLightbox();
-    }
-  });
-
-  document.addEventListener("keyup", (e) => {
-    if (e.key === "Escape") closeLightbox();
   });
 </script>
 </body>

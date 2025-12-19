@@ -1,0 +1,265 @@
+<!doctype html>
+<html lang="ja">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Emperor News — 一覧ビュー</title>
+<link rel="stylesheet" href="/assets/blog-shared.css">
+<body>
+  <header class="site-header">
+    <div class="brand">
+      <div class="logo">E</div>
+      <div>
+        <h1>Emperor News</h1>
+        <p>一覧ビュー / スマホ・タブレット・PC対応</p>
+      </div>
+    </div>
+    <div class="actions">
+      <a class="pill" href="/">トップ</a>
+      <a class="pill primary" id="openLine" target="_blank" rel="noreferrer">公式LINEで読む</a>
+      <a class="pill ghost" href="/blog-edit.html" data-requires-auth="true">記事を編集</a>
+    </div>
+  </header>
+
+  <main class="container">
+    <section class="hero" id="featuredHero">
+      <div class="inline-chips">
+        <div class="badge">注目記事</div>
+        <div class="badge" id="metaInfo"></div>
+      </div>
+      <div class="grid-2" style="align-items:center;">
+        <div class="stack" style="gap:10px;" id="featuredCopy">
+          <h2 id="heroTitle">幅に合わせて表情を変える一覧ビュー</h2>
+          <p id="heroBody">スマホでは縦にカードを並べ、タブレットはサムネイル横並び、PCではサイドバー付きの2カラムで統計とタグクラウドを固定。見やすさを保ちながら情報量を増やしました。</p>
+          <div class="inline-chips">
+            <span class="badge">LINE連携</span>
+            <span class="badge">ローカル保存</span>
+          </div>
+          <div class="actions" id="featuredShare"></div>
+        </div>
+        <div id="featuredVisual"></div>
+      </div>
+    </section>
+
+    <section class="split-layout">
+      <div class="list-shell">
+        <div class="list-head">
+          <div>
+            <h3 id="listTitle">最新の投稿</h3>
+            <p class="muted" id="listSubtitle">ローカル保存された記事を時系列順に一覧表示します。</p>
+          </div>
+          <div class="badge" id="countBadge"></div>
+        </div>
+        <div class="list card-layout" id="list"></div>
+      </div>
+
+      <aside class="stack" aria-label="サイド情報">
+        <div class="panel">
+          <div class="section-title" style="gap:6px;">
+            <h3 id="tagTitle">タグクラウド</h3>
+            <span class="tiny" id="tagSubtitle">使用頻度順に表示</span>
+          </div>
+          <div class="tag-row" id="tagCloud"></div>
+        </div>
+      </aside>
+    </section>
+
+    <section class="panel" id="pinnedWrapper" style="display:none;">
+      <div class="section-title">
+        <h3 id="pinnedTitle">固定記事</h3>
+        <span class="tiny" id="pinnedSubtitle">管理ページで選択された記事を表示</span>
+      </div>
+      <div class="list card-layout" id="pinnedList"></div>
+    </section>
+  </main>
+
+  <script src="/assets/lightbox.js"></script>
+  <script src="/assets/blog-data.js"></script>
+  <script>
+    const officialLinePage = "https://page.line.me/projecte_official";
+    const adminSessionKey = "emperor_admin_token";
+    const listEl = document.getElementById("list");
+    const tagCloud = document.getElementById("tagCloud");
+    const metaInfo = document.getElementById("metaInfo");
+    const countBadge = document.getElementById("countBadge");
+    const featuredCopy = document.getElementById("featuredCopy");
+    const featuredShare = document.getElementById("featuredShare");
+    const featuredVisual = document.getElementById("featuredVisual");
+    const pinnedWrapper = document.getElementById("pinnedWrapper");
+    const pinnedList = document.getElementById("pinnedList");
+    const copyTexts = BlogData.loadCopy();
+
+    function applyCopy() {
+      const safeText = (value, fallback) => (value ?? fallback);
+      document.getElementById("heroTitle").textContent = safeText(copyTexts.heroTitle, "");
+      document.getElementById("heroBody").textContent = safeText(copyTexts.heroBody, "");
+      document.getElementById("listTitle").textContent = safeText(copyTexts.listTitle, "");
+      document.getElementById("listSubtitle").textContent = safeText(copyTexts.listSubtitle, "");
+      document.getElementById("pinnedTitle").textContent = safeText(copyTexts.pinnedTitle, "");
+      document.getElementById("pinnedSubtitle").textContent = safeText(copyTexts.pinnedSubtitle, "");
+      document.getElementById("tagTitle").textContent = safeText(copyTexts.tagTitle, "");
+      document.getElementById("tagSubtitle").textContent = safeText(copyTexts.tagSubtitle, "");
+    }
+
+    function enforceAdminLinks() {
+      const adminLinks = document.querySelectorAll('[data-requires-auth]');
+      adminLinks.forEach((link) => {
+        link.addEventListener("click", (event) => {
+          const authed = sessionStorage.getItem(adminSessionKey) === "active";
+          if (authed) return;
+
+          event.preventDefault();
+          const rawTarget = link.getAttribute("href") || "/blog-edit.html";
+          const normalized = rawTarget.startsWith("/") ? rawTarget : `/${rawTarget}`;
+          const redirect = encodeURIComponent(normalized);
+          location.href = `/admin.html?redirect=${redirect}`;
+        });
+      });
+    }
+
+    applyCopy();
+
+    function formatRelative(index) {
+      const base = Date.now() - index * 3_600_000 * 3;
+      const diffHours = Math.max(1, Math.round((Date.now() - base) / 3_600_000));
+      if (diffHours < 24) return `${diffHours}時間前`;
+      const days = Math.round(diffHours / 24);
+      return `${days}日前`;
+    }
+
+    function renderList(list) {
+      listEl.innerHTML = "";
+      list.forEach((item, idx) => {
+        const articleUrl = `${location.origin}/blog-article.html?id=${idx}`;
+        const shareUrl = BlogData.buildOfficialLineShare(articleUrl);
+        const card = document.createElement("article");
+        card.className = "list-card";
+        const hasImage = Boolean(item.image);
+        card.innerHTML = `
+          ${hasImage ? `<img class="thumb" src="${item.image}" alt="${item.title}">` : `<div class="thumb fallback">NO IMAGE</div>`}
+          <div class="stack" style="gap:12px;">
+            <div class="inline-chips">
+              <span class="badge">#${idx + 1}</span>
+              <span class="badge">${formatRelative(idx)}に更新</span>
+            </div>
+            <h3 style="margin:0; font-size:18px; letter-spacing:0.01em;">${item.title}</h3>
+            <p class="muted">${item.body}</p>
+            <div class="meta">
+              ${(item.tags || []).map(t => `<a class="tag" href="/tag.html?tag=${encodeURIComponent(t)}">#${t}</a>`).join("") || '<span class="tag">#untagged</span>'}
+            </div>
+            <div class="actions">
+              <a class="share line" href="${shareUrl}" target="_blank" rel="noreferrer">LINEで共有</a>
+            </div>
+          </div>
+        `;
+        listEl.appendChild(card);
+      });
+      Lightbox.enhanceImages(listEl);
+    }
+
+    function renderFeatured(settings, list) {
+      featuredVisual.innerHTML = "";
+      featuredShare.innerHTML = "";
+      const { featuredId } = settings;
+      if (!list.length) {
+        featuredCopy.querySelector("h2").textContent = "記事がありません";
+        featuredCopy.querySelector("p").textContent = "管理ページから記事を追加してください。";
+        return;
+      }
+      const idx = Number.isInteger(featuredId) ? featuredId : 0;
+      const target = list[idx];
+      featuredCopy.querySelector("h2").textContent = target.title || "無題の記事";
+      featuredCopy.querySelector("p").textContent = target.body || "本文がありません";
+
+      if (target.image) {
+        const img = document.createElement("img");
+        img.src = target.image;
+        img.alt = target.title;
+        img.className = "thumb";
+        featuredVisual.appendChild(img);
+        Lightbox.enhanceImages(featuredVisual);
+      } else {
+        featuredVisual.innerHTML = '<div class="thumb fallback" style="max-width:320px;">NO IMAGE</div>';
+      }
+
+      const articleUrl = `${location.origin}/blog-article.html?id=${idx}`;
+      const shareUrl = BlogData.buildOfficialLineShare(articleUrl);
+      featuredShare.innerHTML = `
+        <a class="share line" href="${shareUrl}" target="_blank" rel="noreferrer">LINEで共有</a>
+        <a class="share" href="${articleUrl}" target="_blank">記事を開く</a>
+      `;
+    }
+
+    function renderTags(list) {
+      tagCloud.innerHTML = "";
+      const counts = new Map();
+      list.flatMap(item => item.tags || []).forEach(tag => {
+        counts.set(tag, (counts.get(tag) || 0) + 1);
+      });
+      const entries = [...counts.entries()].sort((a, b) => b[1] - a[1]);
+      if (!entries.length) {
+        tagCloud.innerHTML = '<span class="badge">タグが未設定です</span>';
+        return;
+      }
+      entries.forEach(([tag, count]) => {
+        const chip = document.createElement("a");
+        chip.className = "tag";
+        chip.href = `/tag.html?tag=${encodeURIComponent(tag)}`;
+        chip.textContent = `#${tag} (${count})`;
+        tagCloud.appendChild(chip);
+      });
+    }
+
+    function renderMeta(count) {
+      metaInfo.textContent = `公開中 ${count} 件`;
+      countBadge.textContent = `${count} posts`;
+    }
+
+    function renderPinned(list, settings) {
+      pinnedList.innerHTML = "";
+      if (!settings.footerIds?.length) {
+        pinnedWrapper.style.display = "none";
+        return;
+      }
+      pinnedWrapper.style.display = "grid";
+      settings.footerIds.forEach((id) => {
+        if (!Number.isInteger(id) || id < 0 || id >= list.length) return;
+        const item = list[id];
+        const card = document.createElement("article");
+        card.className = "list-card";
+        const articleUrl = `${location.origin}/blog-article.html?id=${id}`;
+        card.innerHTML = `
+          ${item.image ? `<img class="thumb" src="${item.image}" alt="${item.title}">` : '<div class="thumb fallback">NO IMAGE</div>'}
+          <div class="stack" style="gap:12px;">
+            <div class="inline-chips">
+              <span class="badge">固定枠</span>
+              <span class="badge">ID ${id}</span>
+            </div>
+            <h3 style="margin:0; font-size:18px; letter-spacing:0.01em;">${item.title}</h3>
+            <p class="muted">${item.body}</p>
+            <div class="meta">
+              ${(item.tags || []).map(t => `<a class="tag" href="/tag.html?tag=${encodeURIComponent(t)}">#${t}</a>`).join("") || '<span class="tag">#untagged</span>'}
+            </div>
+            <div class="actions">
+              <a class="share" href="${articleUrl}" target="_blank">記事を開く</a>
+            </div>
+          </div>
+        `;
+        pinnedList.appendChild(card);
+      });
+      Lightbox.enhanceImages(pinnedList);
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+      document.getElementById("openLine").href = officialLinePage;
+      enforceAdminLinks();
+      const articles = BlogData.loadArticles();
+      const settings = BlogData.loadSettings();
+      renderFeatured(settings, articles);
+      renderList(articles);
+      renderTags(articles);
+      renderMeta(articles.length);
+      renderPinned(articles, settings);
+    });
+  </script>
+</body>
+</html>

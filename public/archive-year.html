@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="ja">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>年別ページ | Emperor News</title>
+<link rel="stylesheet" href="/assets/blog-shared.css">
+<body>
+  <header class="site-header">
+    <div class="brand">
+      <div class="logo">E</div>
+      <div>
+        <h1>年別アーカイブ</h1>
+        <p>タグページの下からアクセスする年別まとめ</p>
+      </div>
+    </div>
+    <div class="actions">
+      <a class="pill" href="/tag.html">タグまとめ</a>
+      <a class="pill ghost" href="/">トップ</a>
+    </div>
+  </header>
+
+  <main class="container">
+    <section class="panel">
+      <div class="section-title">
+        <h3>年別リンク</h3>
+        <span class="tiny">直近5年分のプレースホルダー</span>
+      </div>
+      <div class="list card-layout" id="yearList"></div>
+    </section>
+  </main>
+
+  <script>
+    const yearList = document.getElementById("yearList");
+    const now = new Date();
+
+    function renderYears() {
+      for (let i = 0; i < 5; i += 1) {
+        const year = now.getFullYear() - i;
+        const card = document.createElement("article");
+        card.className = "card";
+        card.innerHTML = `
+          <h3>${year}年</h3>
+          <p class="muted">この年のアーカイブページのリンクを配置予定。</p>
+        `;
+        yearList.appendChild(card);
+      }
+    }
+
+    document.addEventListener("DOMContentLoaded", renderYears);
+  </script>
+</body>
+</html>

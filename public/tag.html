@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="ja">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>タグまとめ | Emperor News</title>
+<link rel="stylesheet" href="/assets/blog-shared.css">
+<body>
+  <header class="site-header">
+    <div class="brand">
+      <div class="logo">E</div>
+      <div>
+        <h1>タグまとめ</h1>
+        <p>タップしたタグの記事を絞り込み</p>
+      </div>
+    </div>
+    <div class="actions">
+      <a class="pill" href="/blog-list.html">一覧へ</a>
+      <a class="pill ghost" href="/">トップ</a>
+    </div>
+  </header>
+
+  <main class="container">
+    <section class="hero">
+      <div class="inline-chips" id="tagMeta"></div>
+      <h2 id="tagTitle">タグ一覧</h2>
+      <p class="muted" id="tagLead">指定されたタグの記事を読み込み中です。</p>
+    </section>
+
+    <section class="panel">
+      <div class="list card-layout" id="tagList"></div>
+    </section>
+
+    <section class="panel" id="archiveLinks">
+      <div class="section-title">
+        <h3>アーカイブ</h3>
+        <span class="tiny">タグページの下に月別・年別ページへのリンク</span>
+      </div>
+      <div class="actions">
+        <a class="pill" href="/archive-month.html">月別ページ</a>
+        <a class="pill" href="/archive-year.html">年別ページ</a>
+      </div>
+    </section>
+  </main>
+
+  <script src="/assets/lightbox.js"></script>
+  <script src="/assets/blog-data.js"></script>
+  <script>
+    const params = new URLSearchParams(location.search);
+    const rawTag = params.get("tag") || "";
+    const activeTag = rawTag.trim();
+    const tagMeta = document.getElementById("tagMeta");
+    const tagTitle = document.getElementById("tagTitle");
+    const tagLead = document.getElementById("tagLead");
+    const tagList = document.getElementById("tagList");
+
+    function renderList(tag, list) {
+      tagList.innerHTML = "";
+      if (!tag) {
+        tagTitle.textContent = "タグが指定されていません";
+        tagLead.textContent = "一覧ページからタグをタップすると記事を絞り込めます。";
+        tagList.innerHTML = '<p class="muted">タグを選択して再度アクセスしてください。</p>';
+        return;
+      }
+
+      const filtered = list
+        .map((item, idx) => ({ item, idx }))
+        .filter(({ item }) => (item.tags || []).includes(tag));
+      tagTitle.textContent = `#${tag} の記事`;
+      tagLead.textContent = filtered.length
+        ? "タップしたタグに関連する記事をまとめています。"
+        : "まだこのタグの記事はありません。";
+      tagMeta.innerHTML = `
+        <span class="badge">${filtered.length} 件</span>
+        <span class="badge">タグまとめ</span>
+      `;
+
+      if (!filtered.length) {
+        tagList.innerHTML = '<p class="muted">タグを付けた記事を追加するとここに表示されます。</p>';
+        return;
+      }
+
+      filtered.forEach(({ item, idx }) => {
+        const card = document.createElement("article");
+        card.className = "list-card";
+        const articleUrl = `${location.origin}/blog-article.html?id=${idx}`;
+        card.innerHTML = `
+          ${item.image ? `<img class="thumb" src="${item.image}" alt="${item.title}">` : '<div class="thumb fallback">NO IMAGE</div>'}
+          <div class="stack" style="gap:12px;">
+            <div class="inline-chips">
+              <span class="badge">#${idx + 1}</span>
+              <span class="badge">${(item.tags || []).length} タグ</span>
+            </div>
+            <h3 style="margin:0; font-size:18px; letter-spacing:0.01em;">${item.title}</h3>
+            <p class="muted">${item.body}</p>
+            <div class="meta">
+              ${(item.tags || []).map(t => `<a class="tag" href="/tag.html?tag=${encodeURIComponent(t)}">#${t}</a>`).join("") || '<span class="tag">#untagged</span>'}
+            </div>
+            <div class="actions">
+              <a class="share" href="${articleUrl}" target="_blank">記事を開く</a>
+            </div>
+          </div>
+        `;
+        tagList.appendChild(card);
+      });
+      Lightbox.enhanceImages(tagList);
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+      const articles = BlogData.loadArticles();
+      renderList(activeTag, articles);
+    });
+  </script>
+</body>
+</html>
