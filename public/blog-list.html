@@ -162,7 +162,7 @@
       const { featuredId } = settings;
       if (!list.length) {
         featuredCopy.querySelector("h2").textContent = "記事がありません";
-        featuredCopy.querySelector("p").textContent = "管理ページから記事を追加してください。";
+        featuredCopy.querySelector("p").textContent = "管理ペ��ジから記事を追加してください。";
         return;
       }
       const idx = Number.isInteger(featuredId) ? featuredId : 0;
@@ -261,5 +261,10 @@
       renderPinned(articles, settings);
     });
   </script>
+
+<script>
+  window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };
+</script>
+<script defer src="/_vercel/insights/script.js"></script>
 </body>
 </html>
