@@ -213,7 +213,7 @@ td.col-remark, th.col-remark {
   color: #fff;
 }
 /* 非アクティブは少しだけ薄く（消えない程度） */
-.school-tab:not(.active),
+school-tab:not(.active),
 .class-tab:not(.active) {
   opacity: 0.85;
 }
@@ -295,7 +295,7 @@ td.col-remark, th.col-remark {
       font-family:"Noto Sans JP",system-ui,-apple-system,"Segoe UI",sans-serif;
       margin:0;
       padding:0;
-      background:#f8fafc;
+      background:#fff;
       color:var(--text);
       line-height:1.5;
     }
@@ -481,12 +481,12 @@ td.col-day {
   box-shadow:0 0 0 1px rgba(37,99,235,0.15);
 }
 /* ④ クリック中：ちょっと押し込む */
-.resetRowBtn.has-change:active {
+resetRowBtn.has-change:active {
   transform:translateY(1px) scale(0.97);
   box-shadow:none;
 }
 /* ⑤ クリック後（リセット直後のフィードバック用） */
-.resetRowBtn.done {
+resetRowBtn.done {
   background:#dcfce7;
   border-color:#16a34a;
   color:#166534;
@@ -576,7 +576,7 @@ td.col-day {
       color:#b91c1c;
     }
     /* ==== ミニカレンダーカードデザイン（左ステータスバー付き） ==== */
-.daycard {
+    .daycard {
       display:flex;
       flex-direction:column;
       align-items:center;
@@ -590,7 +590,6 @@ td.col-day {
       box-sizing:border-box;
       margin:0 auto;
       position:relative;   /* ★ 左バー用に必須 */
-      overflow:hidden;     /* 角のはみ出しを防ぐ */
     }
     /* デフォルト：標準（青） */
     .daycard::before {
@@ -610,6 +609,14 @@ td.col-day {
     /* 欠園：赤 */
     .daycard.status-absent::before {
       background:#ef4444;
+    }
+    /* [VACATION] 長期休暇：白抜き＋黄色バー */
+    .daycard.status-vacation {
+      background:#ffffff;
+      border-style:dashed;
+    }
+    .daycard.status-vacation::before {
+      background:#fbbf24;
     }
     .daycard-week {
       font-size:10px;
@@ -722,6 +729,11 @@ tr.row-2gou td {
 tr.row-3gou td {
   background:#fdf2f8;
 }
+/* [VACATION] 長期休暇行は白背景寄りに */
+tr.row-vacation td {
+  background:#ffffff;
+  color:#4b5563;
+}
     .hide-h-year    th.col-year,    .hide-h-year    td.col-year    {display:none;}
     .hide-h-month   th.col-month,   .hide-h-month   td.col-month   {display:none;}
     .hide-h-day     th.col-day,     .hide-h-day     td.col-day     {display:none;}
@@ -735,8 +747,6 @@ tr.row-3gou td {
     .hide-h-extu    th.col-extu,    .hide-h-extu    td.col-extu    {display:none;}
     .hide-h-extf    th.col-extf,    .hide-h-extf    td.col-extf    {display:none;}
     .hide-h-remark th.col-remark, .hide-h-remark td.col-remark {display:none;}
-    .hide-h-azukari th.col-azukari, .hide-h-azukari td.col-azukari {display:none;}
-    .hide-h-azukarif th.col-azukarif, .hide-h-azukarif td.col-azukarif {display:none;}
     details.options summary {
       cursor:pointer;
       list-style:none;
@@ -875,6 +885,12 @@ td.col-type {
       border-color:#0ea5e9;
       color:#0369a1;
     }
+    /* [VACATION] 長期休暇 */
+    .status-pill-vacation {
+      border-color:#f59e0b;
+      color:#92400e;
+      background:#fffbeb;
+    }
     @media(max-width:720px){
       header h1{font-size:18px;}
       main{display:block;}
@@ -999,21 +1015,6 @@ td.col-type {
         </div>
       </section>
       <section class="panel">
-        <h2>預り保育設定</h2>
-        <div class="grid two">
-          <div>
-            <label for="azukariUnitFee">預り保育単価（円/30分）</label>
-            <input id="azukariUnitFee" type="number" min="0" step="50" value="300" />
-            <p class="muted">30分単位で課金。0で預り保育料金を無効化します。</p>
-          </div>
-          <div>
-            <label for="azukariMonthlyCap">月額上限（円）</label>
-            <input id="azukariMonthlyCap" type="number" min="0" step="100" value="0" />
-            <p class="muted">月額上限を設定する場合に入力。0なら上限なし。</p>
-          </div>
-        </div>
-      </section>
-      <section class="panel">
         <h2>出力・表示設定</h2>
         <div style="margin-bottom:10px;display:flex;flex-direction:column;gap:6px;">
           <button id="download"     type="button" class="small secondary" disabled>サマリーExcel風</button>
@@ -1035,8 +1036,6 @@ td.col-type {
             <label><input type="checkbox" id="hideHeaderOver" /> 延長時間列</label>
             <label><input type="checkbox" id="hideHeaderExtU" checked /> 延長回数列</label>
             <label><input type="checkbox" id="hideHeaderExtF" /> 延長料金列</label>
-            <label><input type="checkbox" id="hideHeaderAzukari" /> 預り保育列</label>
-            <label><input type="checkbox" id="hideHeaderAzukariFee" /> 預り保育料金列</label>
             <label><input type="checkbox" id="hideHeaderRemark" /> 備考列</label>
           </div>
         </details>
@@ -1106,9 +1105,12 @@ let iconByChild = {};
 // ★ 1号認定（8:30〜16:30）
 const START_1GOU     = 8*60+30;   // 1号認定  8:30
 const END_1GOU       = 16*60+30;  // 1号認定 16:
-const AZUKARI_UNIT_MINUTES = 30;
     const EXT_UNIT_FEE   = 200;
     const MONTHLY_CAP    = 3000;
+// [AZUKARI] 預り保育設定（単価・上限は必要に応じて調整）
+const AZUKARI_UNIT_MINUTES = 30;
+const AZUKARI_UNIT_FEE     = 200;
+const AZUKARI_MONTHLY_CAP  = null;
     const fileInput          = document.getElementById('csvFile');
     const bufferInput        = document.getElementById('bufferMinutes');
     const calculateButton    = document.getElementById('calculate');
@@ -1119,8 +1121,6 @@ const AZUKARI_UNIT_MINUTES = 30;
     const detailContainer    = document.getElementById('detailContainer');
     const logContainer       = document.getElementById('logContainer');
     const dateRangeLabel     = document.getElementById('dateRangeLabel');
-    const azukariUnitFeeInput    = document.getElementById('azukariUnitFee');
-    const azukariMonthlyCapInput = document.getElementById('azukariMonthlyCap');
     const toggleSidebarBtn   = document.getElementById('toggleSidebar');
     const helpCsvBtn         = document.getElementById('helpCsv');
     const helpModal          = document.getElementById('helpModal');
@@ -1137,14 +1137,10 @@ const AZUKARI_UNIT_MINUTES = 30;
     const hideHeaderOver    = document.getElementById('hideHeaderOver');
     const hideHeaderExtU    = document.getElementById('hideHeaderExtU');
     const hideHeaderExtF    = document.getElementById('hideHeaderExtF');
-    const hideHeaderAzukari   = document.getElementById('hideHeaderAzukari');
-    const hideHeaderAzukariFee= document.getElementById('hideHeaderAzukariFee');
     const hideHeaderRemark  = document.getElementById('hideHeaderRemark');
     let lastResult    = null;
     let originalRows  = [];
     let originalBuffer= 0;
-    let originalAzukariUnitFee = 0;
-    let originalAzukariMonthlyCap = 0;
     let lastDateRange = null;
     let changeLogs    = [];
     let originalStatusList = []; // ← もう入ってるならそのままでOK
@@ -1178,7 +1174,7 @@ function makeRecordKeyFromRow(row){
   const clazz  = (row[columns.clazz]  || '').trim();
   return [date, school, clazz, name].join('|');
 }
-// 明細（detail オブジェクト）からキーを作る版
+// 明細（detail オブジェクト）かキを作る版
 function makeRecordKeyFromDetail(d){
   const date   = (d.date   || '').trim();
   const name   = (d.name   || '').trim();
@@ -1221,8 +1217,6 @@ function makeChildKey(school, clazz, name){
         'hide-h-over',
         'hide-h-extu',
         'hide-h-extf',
-        'hide-h-azukari',
-        'hide-h-azukarif',
         'hide-h-remark'
       );
       // チェックされているものだけ付け直す
@@ -1239,8 +1233,6 @@ function makeChildKey(school, clazz, name){
         [hideHeaderOver,   'hide-h-over'],
         [hideHeaderExtU,   'hide-h-extu'],
         [hideHeaderExtF,   'hide-h-extf'],
-        [hideHeaderAzukari,   'hide-h-azukari'],
-        [hideHeaderAzukariFee,'hide-h-azukarif'],
         [hideHeaderRemark, 'hide-h-remark']   // ★ 備考もここで制御
       ].forEach(([cb, cls])=>{
         if (!cb) return;
@@ -1271,46 +1263,21 @@ function makeChildKey(school, clazz, name){
       hideHeaderOver,
       hideHeaderExtU,
       hideHeaderExtF,
-      hideHeaderAzukari,
-      hideHeaderAzukariFee,
       hideHeaderRemark
     ].forEach(cb=>{
       if (!cb) return;
       cb.addEventListener('change', applyColumnVisibility);
     });
-// 預り保育設定変更時は即計算に反映
-if (azukariUnitFeeInput) {
-  azukariUnitFeeInput.addEventListener('change', ()=>{
-    originalAzukariUnitFee = Math.max(0, Number(azukariUnitFeeInput.value || 0));
-    if (lastResult) recalcAndRender();
-  });
-}
-if (azukariMonthlyCapInput) {
-  azukariMonthlyCapInput.addEventListener('change', ()=>{
-    originalAzukariMonthlyCap = Math.max(0, Number(azukariMonthlyCapInput.value || 0));
-    if (lastResult) recalcAndRender();
-  });
-}
 // 「計算する」ボタン
 calculateButton.addEventListener('click', () => {
   const file = (fileInput.files && fileInput.files[0]) || null;
   const bufferMinutes = Number(bufferInput.value || 0);
-  const azukariUnitFee = Number(azukariUnitFeeInput.value || 0);
-  const azukariMonthlyCap = Number(azukariMonthlyCapInput.value || 0);
   if (!file) {
     alert('CSVファイルを選択してください。');
     return;
   }
   if (Number.isNaN(bufferMinutes) || bufferMinutes < 0) {
     alert('バッファは0以上で入力してください。');
-    return;
-  }
-  if (Number.isNaN(azukariUnitFee) || azukariUnitFee < 0) {
-    alert('預り保育単価は0以上で入力してください。');
-    return;
-  }
-  if (Number.isNaN(azukariMonthlyCap) || azukariMonthlyCap < 0) {
-    alert('月額上限は0以上で入力してください。');
     return;
   }
   // 一旦リセット
@@ -1328,11 +1295,9 @@ calculateButton.addEventListener('click', () => {
       originalRows        = rows;
       originalRowsBackup  = rows.map(r => ({ ...r }));        // 元データ退避
       originalBuffer      = bufferMinutes;
-      originalAzukariUnitFee = Number(azukariUnitFeeInput.value || azukariUnitFee || 0);
-      originalAzukariMonthlyCap = Number(azukariMonthlyCapInput.value || azukariMonthlyCap || 0);
       originalStatusList  = rows.map(row => (row[columns.status] || '').trim());
       // 計算して表示
-      const result = calculate(rows, bufferMinutes, originalAzukariUnitFee, originalAzukariMonthlyCap);
+      const result = calculate(rows, bufferMinutes);
       lastResult   = result;
       renderSummary(result.summary);
       renderDetails(result.details);
@@ -1340,7 +1305,6 @@ calculateButton.addEventListener('click', () => {
       downloadButton.disabled     = false;
       downloadPageButton.disabled = false;
       downloadTextButton.disabled = false;
-      saveStateToStorage();
     } catch (e) {
       console.error(e);
       alert('CSVの読み込みまたは計算中にエラーが発生しました。');
@@ -1357,8 +1321,6 @@ function saveStateToStorage(){
     lastSelectedSchool,
     lastSelectedClass,
     iconByChild,
-    azukariUnitFee: Number(azukariUnitFeeInput?.value || originalAzukariUnitFee || 0),
-    azukariMonthlyCap: Number(azukariMonthlyCapInput?.value || originalAzukariMonthlyCap || 0),
     overrides: {}
   };
   // overrides（行ごとの変更）を日付+園+クラス+名前で保存
@@ -1371,7 +1333,7 @@ function saveStateToStorage(){
       type:          o.type          ?? null,
       arriveMinutes: o.arriveMinutes ?? null,
       leaveMinutes:  o.leaveMinutes  ?? null,
-      azukariMinutes:o.azukariMinutes?? null
+      azukariMinutes:o.azukariMinutes?? null // [AZUKARI]
     };
   });
   try{
@@ -1393,12 +1355,6 @@ function loadStateFromStorage(rows){
     lastSelectedSchool = data.lastSelectedSchool || null;
     lastSelectedClass  = data.lastSelectedClass  || null;
     iconByChild        = data.iconByChild || {};
-    if (data.azukariUnitFee != null && azukariUnitFeeInput) {
-      azukariUnitFeeInput.value = data.azukariUnitFee;
-    }
-    if (data.azukariMonthlyCap != null && azukariMonthlyCapInput) {
-      azukariMonthlyCapInput.value = data.azukariMonthlyCap;
-    }
     const savedOverrides = data.overrides || {};
     rows.forEach((row, index)=>{
       const key = makeRecordKeyFromRow(row);
@@ -1415,19 +1371,6 @@ function loadStateFromStorage(rows){
   }catch(e){
     console.warn('状態復元に失敗しました', e);
   }
-}
-function recalcAndRender(){
-  if (!originalRows.length) return;
-  const result = calculate(
-    originalRows,
-    originalBuffer,
-    originalAzukariUnitFee,
-    originalAzukariMonthlyCap
-  );
-  lastResult = result;
-  renderSummary(result.summary);
-  renderDetails(result.details);
-  saveStateToStorage();
 }
 // ===== CSVパース（ヘッダー行を自動検出） =====
 function parseCSV(text){
@@ -1498,19 +1441,21 @@ function parseCSV(text){
   return records;
 }
 // ===== 集計 =====
-function calculate(rows, bufferMinutes, azukariUnitFee, azukariMonthlyCap){
-  const unitFee = Number(azukariUnitFee || 0);
-  const monthlyCap = Number(azukariMonthlyCap || 0);
+function calculate(rows, bufferMinutes){
   const summaryMap = new Map();
   const details    = [];
   let minKey = null, maxKey = null;
   rows.forEach((row,index)=>{
     const status = (row[columns.status]||'').trim();
+    const isVacation = detectLongVacation(row); // [VACATION]
     let attendLabel = '休園';
     if (status && /欠/.test(status)) {
       attendLabel = '欠園';
     } else if (status && /登|出|○/.test(status)) {
       attendLabel = '登園';
+    }
+    if (isVacation) {
+      attendLabel = '長期休暇';
     }
     const rawDate = (row[columns.date]||'').trim();
     if(!rawDate) return;
@@ -1532,6 +1477,7 @@ function calculate(rows, bufferMinutes, azukariUnitFee, azukariMonthlyCap){
     const baseTypeFromOverride = oRow.baseType || detectType(name);
     const rowTypeOverride      = oRow.type || null;
     const typeKey = rowTypeOverride || baseTypeFromOverride; // 'standard' / 'short' / '1gou'
+    const baseAzukariMinutes = getBaseAzukariMinutes(row); // [AZUKARI]
     // ★ 区分ごとの基準時間
     let baseStart, baseEnd;
     if (typeKey === 'short') {
@@ -1559,12 +1505,19 @@ function calculate(rows, bufferMinutes, azukariUnitFee, azukariMonthlyCap){
         if(effLeave>tEnd) extMinutes += (effLeave-tEnd);
       }
     }
+    if (isVacation) { // [VACATION] 長期休暇日は非課金
+      extMinutes = 0;
+    }
     const extUnits = extMinutes>0 ? Math.ceil(extMinutes/30) : 0;
-    const azukariMinutes = Math.max(0, Number(oRow.azukariMinutes || 0));
-    const azukariUnits = azukariMinutes > 0
-      ? Math.ceil(azukariMinutes / AZUKARI_UNIT_MINUTES)
+    // [AZUKARI] 預り保育
+    const azukariMinutesRaw = oRow.azukariMinutes != null
+      ? Math.max(0, oRow.azukariMinutes)
+      : Math.max(0, baseAzukariMinutes);
+    const azukariChargeableMinutes = isVacation ? 0 : azukariMinutesRaw;
+    const azukariUnits = azukariChargeableMinutes>0
+      ? Math.ceil(azukariChargeableMinutes / AZUKARI_UNIT_MINUTES)
       : 0;
-    const azukariRawFee = azukariUnits * unitFee;
+    const azukariFeeRaw = azukariUnits * AZUKARI_UNIT_FEE;
     const monthKey = `${year}-${month}`;
     const key = `${rawName}__${school}__${monthKey}`;
     if(!summaryMap.has(key)){
@@ -1572,8 +1525,9 @@ function calculate(rows, bufferMinutes, azukariUnitFee, azukariMonthlyCap){
         name,
         month: monthKey,
         extStdUnits: 0,   // 標準＋1号認定はこちら
-        extShortUnits: 0,  // 短時間はこちら
+        extShortUnits: 0, // 短時間はこちら
         azukariUnits: 0,
+        azukariMinutes: 0,
         azukariRawFee: 0
       });
     }
@@ -1581,8 +1535,11 @@ function calculate(rows, bufferMinutes, azukariUnitFee, azukariMonthlyCap){
     const bucket = (typeKey === 'short') ? 'short' : 'standard';
     if (bucket === 'short') entry.extShortUnits += extUnits;
     else                    entry.extStdUnits   += extUnits;
-    entry.azukariUnits += azukariUnits;
-    entry.azukariRawFee += azukariRawFee;
+    if (!isVacation) {
+      entry.azukariUnits   += azukariUnits;
+      entry.azukariMinutes += azukariChargeableMinutes;
+      entry.azukariRawFee  += azukariFeeRaw;
+    }
     const baseArriveForDiff = (baseArrive === 0 ? null : baseArrive);
     const baseLeaveForDiff  = (baseLeave  === 0 ? null : baseLeave);
     const deltaArrive =
@@ -1601,13 +1558,14 @@ function calculate(rows, bufferMinutes, azukariUnitFee, azukariMonthlyCap){
       baseLeave:  baseLeaveForDiff,
       deltaArrive,deltaLeave,
       extMinutes,extUnits,
+      azukariMinutes: azukariMinutesRaw,
+      azukariUnits,
+      azukariFee: azukariFeeRaw,
+      isVacation,
       weekday,
       attendLabel,
       school,
-      clazz,
-      azukariMinutes,
-      azukariUnits,
-      azukariFee: azukariRawFee
+      clazz
     });
     details.push(detail);
   });
@@ -1616,18 +1574,19 @@ function calculate(rows, bufferMinutes, azukariUnitFee, azukariMonthlyCap){
       const extTotal = item.extStdUnits + item.extShortUnits;
       const extRaw   = extTotal * EXT_UNIT_FEE;
       const extFee   = Math.min(extRaw, MONTHLY_CAP);
-      const azukariFee = monthlyCap > 0
-        ? Math.min(item.azukariRawFee, monthlyCap)
-        : item.azukariRawFee;
+      const azukariCap   = (AZUKARI_MONTHLY_CAP && AZUKARI_MONTHLY_CAP > 0) ? AZUKARI_MONTHLY_CAP : null;
+      const azukariFee   = azukariCap ? Math.min(item.azukariRawFee, azukariCap) : item.azukariRawFee;
+      const totalFee     = extFee + azukariFee;
       return{
         ...item,
         extUnitsTotal: extTotal,
         extRawFee:     extRaw,
         extFee,
+        azukariFeeRaw: item.azukariRawFee,
         azukariFee,
-        totalFee:      extFee + azukariFee,
+        totalFee,
         capped:   extFee<extRaw,
-        azukariCapped: azukariFee < item.azukariRawFee,
+        azukariCapped: azukariCap ? azukariFee<item.azukariRawFee : false,
         switched: item.extStdUnits>0 && item.extShortUnits>0
       };
     })
@@ -1659,16 +1618,15 @@ function buildDetail({
   baseArrive,baseLeave,
   deltaArrive,deltaLeave,
   extMinutes,extUnits,
+  azukariMinutes,azukariUnits,azukariFee,
+  isVacation,
   weekday,
   attendLabel,
   school,
-  clazz,
-  azukariMinutes,
-  azukariUnits,
-  azukariFee
+  clazz
 }){
   const extFee=extUnits*EXT_UNIT_FEE;
-  const totalFee=extFee + (azukariFee || 0);
+  const totalFee=extFee+azukariFee;
   return{
     recordIndex:index,
     name,
@@ -1701,10 +1659,11 @@ function buildDetail({
     extMinutes,
     extUnits,
     extFee,
-    totalFee,
     azukariMinutes,
     azukariUnits,
-    azukariFee
+    azukariFee,
+    isVacation,
+    totalFee
   };
 }
     // コピー完了トースト表示
@@ -1760,8 +1719,9 @@ if (iconPicker && iconPickerBackdrop) {
         const extText=item.extUnitsTotal
           ?`${item.extFee.toLocaleString()}円（200円×${item.extUnitsTotal}回／上限3,000円）`
           :'0円';
+        // [AZUKARI] 預り保育料金
         const azukariText=item.azukariUnits
-          ?`${item.azukariFee.toLocaleString()}円（${AZUKARI_UNIT_MINUTES}分×${item.azukariUnits}回）`
+          ?`${item.azukariFee.toLocaleString()}円（${AZUKARI_UNIT_FEE}円×${item.azukariUnits}回${AZUKARI_MONTHLY_CAP ? '／上限'+AZUKARI_MONTHLY_CAP.toLocaleString()+'円' : ''}）`
           :'0円';
         const totalText=item.totalFee.toLocaleString()+'円';
         return(
@@ -1781,18 +1741,10 @@ if (iconPicker && iconPickerBackdrop) {
       }).join('');
       summaryContainer.innerHTML=
         '<div class="chip">延長保育：30分200円（3,000円上限）</div>'+
-        '<div class="chip">預り保育：'+
-          Number(originalAzukariUnitFee || 0).toLocaleString()+
-          '円/'+AZUKARI_UNIT_MINUTES+'分'+
-          (originalAzukariMonthlyCap>0
-            ? '（上限'+Number(originalAzukariMonthlyCap||0).toLocaleString()+'円）'
-            : '（上限なし）'
-          )+
-        '</div>'+
         '<table>'+
           '<caption>人別・月別集計</caption>'+
           '<thead><tr>'+
-            '<th>名前</th><th>月</th><th>標準延長回数</th><th>短時間延長回数</th><th>合計回数</th><th>延長保育料金</th><th>預り保育回数</th><th>預り保育料金</th><th>合計料金</th><th>備考</th>'+
+            '<th>名前</th><th>月</th><th>標準延長回数</th><th>短時間延長回数</th><th>合計回数</th><th>延長保育料金</th><th>預り回数</th><th>預り保育料金</th><th>合計料金</th><th>備考</th>'+
           '</tr></thead>'+
           '<tbody>'+rows+'</tbody>'+
         '</table>';
@@ -1941,6 +1893,7 @@ const rowsHtml = list.map(item=>{
     item.typeKey === '2gou'    ? 'row-2gou'   :
     item.typeKey === '3gou'    ? 'row-3gou'   :
     'row-standard';
+  const combinedRowClass = rowTypeClass + (item.isVacation ? ' row-vacation' : '');
   const o = overrides.get(item.recordIndex) || {};
   const hasTypeOverride  = !!o.type;
   const hasTimeOverride  = (o.arriveMinutes != null) || (o.leaveMinutes != null);
@@ -1952,7 +1905,20 @@ const rowsHtml = list.map(item=>{
     : 'day-tag day-tag-time';
   const dayTagsHtml =
     '<span class="'+typeClass+'">区分変更</span>'+
-    '<span class="'+timeClass+'">時間変更</span>';
+    '<span class="'+timeClass+'">時間変更</span>'+
+    (item.isVacation ? '<span class="day-tag">長期休暇</span>' : '');
+  const statusClass =
+    item.isVacation ? "vacation" :
+    item.attendLabel === "休園" ? "closed" :
+    item.attendLabel === "欠園" ? "absent" :
+    "attend";
+  const statusPillClass =
+    item.isVacation ? "status-pill-vacation" :
+    item.attendLabel === "登園" ? "status-pill-attend"
+      : item.attendLabel === "欠園" ? "status-pill-absent"
+      : item.attendLabel === "休園" ? "status-pill-closed"
+      : item.attendLabel === "降園" ? "status-pill-leave"
+      : "";
   // 備考
   let remark = '';
   let remarkForCopy = '';
@@ -1988,28 +1954,19 @@ const rowsHtml = list.map(item=>{
   // ★ 預り保育（いまは 0 初期でもOK）
   const azukariMinutes = item.azukariMinutes || 0;
   const azukariFee     = item.azukariFee     || 0;
-  const azukariDisplay = azukariMinutes
-    ? (azukariMinutes + '分 / ' + azukariFee.toLocaleString() + '円')
-    : '0分';
   return (
-    '<tr class="detail-row '+rowTypeClass+'" data-index="'+item.recordIndex+'">'+
+    '<tr class="detail-row '+combinedRowClass+'" data-index="'+item.recordIndex+'">'+
       '<td class="col-year '+dateCls+'">'+escapeHtml(item.year)+'</td>'+
       '<td class="col-month '+dateCls+'">'+escapeHtml(item.month)+'</td>'+
       '<td class="col-day '+dateCls+' day-cell" data-index="'+item.recordIndex+'">'+
         '<div class="daycard status-' +
-          (item.attendLabel === "休園" ? "closed" :
-           item.attendLabel === "欠園" ? "absent" :
-           "attend") +
+          statusClass +
           ' type-' + item.typeKey +
         '">'+
           '<div class="daycard-week">'+escapeHtml(item.weekday||'')+'</div>'+
           '<div class="daycard-date">'+escapeHtml(item.day)+'</div>'+
           '<div class="daycard-status"><span class="status-pill '
-            + (item.attendLabel === "登園" ? "status-pill-attend"
-              : item.attendLabel === "欠園" ? "status-pill-absent"
-              : item.attendLabel === "休園" ? "status-pill-closed"
-              : item.attendLabel === "降園" ? "status-pill-leave"
-              : "")
+            + statusPillClass
             + '">'+escapeHtml(item.attendLabel || "登園")+'</span></div>'+
           '<div class="daycard-tags">'+dayTagsHtml+'</div>'+
         '</div>'+
@@ -2055,7 +2012,7 @@ const rowsHtml = list.map(item=>{
           '</div>'+
         '</div>'+
       '</td>'+
-      // 降園時刻
+      // 降園時
       '<td class="col-leave time-cell">'+
         '<input class="leaveInput time-input" data-index="'+item.recordIndex+'" type="text" value="'+(item.leave||'')+'" />'+
         '<div class="muted" style="font-size:11px;">'+diffText(item.deltaLeave)+'</div>'+
@@ -2073,7 +2030,7 @@ const rowsHtml = list.map(item=>{
       // ★ 預り保育
       '<td class="col-azukari">'+
         '<div class="azukari-box" data-index="'+item.recordIndex+'">'+
-          '<div class="azukari-total">'+azukariDisplay+'</div>'+
+          '<div class="azukari-total">'+azukariMinutes+'分</div>'+
           '<div class="azukari-buttons">'+
             '<button type="button" class="azukariBtn minus" data-index="'+item.recordIndex+'" data-delta="-15">-15分</button>'+
             '<button type="button" class="azukariBtn plus"  data-index="'+item.recordIndex+'" data-delta="15">+15分</button>'+
@@ -2130,7 +2087,7 @@ const rowsHtml = list.map(item=>{
         '</table>'+
       '</div>';
   });
-// 実際に描画
+// 際に描画
 detailContainer.innerHTML = headerHtml + panelsHtml;
 // ★ チェックボックスの状態を反映（ここだけでOK）
 applyColumnVisibility();
@@ -2239,37 +2196,46 @@ applyColumnVisibility();
         }
         addLog({recordIndex:idx,name:d.name,date:d.date,kind:'降園時間変更',before,after});
       }
-      recalcAndRender();
+      const result=calculate(originalRows,originalBuffer);
+      lastResult=result;
+      renderSummary(result.summary);
+      renderDetails(result.details);
+      saveStateToStorage(); // [AZUKARI][VACATION] 変更を保存
     });
   });
-  // 預り保育ボタン
+  // [AZUKARI] 預り保育 +/- ボタン
   const azukariButtons = detailContainer.querySelectorAll('.azukariBtn');
   azukariButtons.forEach(btn=>{
     btn.addEventListener('click',(e)=>{
       e.stopPropagation();
-      if (!lastResult) return;
-      const idx = Number(btn.getAttribute('data-index'));
+      if(!lastResult) return;
+      const idx   = Number(btn.getAttribute('data-index'));
       const delta = Number(btn.getAttribute('data-delta')) || 0;
+      const d     = lastResult.details.find(x=>x.recordIndex===idx);
+      if(!d) return;
+      const before = Math.max(0, d.azukariMinutes || 0);
+      let after = before + delta;
+      if (after < 0) after = 0;
       const prev = overrides.get(idx) || {};
-      const current = Math.max(0, Number(prev.azukariMinutes || 0));
-      let next = current + delta;
-      if (next < 0) next = 0;
-      const d = lastResult.details.find(x=>x.recordIndex===idx);
-      if (!d) return;
-      if (next === 0) {
+      const baseMinutes = getBaseAzukariMinutes(originalRows[idx] || {});
+      if (after === Math.max(0, baseMinutes)) {
         clearOverrideField(idx, 'azukariMinutes');
       } else {
-        overrides.set(idx, { ...prev, azukariMinutes: next });
+        overrides.set(idx, { ...prev, azukariMinutes: after });
       }
       addLog({
         recordIndex: idx,
         name: d.name,
         date: d.date,
-        kind: '預り保育変更',
-        before: current + '分',
-        after: next + '分'
+        kind: "預り保育変更",
+        before: before + "分",
+        after:  after + "分"
       });
-      recalcAndRender();
+      const result=calculate(originalRows,originalBuffer);
+      lastResult=result;
+      renderSummary(result.summary);
+      renderDetails(result.details);
+      saveStateToStorage();
     });
   });
 // ★ 基本区分ボタン（personTypeBtn） → 全行へ適用
@@ -2306,7 +2272,11 @@ personTypeButtons.forEach(btn=>{
       }
     });
     // 再計算 + 再描画
-    recalcAndRender();
+    const result = calculate(originalRows, originalBuffer);
+    lastResult = result;
+    renderSummary(result.summary);
+    renderDetails(result.details);
+    saveStateToStorage();
   });
 });
   // 区分ボタン
@@ -2339,7 +2309,11 @@ personTypeButtons.forEach(btn=>{
                                 '標準時間'
       });
       // ★ 区分変更後に再計算＋再描画
-      recalcAndRender();
+      const result = calculate(originalRows, originalBuffer);
+      lastResult   = result;
+      renderSummary(result.summary);
+      renderDetails(result.details);
+      saveStateToStorage();
     });
   });
   // 元に戻すボタン（日ごと）
@@ -2362,7 +2336,11 @@ personTypeButtons.forEach(btn=>{
         before: "編集後",
         after: "初期状態"
       });
-      recalcAndRender();
+      const result = calculate(originalRows, originalBuffer);
+      lastResult   = result;
+      renderSummary(result.summary);
+      renderDetails(result.details);
+      saveStateToStorage();
     });
   });
   // …ここまでで detailContainer.innerHTML を作り終わっている前提…
@@ -2385,6 +2363,8 @@ personTypeButtons.forEach(btn=>{
       }
     });
   });
+  // [AZUKARI] 選択・入力状態を保持
+  saveStateToStorage();
 }
     // 変更履歴
     function addLog({recordIndex,name,date,kind,before,after}){
@@ -2432,6 +2412,40 @@ personTypeButtons.forEach(btn=>{
       } else {
         overrides.set(idx, prev);
       }
+    }
+    // [AZUKARI] CSVに既存の預り分があれば拾う
+    function getBaseAzukariMinutes(row){
+      if (!row) return 0;
+      const candidates = [
+        row['預り保育'],
+        row['預かり保育'],
+        row['預り'],
+        row['預かり'],
+        row['預り時間'],
+        row['預かり時間']
+      ];
+      for (const v of candidates) {
+        const parsed = parseAzukariMinutes(v);
+        if (parsed != null) return Math.max(0, parsed);
+      }
+      return 0;
+    }
+    function parseAzukariMinutes(value){
+      if (value == null) return null;
+      const numStr = String(value).replace(/[^\d-]/g, '').trim();
+      if (!numStr) return null;
+      const n = Number(numStr);
+      if (Number.isNaN(n)) return null;
+      return n;
+    }
+    // [VACATION] 長期休暇判定
+    function detectLongVacation(row){
+      if (!row) return false;
+      const statusText   = (row[columns.status] || '').trim();
+      const remarkText   = (row['備考'] || row['備考欄'] || row['コメント'] || row['メモ'] || '').trim();
+      const categoryText = (row['区分'] || row['出欠区分'] || row['出席'] || '').trim();
+      const combined = `${statusText} ${remarkText} ${categoryText}`;
+      return /(長期休暇|長休|夏休|冬休|春休|ＧＷ|ｺﾞｰﾙﾃﾞﾝｳｨｰｸ|ゴールデンウィーク|お盆休み)/i.test(combined);
     }
     function detectType(name){
       return 'standard';
