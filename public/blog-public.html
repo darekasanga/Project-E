@@ -285,7 +285,7 @@
 
   function tagLink(tag) {
     const safe = encodeURIComponent(tag);
-    return `<a class="tag" href="/blog-tag.html?tag=${safe}">#${tag}</a>`;
+    return `<a class="tag" href="/tag.html?tag=${safe}">#${tag}</a>`;
   }
 
   function buildOfficialLineShare(url) {
@@ -316,7 +316,7 @@
 
   function renderTicker(tags) {
     const unique = Array.from(new Set(tags.length ? tags : ["iPhone", "iPad", "公式LINE", "黒ベース", "ChatGPTアップロード"]));
-    const chips = unique.map(tag => `<a class="chip" href="/blog-tag.html?tag=${encodeURIComponent(tag)}">#${tag} ▶</a>`).join("");
+    const chips = unique.map(tag => `<a class="chip" href="/tag.html?tag=${encodeURIComponent(tag)}">#${tag} ▶</a>`).join("");
     ticker.innerHTML = chips;
     tickerClone.innerHTML = chips;
   }
