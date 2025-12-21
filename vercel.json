@@ -2,10 +2,10 @@
   "version": 2,
   "functions": {
     "api/*.js": {
-      "runtime": "nodejs18.x"
+      "runtime": "vercel/node@18.x"
     },
     "api/*.php": {
-      "runtime": "vercel-php@0.5.0"
+      "runtime": "now-php@1.0.0"
     }
   },
   "rewrites": [
