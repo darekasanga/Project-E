@@ -1,5 +1,6 @@
 (() => {
   const storageKey = "emperor_articles";
+  const backupKey = "emperor_articles_backup_v1";
   const settingsKey = "emperor_article_settings";
   const copyKey = "emperor_article_copy";
   const copyExtrasKey = "emperor_article_copy_extras";
@@ -27,18 +28,50 @@
     }
   ];
 
-  function parseSaved() {
+  function safeParse(key) {
     try {
-      const saved = JSON.parse(localStorage.getItem(storageKey));
-      return Array.isArray(saved) ? saved : null;
+      return JSON.parse(localStorage.getItem(key));
     } catch (err) {
-      console.warn("Failed to parse saved articles", err);
+      console.warn(`Failed to parse storage for ${key}`, err);
       return null;
     }
   }
 
+  function persistBackup(snapshot) {
+    try {
+      localStorage.setItem(backupKey, JSON.stringify(snapshot));
+    } catch (err) {
+      console.warn("Failed to persist backup snapshot", err);
+    }
+  }
+
+  function readBackup() {
+    const parsed = safeParse(backupKey);
+    if (!parsed) return null;
+    if (Array.isArray(parsed)) return { articles: parsed };
+    const articles = Array.isArray(parsed.articles) ? parsed.articles : null;
+    const settings = parsed.settings && typeof parsed.settings === "object" ? parsed.settings : null;
+    const copy = parsed.copy && typeof parsed.copy === "object" ? parsed.copy : null;
+    const copyExtras = Array.isArray(parsed.copyExtras) ? parsed.copyExtras : null;
+    const pageLinks = Array.isArray(parsed.pageLinks) ? parsed.pageLinks : null;
+    const comments = parsed.comments && typeof parsed.comments === "object" ? parsed.comments : null;
+    return { articles, settings, copy, copyExtras, pageLinks, comments };
+  }
+
+  function parseSaved() {
+    const parsed = safeParse(storageKey);
+    if (Array.isArray(parsed)) return parsed;
+    const backup = readBackup();
+    if (Array.isArray(backup?.articles)) return backup.articles;
+    return null;
+  }
+
   function loadArticles() {
-    return parseSaved() ?? baseArticles;
+    const list = parseSaved() ?? baseArticles;
+    if (!safeParse(backupKey)) {
+      persistBackup({ version: 1, exportedAt: Date.now(), articles: list });
+    }
+    return list;
   }
 
   function normalizeSettings(raw) {
@@ -73,18 +106,25 @@
 
   function loadSettings() {
     const saved = localStorage.getItem(settingsKey);
-    if (!saved) return normalizeSettings({});
+    if (!saved) return normalizeSettings(readBackup()?.settings ?? {});
     try {
       const parsed = JSON.parse(saved);
       return normalizeSettings(parsed);
     } catch (err) {
       console.warn("Failed to parse article settings", err);
-      return normalizeSettings({});
+      return normalizeSettings(readBackup()?.settings ?? {});
     }
   }
 
   function saveArticles(list) {
-    localStorage.setItem(storageKey, JSON.stringify(list));
+    const normalized = Array.isArray(list) ? list : [];
+    localStorage.setItem(storageKey, JSON.stringify(normalized));
+    try {
+      exportState({ articles: normalized });
+    } catch (err) {
+      console.warn("Failed to update backup snapshot", err);
+    }
+    return normalized;
   }
 
   function saveSettings(next) {
@@ -144,15 +184,11 @@
   ];
 
   function loadCopy() {
-    const saved = localStorage.getItem(copyKey);
-    if (!saved) return { ...defaultCopy };
-    try {
-      const parsed = JSON.parse(saved);
-      return { ...defaultCopy, ...(parsed && typeof parsed === "object" ? parsed : {}) };
-    } catch (err) {
-      console.warn("Failed to parse article copy", err);
-      return { ...defaultCopy };
-    }
+    const saved = safeParse(copyKey);
+    if (!saved) return { ...defaultCopy, ...(readBackup()?.copy ?? {}) };
+    if (typeof saved === "object") return { ...defaultCopy, ...saved };
+    console.warn("Copy data malformed, falling back to defaults");
+    return { ...defaultCopy, ...(readBackup()?.copy ?? {}) };
   }
 
   function saveCopy(next) {
@@ -181,15 +217,11 @@
   }
 
   function loadPageLinks() {
-    const saved = localStorage.getItem(pageLinksKey);
-    if (!saved) return [...defaultPageLinks];
-    try {
-      const parsed = JSON.parse(saved);
-      return normalizePageLinks(parsed);
-    } catch (err) {
-      console.warn("Failed to parse page links", err);
-      return [...defaultPageLinks];
-    }
+    const saved = safeParse(pageLinksKey);
+    if (saved) return normalizePageLinks(saved);
+    const backup = readBackup();
+    if (backup?.pageLinks) return normalizePageLinks(backup.pageLinks);
+    return [...defaultPageLinks];
   }
 
   function savePageLinks(list) {
@@ -199,13 +231,16 @@
   }
 
   function loadCommentsMap() {
-    try {
-      const saved = JSON.parse(localStorage.getItem(commentsKey));
-      return saved && typeof saved === "object" ? saved : {};
-    } catch (err) {
-      console.warn("Failed to parse comments", err);
-      return {};
-    }
+    const parsed = safeParse(commentsKey);
+    if (parsed && typeof parsed === "object") return parsed;
+    const backup = readBackup();
+    return backup?.comments && typeof backup.comments === "object" ? backup.comments : {};
+  }
+
+  function saveCommentsMap(map) {
+    const normalized = map && typeof map === "object" ? map : {};
+    localStorage.setItem(commentsKey, JSON.stringify(normalized));
+    return normalized;
   }
 
   function loadComments(articleId) {
@@ -226,20 +261,16 @@
     if (!newComment.body) return list;
     const next = [newComment, ...list].slice(0, 100);
     map[articleId] = next;
-    localStorage.setItem(commentsKey, JSON.stringify(map));
+    saveCommentsMap(map);
     return next;
   }
 
   function loadCopyExtras() {
-    const saved = localStorage.getItem(copyExtrasKey);
-    if (!saved) return [];
-    try {
-      const parsed = JSON.parse(saved);
-      return Array.isArray(parsed) ? parsed.filter((item) => item?.id && item?.text) : [];
-    } catch (err) {
-      console.warn("Failed to parse extra copy", err);
-      return [];
-    }
+    const saved = safeParse(copyExtrasKey);
+    if (Array.isArray(saved)) return saved.filter((item) => item?.id && item?.text);
+    const backup = readBackup();
+    if (Array.isArray(backup?.copyExtras)) return backup.copyExtras.filter((item) => item?.id && item?.text);
+    return [];
   }
 
   function saveCopyExtras(list) {
@@ -319,12 +350,50 @@
     return { list, settings };
   }
 
+  function exportState(overrides = {}) {
+    const snapshot = {
+      version: 1,
+      exportedAt: Date.now(),
+      articles: overrides.articles ?? loadArticles(),
+      settings: overrides.settings ?? loadSettings(),
+      copy: overrides.copy ?? loadCopy(),
+      copyExtras: overrides.copyExtras ?? loadCopyExtras(),
+      pageLinks: overrides.pageLinks ?? loadPageLinks(),
+      comments: overrides.comments ?? loadCommentsMap(),
+    };
+    persistBackup(snapshot);
+    return snapshot;
+  }
+
+  function importState(raw) {
+    if (!raw || typeof raw !== "object") throw new Error("復元データが不正です。");
+    const articles = Array.isArray(raw.articles) ? raw.articles : [];
+    const settings = normalizeSettings(raw.settings ?? {});
+    const copy = raw.copy && typeof raw.copy === "object" ? { ...defaultCopy, ...raw.copy } : { ...defaultCopy };
+    const copyExtras = Array.isArray(raw.copyExtras) ? raw.copyExtras
+      .map((item) => ({ id: item?.id ?? crypto.randomUUID?.() ?? `copy-${Date.now()}`, text: item?.text ?? "" }))
+      .filter((item) => item.text.trim().length) : [];
+    const pageLinks = normalizePageLinks(raw.pageLinks);
+    const comments = raw.comments && typeof raw.comments === "object" ? raw.comments : {};
+
+    saveArticles(articles);
+    saveSettings(settings);
+    saveCopy(copy);
+    saveCopyExtras(copyExtras);
+    savePageLinks(pageLinks);
+    saveCommentsMap(comments);
+    exportState({ articles, settings, copy, copyExtras, pageLinks, comments, importedAt: Date.now() });
+
+    return { articles, settings, copy, copyExtras, pageLinks, comments };
+  }
+
   function buildOfficialLineShare(url) {
     return `https://social-plugins.line.me/lineit/share?url=${encodeURIComponent(url)}&accountId=${encodeURIComponent(officialLineAccountId)}`;
   }
 
   window.BlogData = {
     storageKey,
+    backupKey,
     settingsKey,
     copyKey,
     copyExtrasKey,
@@ -355,5 +424,7 @@
     buildOfficialLineShare,
     loadComments,
     addComment,
+    exportState,
+    importState,
   };
 })();
