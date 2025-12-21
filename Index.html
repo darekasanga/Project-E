@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Project-E ポータル</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: "Noto Sans JP", system-ui, -apple-system, sans-serif;
+      background: radial-gradient(circle at 20% 20%, #e0f2fe, #eef2ff 35%, #f8fafc 70%);
+      color: #0f172a;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .container {
+      max-width: 900px;
+      width: 100%;
+      margin: 24px;
+      background: #fff;
+      border: 1px solid #e2e8f0;
+      border-radius: 20px;
+      box-shadow: 0 18px 40px rgba(15, 23, 42, 0.08);
+      overflow: hidden;
+    }
+
+    header {
+      padding: 20px 24px;
+      background: linear-gradient(120deg, #4338ca, #6366f1);
+      color: #fff;
+    }
+
+    header h1 {
+      margin: 0 0 4px;
+      font-size: 22px;
+    }
+
+    header p {
+      margin: 0;
+      opacity: 0.9;
+      font-size: 14px;
+    }
+
+    .links {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 16px;
+      padding: 20px 24px 24px;
+      background: #f8fafc;
+    }
+
+    .link-card {
+      background: #fff;
+      border: 1px solid #e5e7eb;
+      border-radius: 14px;
+      padding: 14px 16px;
+      text-decoration: none;
+      color: #0f172a;
+      transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+      box-shadow: 0 8px 24px rgba(15, 23, 42, 0.05);
+    }
+
+    .link-card:hover {
+      transform: translateY(-3px);
+      border-color: #cbd5e1;
+      box-shadow: 0 12px 30px rgba(15, 23, 42, 0.08);
+    }
+
+    .link-title {
+      font-size: 16px;
+      font-weight: 700;
+      margin: 0 0 6px;
+    }
+
+    .link-desc {
+      margin: 0;
+      color: #4b5563;
+      font-size: 13px;
+      line-height: 1.5;
+    }
+  </style>
+</head>
+<body>
+  <main class="container">
+    <header>
+      <h1>Project-E ポータル</h1>
+      <p>計算ツールやユーティリティへの入口です。必要なページを選択してください。</p>
+    </header>
+    <div class="links">
+      <a class="link-card" href="Calcu.html">
+        <div class="link-title">預かり保育 計算シート</div>
+        <p class="link-desc">預かり保育や延長保育の料金をシミュレーションする計算ページです。</p>
+      </a>
+      <a class="link-card" href="Chat/Index.html">
+        <div class="link-title">チャット目次メーカー</div>
+        <p class="link-desc">チャットから目次を生成するユーティリティページを開きます。</p>
+      </a>
+    </div>
+  </main>
+</body>
+</html>
