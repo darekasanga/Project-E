@@ -115,12 +115,13 @@
         <div class="muted">1号認定 8:30-13:00 / 預かり保育 13:00-16:30 500円。預かり保育利用時は延長保育料金がかかりません。</div>
         <ul class="note-list">
           <li>預かり保育の種類：1日(8:30-16:30) 1,000円、午前(8:30-13:00) 500円、午後(13:00-16:30) 500円。延長（Encho）の長時間預かりもこの列でまとめて選択します。</li>
+          <li>長期休暇日も同じ料金体系（1日 1,000円、午前 500円、午後 500円）で預かり保育を選択できます。</li>
           <li>降園列の右に預かり保育と延長保育の列を追加しています。</li>
         </ul>
       </div>
       <div class="meta-info" aria-label="バージョン情報">
         <div>
-          <span class="badge">v1.1.0</span>
+          <span class="badge">v1.2.0</span>
           <span class="meta-text">最終更新: <span id="lastUpdated">--</span></span>
         </div>
         <a class="meta-text" href="../Index.html">ポータルに戻る</a>
@@ -159,7 +160,7 @@
         </tr>
       </thead>
       <tbody>
-        <tr data-arrive="08:30" data-leave="16:30" data-plan="afternoon">
+        <tr data-arrive="08:30" data-leave="16:30" data-plan="afternoon" data-day-type="regular">
           <td class="col-year">2024</td>
           <td class="col-month">05</td>
           <td class="col-day">01</td>
@@ -176,9 +177,9 @@
           </td>
           <td class="col-extend"><span class="extension-text">0分 / 0円</span></td>
           <td class="col-total"><span class="total-text">0円</span></td>
-          <td class="col-remark">午後預かり保育に該当</td>
+          <td class="col-remark">通常日・午後預かり保育に該当</td>
         </tr>
-        <tr data-arrive="08:15" data-leave="18:00" data-plan="none">
+        <tr data-arrive="08:15" data-leave="18:00" data-plan="none" data-day-type="long-holiday">
           <td class="col-year">2024</td>
           <td class="col-month">05</td>
           <td class="col-day">02</td>
@@ -195,7 +196,20 @@
           </td>
           <td class="col-extend"><span class="extension-text">0分 / 0円</span></td>
           <td class="col-total"><span class="total-text">0円</span></td>
-          <td class="col-remark">延長のみ利用などメモに</td>
+          <td class="col-remark">長期休暇日</td>
+        </tr>
+        <tr data-arrive="" data-leave="" data-plan="none" data-day-type="no-childcare">
+          <td class="col-year">2024</td>
+          <td class="col-month">05</td>
+          <td class="col-day">03</td>
+          <td class="col-arrive"><input class="time-input arrive-input" type="time" value="" aria-label="5月3日の登園時刻" disabled></td>
+          <td class="col-leave"><input class="time-input leave-input" type="time" value="" aria-label="5月3日の降園時刻" disabled></td>
+          <td class="col-azukari">
+            <div class="azukari-summary">適用なし</div>
+          </td>
+          <td class="col-extend"><span class="extension-text">—</span></td>
+          <td class="col-total"><span class="total-text">—</span></td>
+          <td class="col-remark">預かり保育なし</td>
         </tr>
       </tbody>
     </table>
@@ -266,6 +280,13 @@
 
     function setupRows(table) {
       table.querySelectorAll('tbody tr').forEach((row) => {
+        const dayType = row.dataset.dayType || 'regular';
+        
+        // Skip setup for no-childcare days
+        if (dayType === 'no-childcare') {
+          return;
+        }
+
         const initialPlan = row.dataset.plan || 'none';
         row.dataset.plan = initialPlan;
         markActiveButton(row.querySelector('.col-azukari'), initialPlan);
