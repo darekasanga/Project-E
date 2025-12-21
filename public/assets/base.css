@@ -399,9 +399,14 @@ textarea { resize: vertical; min-height: 140px; }
     gap: 14px;
     padding: 16px;
     background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+    grid-auto-rows: 1fr;
+    align-items: stretch;
   }
 
   .list.card-layout .list-card {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
     border: 1px solid var(--border);
     border-radius: var(--radius);
     background: linear-gradient(145deg, rgba(255,255,255,0.02), rgba(0,0,0,0.35));
@@ -414,6 +419,17 @@ textarea { resize: vertical; min-height: 140px; }
     transform: translateY(-4px);
     box-shadow: 0 22px 54px rgba(0, 0, 0, 0.48);
     background: linear-gradient(145deg, rgba(255,255,255,0.04), rgba(0,0,0,0.42));
+  }
+
+  .list.card-layout .list-card .stack {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .list.card-layout .list-card .actions {
+    margin-top: auto;
   }
 
   .list.card-layout .actions {
