@@ -6,11 +6,17 @@
 <link rel="stylesheet" href="/assets/base.css">
 <body>
   <header class="site-header">
-    <div class="brand">
-      <div class="logo">E</div>
-      <div>
-        <h1>Emperor News Admin</h1>
-        <p>管理者ログインと管理UI</p>
+    <div class="header-leading">
+      <div class="brand">
+        <div class="logo">E</div>
+        <div>
+          <h1>Emperor News Admin</h1>
+          <p>管理者ログインと管理UI</p>
+        </div>
+      </div>
+      <div class="header-meta">
+        <span class="version-pill" data-site-version>v1.0.0</span>
+        <span class="tiny" data-site-updated>最終更新 0000/00/00</span>
       </div>
     </div>
     <div class="actions">
@@ -61,7 +67,7 @@
       </div>
     </section>
   </main>
-
+<script src="/assets/site-meta.js"></script>
 <script src="/assets/lightbox.js"></script>
 <script>
   const SESSION_KEY = "emperor_admin_token";
