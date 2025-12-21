@@ -5,12 +5,93 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>預かり保育 計算シート</title>
   <style>
- b dy { font-f: ily: "Noto San, JP", syst, -ui, sans-; rif; m: g; : 0; pa: ing:; 6px; backg: #f8fafc; afc; : #111827; 8
+    body {
+      font-family: "Noto Sans JP", system-ui, -apple-system, sans-serif;
+      margin: 0;
+      padding: 16px;
+      background: #f8fafc;
+      color: #111827;
+      line-height: 1.6;
+    }
+
     h1 { margin: 0 0 12px; }
     h2 { margin: 0 0 12px; }
-    .card { background: #fff; border: 1px solid #d4d4d8; border-radius: 12px; padding: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.06); margin-bottom: 16px; }
-    .controls { display: flex; flex-wrap: wrap; gap: 12px; }
-    .controls label { display: flex; align-items: center; gap: 6px; font-size: 13px; color: #4b5563; }
+
+    .card {
+      background: #fff;
+      border: 1px solid #d4d4d8;
+      border-radius: 12px;
+      padding: 16px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+      margin-bottom: 16px;
+    }
+
+    .page-header {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .header-top {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+      align-items: flex-start;
+    }
+
+    .meta-info {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      align-items: flex-end;
+      min-width: 200px;
+    }
+
+    .meta-text {
+      font-size: 13px;
+      color: #4b5563;
+    }
+
+    .header-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .header-actions .label {
+      font-size: 14px;
+      color: #374151;
+      font-weight: 600;
+    }
+
+    .toggle-buttons {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .toggle-btn {
+      padding: 8px 10px;
+      border: 1px solid #cbd5e1;
+      border-radius: 10px;
+      background: #f8fafc;
+      cursor: pointer;
+      font-size: 13px;
+      transition: all 0.15s ease;
+    }
+
+    .toggle-btn:hover {
+      background: #eef2ff;
+    }
+
+    .toggle-btn.active {
+      background: #4338ca;
+      color: #fff;
+      border-color: #4338ca;
+    }
+
     table { width: 100%; border-collapse: collapse; background: #fff; }
     th, td { border: 1px solid #d4d4d8; padding: 8px; text-align: center; font-size: 14px; }
     th { background: #eef2ff; }
@@ -27,29 +108,38 @@
   </style>
 </head>
 <body>
-  <header class="card">
-    <h1>預かり保育と延長の計算</h1>
-    <div class="muted">1号認定 8:30-13:00 / 預かり保育 13:00-16:30 500円。預かり保育利用時は延長保育料金がかかりません。</div>
-    <ul class="note-list">
-      <li>預かり保育の種類：1日(8:30-16:30) 1,000円、午前(8:30-13:00) 500円、午後(13:00-16:30) 500円。延長（Encho）の長時間預かりもこの列でまとめて選択します。</li>
-      <li>降園列の右に預かり保育と延長保育の列を追加しています。</li>
-    </ul>
-  </header>
-
-  <section class="card">
-    <h2>表示設定</h2>
-    <div class="controls" id="columnToggles" aria-label="列の表示設定">
-      <label><input type="checkbox" data-target="col-year" checked> 年</label>
-      <label><input type="checkbox" data-target="col-month" checked> 月</label>
-      <label><input type="checkbox" data-target="col-day" checked> 日</label>
-      <label><input type="checkbox" data-target="col-arrive" checked> 登園</label>
-      <label><input type="checkbox" data-target="col-leave" checked> 降園</label>
-      <label><input type="checkbox" data-target="col-azukari" checked> 預かり保育</label>
-      <label><input type="checkbox" data-target="col-extend" checked> 延長保育</label>
-      <label><input type="checkbox" data-target="col-total" checked> 合計</label>
-      <label><input type="checkbox" data-target="col-remark" checked> 備考</label>
+  <header class="card page-header">
+    <div class="header-top">
+      <div>
+        <h1>預かり保育と延長の計算</h1>
+        <div class="muted">1号認定 8:30-13:00 / 預かり保育 13:00-16:30 500円。預かり保育利用時は延長保育料金がかかりません。</div>
+        <ul class="note-list">
+          <li>預かり保育の種類：1日(8:30-16:30) 1,000円、午前(8:30-13:00) 500円、午後(13:00-16:30) 500円。延長（Encho）の長時間預かりもこの列でまとめて選択します。</li>
+          <li>降園列の右に預かり保育と延長保育の列を追加しています。</li>
+        </ul>
+      </div>
+      <div class="meta-info" aria-label="バージョン情報">
+        <div>
+          <span class="badge">v1.0.0</span>
+          <span class="meta-text">最終更新: <span id="lastUpdated">--</span></span>
+        </div>
+      </div>
     </div>
-  </section>
+    <div class="header-actions" aria-label="表示設定">
+      <span class="label">表示列</span>
+      <div class="toggle-buttons" id="columnToggles" role="group">
+        <button type="button" class="toggle-btn active" data-target="col-year">年</button>
+        <button type="button" class="toggle-btn active" data-target="col-month">月</button>
+        <button type="button" class="toggle-btn active" data-target="col-day">日</button>
+        <button type="button" class="toggle-btn active" data-target="col-arrive">登園</button>
+        <button type="button" class="toggle-btn active" data-target="col-leave">降園</button>
+        <button type="button" class="toggle-btn active" data-target="col-azukari">預かり保育</button>
+        <button type="button" class="toggle-btn active" data-target="col-extend">延長保育</button>
+        <button type="button" class="toggle-btn active" data-target="col-total">合計</button>
+        <button type="button" class="toggle-btn active" data-target="col-remark">備考</button>
+      </div>
+    </div>
+  </header>
 
   <section class="card">
     <h2>日次明細</h2>
@@ -190,17 +280,38 @@
       });
     }
 
-    toggleContainer.addEventListener('change', (event) => {
-      const checkbox = event.target;
-      if (checkbox.tagName !== 'INPUT') return;
-      const targetClass = checkbox.getAttribute('data-target');
+    function updateColumnVisibility(button, forceActive) {
+      const targetClass = button.getAttribute('data-target');
+      const isActive = forceActive !== undefined ? forceActive : !button.classList.contains('active');
+      button.classList.toggle('active', isActive);
       const cells = table.querySelectorAll('.' + targetClass);
       cells.forEach((cell) => {
-        cell.classList.toggle('hidden-col', !checkbox.checked);
+        cell.classList.toggle('hidden-col', !isActive);
       });
+    }
+
+    toggleContainer.addEventListener('click', (event) => {
+      const button = event.target.closest('.toggle-btn');
+      if (!button) return;
+      updateColumnVisibility(button);
     });
 
+    function initColumnButtons() {
+      toggleContainer.querySelectorAll('.toggle-btn').forEach((button) => {
+        updateColumnVisibility(button, true);
+      });
+    }
+
+    function updateLastUpdated() {
+      const lastUpdatedEl = document.getElementById('lastUpdated');
+      const updated = new Date(document.lastModified);
+      const formatted = `${updated.getFullYear()}年${String(updated.getMonth() + 1).padStart(2, '0')}月${String(updated.getDate()).padStart(2, '0')}日 ${String(updated.getHours()).padStart(2, '0')}:${String(updated.getMinutes()).padStart(2, '0')}`;
+      lastUpdatedEl.textContent = formatted;
+    }
+
     setupRows();
+    initColumnButtons();
+    updateLastUpdated();
   </script>
 
 <script>
