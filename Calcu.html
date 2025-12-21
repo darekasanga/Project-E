@@ -272,15 +272,25 @@
       const plan = CONFIG.PLAN_INFO[planKey];
 
       const planFee = plan.fee;
-      const extensionMinutes = calcExtensionMinutes(leaveMinutes, planKey);
-      const extensionUnits = Math.ceil(extensionMinutes / CONFIG.EXTENSION_UNIT);
-      const extensionFee = extensionMinutes > 0 ? extensionUnits * CONFIG.EXTENSION_FEE_PER_UNIT : 0;
+      
+      // Extension care is not available on long-holiday days
+      let extensionMinutes = 0;
+      let extensionFee = 0;
+      if (dayType !== 'long-holiday') {
+        extensionMinutes = calcExtensionMinutes(leaveMinutes, planKey);
+        const extensionUnits = Math.ceil(extensionMinutes / CONFIG.EXTENSION_UNIT);
+        extensionFee = extensionMinutes > 0 ? extensionUnits * CONFIG.EXTENSION_FEE_PER_UNIT : 0;
+      }
 
       const summaryEl = row.querySelector('.azukari-summary');
       summaryEl.textContent = `${plan.label}${plan.range !== '—' ? ` (${plan.range})` : ''} / ${formatCurrency(planFee)}`;
 
       const extensionEl = row.querySelector('.extension-text');
-      extensionEl.textContent = `${extensionMinutes}分 / ${formatCurrency(extensionFee)}`;
+      if (dayType === 'long-holiday') {
+        extensionEl.textContent = '適用なし';
+      } else {
+        extensionEl.textContent = `${extensionMinutes}分 / ${formatCurrency(extensionFee)}`;
+      }
 
       const totalEl = row.querySelector('.total-text');
       totalEl.textContent = formatCurrency(planFee + extensionFee);
