@@ -2,210 +2,35 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>預かり保育 計算シート</title>
+  <meta http-equiv="refresh" content="0; url=Calcu/index.html">
+  <title>預かり保育 計算シート - リダイレクト</title>
   <style>
- b dy { font-f: ily: "Noto San, JP", syst, -ui, sans-; rif; m: g; : 0; pa: ing:; 6px; backg: #f8fafc; afc; : #111827; 8
-    h1 { margin: 0 0 12px; }
-    h2 { margin: 0 0 12px; }
-    .card { background: #fff; border: 1px solid #d4d4d8; border-radius: 12px; padding: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.06); margin-bottom: 16px; }
-    .controls { display: flex; flex-wrap: wrap; gap: 12px; }
-    .controls label { display: flex; align-items: center; gap: 6px; font-size: 13px; color: #4b5563; }
-    table { width: 100%; border-collapse: collapse; background: #fff; }
-    th, td { border: 1px solid #d4d4d8; padding: 8px; text-align: center; font-size: 14px; }
-    th { background: #eef2ff; }
-    .muted { color: #6b7280; font-size: 13px; margin-top: 4px; }
-    .hidden-col { display: none; }
-    .azukari-options { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 6px; margin-bottom: 6px; }
-    .plan-btn { padding: 6px 8px; border: 1px solid #cbd5e1; border-radius: 8px; background: #f8fafc; cursor: pointer; font-size: 13px; transition: all 0.15s ease; }
-    .plan-btn:hover { background: #eef2ff; }
-    .plan-btn.active { background: #4338ca; color: #fff; border-color: #4338ca; }
-    .azukari-summary, .extension-text, .total-text { font-weight: 700; color: #0f172a; }
-    .time-input { width: 90px; padding: 6px; font-size: 14px; }
-    .badge { display: inline-block; padding: 4px 8px; border-radius: 999px; background: #e0e7ff; color: #3730a3; font-weight: 700; font-size: 12px; margin-right: 6px; }
-    .note-list { margin: 8px 0 0; padding-left: 18px; color: #4b5563; }
+    body {
+      font-family: "Noto Sans JP", system-ui, -apple-system, sans-serif;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      margin: 0;
+      background: #f8fafc;
+      color: #0f172a;
+    }
+    .panel {
+      background: #fff;
+      border: 1px solid #e5e7eb;
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+      text-align: center;
+      max-width: 360px;
+    }
+    a { color: #4338ca; }
   </style>
 </head>
 <body>
-  <header class="card">
-    <h1>預かり保育と延長の計算</h1>
-    <div class="muted">1号認定 8:30-13:00 / 預かり保育 13:00-16:30 500円。預かり保育利用時は延長保育料金がかかりません。</div>
-    <ul class="note-list">
-      <li>預かり保育の種類：1日(8:30-16:30) 1,000円、午前(8:30-13:00) 500円、午後(13:00-16:30) 500円。延長（Encho）の長時間預かりもこの列でまとめて選択します。</li>
-      <li>降園列の右に預かり保育と延長保育の列を追加しています。</li>
-    </ul>
-  </header>
-
-  <section class="card">
-    <h2>表示設定</h2>
-    <div class="controls" id="columnToggles" aria-label="列の表示設定">
-      <label><input type="checkbox" data-target="col-year" checked> 年</label>
-      <label><input type="checkbox" data-target="col-month" checked> 月</label>
-      <label><input type="checkbox" data-target="col-day" checked> 日</label>
-      <label><input type="checkbox" data-target="col-arrive" checked> 登園</label>
-      <label><input type="checkbox" data-target="col-leave" checked> 降園</label>
-      <label><input type="checkbox" data-target="col-azukari" checked> 預かり保育</label>
-      <label><input type="checkbox" data-target="col-extend" checked> 延長保育</label>
-      <label><input type="checkbox" data-target="col-total" checked> 合計</label>
-      <label><input type="checkbox" data-target="col-remark" checked> 備考</label>
-    </div>
-  </section>
-
-  <section class="card">
-    <h2>日次明細</h2>
-    <table id="detailTable">
-      <thead>
-        <tr>
-          <th class="col-year">年</th>
-          <th class="col-month">月</th>
-          <th class="col-day">日</th>
-          <th class="col-arrive">登園時刻</th>
-          <th class="col-leave">降園時刻</th>
-          <th class="col-azukari">預かり保育</th>
-          <th class="col-extend">延長保育</th>
-          <th class="col-total">日額</th>
-          <th class="col-remark">備考</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr data-arrive="08:30" data-leave="16:30" data-plan="afternoon">
-          <td class="col-year">2024</td>
-          <td class="col-month">05</td>
-          <td class="col-day">01</td>
-          <td class="col-arrive"><input class="time-input arrive-input" type="time" value="08:30" aria-label="5月1日の登園時刻"></td>
-          <td class="col-leave"><input class="time-input leave-input" type="time" value="16:30" aria-label="5月1日の降園時刻"></td>
-          <td class="col-azukari">
-            <div class="azukari-options" role="group" aria-label="預かり保育の選択">
-              <button type="button" class="plan-btn" data-plan="fullday">1日 8:30-16:30</button>
-              <button type="button" class="plan-btn" data-plan="morning">午前 8:30-13:00</button>
-              <button type="button" class="plan-btn" data-plan="afternoon">午後 13:00-16:30</button>
-            </div>
-            <div class="muted">ボタンを選択解除すると「預かりなし / 延長のみ」の扱いになります。</div>
-            <div class="azukari-summary">預かり保育なし / 0円</div>
-          </td>
-          <td class="col-extend"><span class="extension-text">0分 / 0円</span></td>
-          <td class="col-total"><span class="total-text">0円</span></td>
-          <td class="col-remark">午後預かり保育に該当</td>
-        </tr>
-        <tr data-arrive="08:15" data-leave="18:00" data-plan="none">
-          <td class="col-year">2024</td>
-          <td class="col-month">05</td>
-          <td class="col-day">02</td>
-          <td class="col-arrive"><input class="time-input arrive-input" type="time" value="08:15" aria-label="5月2日の登園時刻"></td>
-          <td class="col-leave"><input class="time-input leave-input" type="time" value="18:00" aria-label="5月2日の降園時刻"></td>
-          <td class="col-azukari">
-            <div class="azukari-options" role="group" aria-label="預かり保育の選択">
-              <button type="button" class="plan-btn" data-plan="fullday">1日 8:30-16:30</button>
-              <button type="button" class="plan-btn" data-plan="morning">午前 8:30-13:00</button>
-              <button type="button" class="plan-btn" data-plan="afternoon">午後 13:00-16:30</button>
-            </div>
-            <div class="muted">ボタンを選択解除すると「預かりなし / 延長のみ」の扱いになります。</div>
-            <div class="azukari-summary">預かり保育なし / 0円</div>
-          </td>
-          <td class="col-extend"><span class="extension-text">0分 / 0円</span></td>
-          <td class="col-total"><span class="total-text">0円</span></td>
-          <td class="col-remark">延長のみ利用などメモに</td>
-        </tr>
-      </tbody>
-    </table>
-  </section>
-
-  <script>
-    const table = document.getElementById('detailTable');
-    const toggleContainer = document.getElementById('columnToggles');
-
-    const planInfo = {
-      none: { label: '預かり保育なし', fee: 0, range: '—' },
-      fullday: { label: '1日預かり', fee: 1000, range: '8:30-16:30' },
-      morning: { label: '午前預かり', fee: 500, range: '8:30-13:00' },
-      afternoon: { label: '午後預かり', fee: 500, range: '13:00-16:30' }
-    };
-
-    const EXTENSION_BASE_MINUTES = 16 * 60 + 30; // 16:30
-    const EXTENSION_UNIT = 30; // minutes
-    const EXTENSION_FEE_PER_UNIT = 200;
-
-    function timeToMinutes(timeValue) {
-      const [hour, minute] = timeValue.split(':').map(Number);
-      return hour * 60 + minute;
-    }
-
-    function formatCurrency(amount) {
-      return `${amount.toLocaleString()}円`;
-    }
-
-    function markActiveButton(cell, planKey) {
-      cell.querySelectorAll('.plan-btn').forEach((btn) => {
-        btn.classList.toggle('active', btn.dataset.plan === planKey);
-      });
-    }
-
-    function calcExtensionMinutes(leaveMinutes, planKey) {
-      if (planKey !== 'none') return 0; // 預かり保育利用時は延長保育料金無し
-      return Math.max(0, leaveMinutes - EXTENSION_BASE_MINUTES);
-    }
-
-    function recalcRow(row) {
-      const leaveInput = row.querySelector('.leave-input');
-      const planKey = row.dataset.plan || 'none';
-
-      const leaveMinutes = timeToMinutes(leaveInput.value);
-      const plan = planInfo[planKey];
-
-      const planFee = plan.fee;
-      const extensionMinutes = calcExtensionMinutes(leaveMinutes, planKey);
-      const extensionUnits = Math.ceil(extensionMinutes / EXTENSION_UNIT);
-      const extensionFee = extensionMinutes > 0 ? extensionUnits * EXTENSION_FEE_PER_UNIT : 0;
-
-      const summaryEl = row.querySelector('.azukari-summary');
-      summaryEl.textContent = `${plan.label}${plan.range !== '—' ? ` (${plan.range})` : ''} / ${formatCurrency(planFee)}`;
-
-      const extensionEl = row.querySelector('.extension-text');
-      extensionEl.textContent = `${extensionMinutes}分 / ${formatCurrency(extensionFee)}`;
-
-      const totalEl = row.querySelector('.total-text');
-      totalEl.textContent = formatCurrency(planFee + extensionFee);
-    }
-
-    function setupRows() {
-      table.querySelectorAll('tbody tr').forEach((row) => {
-        const initialPlan = row.dataset.plan || 'none';
-        row.dataset.plan = initialPlan;
-        markActiveButton(row.querySelector('.col-azukari'), initialPlan);
-        recalcRow(row);
-
-        row.querySelectorAll('.plan-btn').forEach((btn) => {
-          btn.addEventListener('click', () => {
-            const isActive = btn.classList.contains('active');
-            const nextPlan = isActive ? 'none' : btn.dataset.plan;
-            row.dataset.plan = nextPlan;
-            markActiveButton(row.querySelector('.col-azukari'), nextPlan);
-            recalcRow(row);
-          });
-        });
-
-        row.querySelectorAll('.time-input').forEach((input) => {
-          input.addEventListener('change', () => recalcRow(row));
-        });
-      });
-    }
-
-    toggleContainer.addEventListener('change', (event) => {
-      const checkbox = event.target;
-      if (checkbox.tagName !== 'INPUT') return;
-      const targetClass = checkbox.getAttribute('data-target');
-      const cells = table.querySelectorAll('.' + targetClass);
-      cells.forEach((cell) => {
-        cell.classList.toggle('hidden-col', !checkbox.checked);
-      });
-    });
-
-    setupRows();
-  </script>
-
-<script>
-  window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };
-</script>
-<script defer src="/_vercel/insights/script.js"></script>
+  <div class="panel">
+    <p>新しいURLに移動しています…</p>
+    <p><a href="Calcu/index.html">移動しない場合はこちらをクリック</a></p>
+  </div>
 </body>
 </html>
