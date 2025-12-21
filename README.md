@@ -164,12 +164,6 @@ npm install -g vercel
 vercel dev
 ```
 
-### Build
-
-```bash
-npm run build  # If build scripts are configured
-```
-
 ### Testing
 
 ```bash
