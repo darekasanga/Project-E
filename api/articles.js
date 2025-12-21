@@ -2,7 +2,9 @@ import fs from "fs";
 import path from "path";
 
 const BUNDLE_DATA_PATH = path.join(process.cwd(), "api", "articles-data.json");
-const RUNTIME_DATA_PATH = process.env.ARTICLES_DATA_PATH || path.join("/tmp", "articles-data.json");
+const STORAGE_FILE_PATH =
+  process.env.ARTICLES_DATA_PATH ||
+  path.join(process.cwd(), "data", "articles-data.json");
 const seedArticles = [
   {
     title: "スクロールスナップで魅せるiPad特集",
@@ -34,15 +36,27 @@ function readSeedPayload() {
 
 const defaultPayload = readSeedPayload();
 
-function readArticles() {
+function ensureStorageDirectory() {
+  const dir = path.dirname(STORAGE_FILE_PATH);
+  fs.mkdirSync(dir, { recursive: true });
+}
+
+function loadFromStorage() {
   try {
-    const raw = fs.readFileSync(RUNTIME_DATA_PATH, "utf8");
+    if (!fs.existsSync(STORAGE_FILE_PATH)) return null;
+    const raw = fs.readFileSync(STORAGE_FILE_PATH, "utf8");
     const parsed = JSON.parse(raw);
     if (Array.isArray(parsed)) return parsed;
     if (Array.isArray(parsed.articles)) return parsed.articles;
   } catch (err) {
-    // fall through to defaults
+    // swallow read errors to allow fallback to bundled data
   }
+  return null;
+}
+
+function readArticles() {
+  const storedArticles = loadFromStorage();
+  if (storedArticles) return storedArticles;
   return defaultPayload.articles || [];
 }
 
@@ -54,8 +68,9 @@ async function readJSON(req) {
 }
 
 function persistArticles(articles) {
+  ensureStorageDirectory();
   fs.writeFileSync(
-    RUNTIME_DATA_PATH,
+    STORAGE_FILE_PATH,
     JSON.stringify({ articles }, null, 2),
     "utf8"
   );
@@ -63,8 +78,14 @@ function persistArticles(articles) {
 
 export default async function handler(req, res) {
   if (req.method === "GET") {
-    const articles = readArticles();
-    return res.status(200).json({ articles });
+    try {
+      const articles = readArticles();
+      return res.status(200).json({ articles });
+    } catch (err) {
+      return res
+        .status(500)
+        .json({ error: "unable to read articles from persistent storage" });
+    }
   }
 
   if (req.method === "POST") {
