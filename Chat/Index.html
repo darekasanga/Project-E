@@ -60,13 +60,6 @@
       justify-content: space-between;
       align-items: center;
       background: radial-gradient(circle at top left, rgba(56,189,248,0.1), transparent 60%);
-      flex-wrap: wrap;
-      gap: 12px;
-    }
-
-    header .title-section {
-      flex: 1;
-      min-width: 280px;
     }
 
     header .title {
@@ -91,29 +84,6 @@
 
     header .subtitle {
       font-size: 12px;
-      color: var(--text-muted);
-    }
-
-    header .header-meta {
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-      align-items: flex-end;
-    }
-
-    header .version-badge {
-      display: inline-block;
-      padding: 4px 10px;
-      border-radius: 999px;
-      background: rgba(56, 189, 248, 0.2);
-      color: var(--accent);
-      font-weight: 700;
-      font-size: 11px;
-      border: 1px solid rgba(56, 189, 248, 0.3);
-    }
-
-    header .meta-text {
-      font-size: 11px;
       color: var(--text-muted);
     }
 
@@ -709,21 +679,15 @@
 <body>
   <div class="app-shell">
     <header>
-      <div class="title-section">
+      <div>
         <div class="title">
           <span class="logo">TOC</span>
           <span>Chat TOC Maker</span>
         </div>
         <div class="subtitle">会話ログから自動でカテゴリ別の「目次」を作成してジャンプ ✨</div>
       </div>
-      <div class="header-meta">
-        <div>
-          <span class="version-badge">v1.0.0</span>
-          <span class="meta-text">最終更新: <span id="lastUpdated">--</span></span>
-        </div>
-        <div class="badge">
-          🔨🤖🔧 <span>HTML + CSS + JS だけでローカル動作</span>
-        </div>
+      <div class="badge">
+        🔨🤖🔧 <span>HTML + CSS + JS だけでローカル動作</span>
       </div>
     </header>
 
@@ -820,16 +784,6 @@ Assistant: ...
   </div>
 
   <script>
-    // ----- Update last modified date ----- //
-    function updateLastUpdated() {
-      const lastUpdatedEl = document.getElementById('lastUpdated');
-      const updated = new Date(document.lastModified);
-      const formatted = `${updated.getFullYear()}年${String(updated.getMonth() + 1).padStart(2, '0')}月${String(updated.getDate()).padStart(2, '0')}日 ${String(updated.getHours()).padStart(2, '0')}:${String(updated.getMinutes()).padStart(2, '0')}`;
-      lastUpdatedEl.textContent = formatted;
-    }
-
-    updateLastUpdated();
-
     // ----- 型のイメージ用コメント ----- //
     /**
      * conversations: [
