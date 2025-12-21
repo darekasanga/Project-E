@@ -3,6 +3,9 @@
   "functions": {
     "api/*.js": {
       "runtime": "nodejs18.x"
+    },
+    "api/*.php": {
+      "runtime": "vercel-php@0.5.0"
     }
   },
   "rewrites": [
@@ -10,11 +13,4 @@
     { "source": "/api/(.*)", "destination": "/api/$1" },
     { "source": "/(.*)", "destination": "/public/$1" }
   ]
-}
-{
-  "functions": {
-    "api/*.php": {
-      "runtime": "vercel-php@0.5.0"
-    }
-  }
 }

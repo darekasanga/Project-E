@@ -46,6 +46,15 @@
       </div>
     </section>
 
+    <section class="panel stack" id="featureRail" style="display:none;">
+      <div class="section-title">
+        <h3>特集スライド</h3>
+        <span class="tiny">管理ページで選んだ記事を横にスライド</span>
+      </div>
+      <div class="scroll-row feature-row" id="featureTrack"></div>
+      <p class="tiny muted" id="featureNote">記事追加後に特集が表示されます。</p>
+    </section>
+
     <section class="split-layout">
       <div class="list-shell">
         <div class="list-head">
@@ -91,6 +100,9 @@
     const featuredCopy = document.getElementById("featuredCopy");
     const featuredShare = document.getElementById("featuredShare");
     const featuredVisual = document.getElementById("featuredVisual");
+    const featureRail = document.getElementById("featureRail");
+    const featureTrack = document.getElementById("featureTrack");
+    const featureNote = document.getElementById("featureNote");
     const pinnedWrapper = document.getElementById("pinnedWrapper");
     const pinnedList = document.getElementById("pinnedList");
     const copyTexts = BlogData.loadCopy();
@@ -124,6 +136,14 @@
     }
 
     applyCopy();
+
+    function applyCardHeight(settings) {
+      if (Number.isInteger(settings?.cardHeight)) {
+        document.documentElement.style.setProperty("--card-height", `${settings.cardHeight}px`);
+      } else {
+        document.documentElement.style.removeProperty("--card-height");
+      }
+    }
 
     function formatRelative(index) {
       const base = Date.now() - index * 3_600_000 * 3;
@@ -196,6 +216,44 @@
       `;
     }
 
+    function renderFeatureRail(list, settings) {
+      featureTrack.innerHTML = "";
+      const selectedIds = settings.homeFeaturedIds?.length
+        ? settings.homeFeaturedIds
+        : list.map((_, idx) => idx);
+      const picked = selectedIds
+        .map((id) => ({ id, article: list[id] }))
+        .filter((item) => Number.isInteger(item.id) && item.article)
+        .slice(0, 6);
+      if (!picked.length) {
+        featureRail.style.display = "none";
+        return;
+      }
+      featureRail.style.display = "grid";
+      picked.forEach(({ article, id }) => {
+        const card = document.createElement("article");
+        card.className = "feature-card";
+        card.innerHTML = `
+          ${article.image ? `<img class="feature-thumb" src="${article.image}" alt="${article.title}">` : '<div class="thumb fallback" style="aspect-ratio:4/3;">NO IMAGE</div>'}
+          <div class="feature-body">
+            <div class="feature-meta">
+              <span class="badge">ID ${id}</span>
+              <span class="badge">${formatRelative(id)}に更新</span>
+            </div>
+            <h3 style="margin:0; font-size:18px; letter-spacing:0.01em;">${article.title || "無題の記事"}</h3>
+            <p class="muted" style="margin:0;">${article.body || "本文がありません"}</p>
+            <div class="meta">${(article.tags || []).map(tag => `<a class="tag" href="/tag.html?tag=${encodeURIComponent(tag)}">#${tag}</a>`).join("") || '<span class="tag">#untagged</span>'}</div>
+            <div class="actions" style="justify-content:flex-end;">
+              <a class="share" href="/blog-article.html?id=${id}" target="_blank">記事を開く</a>
+            </div>
+          </div>
+        `;
+        featureTrack.appendChild(card);
+      });
+      featureNote.textContent = `${picked.length}件の特集を横スライド表示中です。管理ページで並び順とカード高さを調整できます。`;
+      Lightbox.enhanceImages(featureTrack);
+    }
+
     function renderTags(list) {
       tagCloud.innerHTML = "";
       const counts = new Map();
@@ -261,7 +319,9 @@
       enforceAdminLinks();
       const articles = BlogData.loadArticles();
       const settings = BlogData.loadSettings();
+      applyCardHeight(settings);
       renderFeatured(settings, articles);
+      renderFeatureRail(articles, settings);
       renderList(articles);
       renderTags(articles);
       renderMeta(articles.length);

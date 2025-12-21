@@ -28,4 +28,6 @@ jobs:
 
     - name: Build
       run: |
-        npm ci
+        npm install
+        npm install --save-dev webpack-cli
+        npx webpack
