@@ -34,6 +34,19 @@
       color: #fff;
     }
 
+    .header-container {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .header-main {
+      flex: 1;
+      min-width: 280px;
+    }
+
     header h1 {
       margin: 0 0 4px;
       font-size: 22px;
@@ -43,6 +56,62 @@
       margin: 0;
       opacity: 0.9;
       font-size: 14px;
+    }
+
+    .header-meta {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      align-items: flex-end;
+    }
+
+    .version-info {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      align-items: flex-end;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.2);
+      color: #fff;
+      font-weight: 700;
+      font-size: 12px;
+    }
+
+    .meta-text {
+      font-size: 12px;
+      opacity: 0.85;
+    }
+
+    .header-buttons {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .header-btn {
+      padding: 8px 14px;
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      border-radius: 10px;
+      background: rgba(255, 255, 255, 0.15);
+      color: #fff;
+      text-decoration: none;
+      font-size: 13px;
+      font-weight: 600;
+      transition: all 0.15s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .header-btn:hover {
+      background: rgba(255, 255, 255, 0.25);
+      border-color: rgba(255, 255, 255, 0.5);
+      transform: translateY(-1px);
     }
 
     .links {
@@ -87,8 +156,22 @@
 <body>
   <main class="container">
     <header>
-      <h1>Project-E ポータル</h1>
-      <p>計算ツールやユーティリティへの入口です。必要なページを選択してください。</p>
+      <div class="header-container">
+        <div class="header-main">
+          <h1>Project-E ポータル</h1>
+          <p>計算ツールやユーティリティへの入口です。必要なページを選択してください。</p>
+        </div>
+        <div class="header-meta">
+          <div class="version-info">
+            <span class="badge">v1.0.0</span>
+            <span class="meta-text">最終更新: <span id="lastUpdated">--</span></span>
+          </div>
+          <div class="header-buttons">
+            <a class="header-btn" href="Calcu.html">📊 預かり保育</a>
+            <a class="header-btn" href="Chat/Index.html">📝 チャット目次</a>
+          </div>
+        </div>
+      </div>
     </header>
     <div class="links">
       <a class="link-card" href="Calcu.html">
@@ -101,5 +184,16 @@
       </a>
     </div>
   </main>
+  
+  <script>
+    function updateLastUpdated() {
+      const lastUpdatedEl = document.getElementById('lastUpdated');
+      const updated = new Date(document.lastModified);
+      const formatted = `${updated.getFullYear()}年${String(updated.getMonth() + 1).padStart(2, '0')}月${String(updated.getDate()).padStart(2, '0')}日 ${String(updated.getHours()).padStart(2, '0')}:${String(updated.getMinutes()).padStart(2, '0')}`;
+      lastUpdatedEl.textContent = formatted;
+    }
+    
+    updateLastUpdated();
+  </script>
 </body>
 </html>
