@@ -6,11 +6,17 @@
 <link rel="stylesheet" href="/assets/blog-shared.css">
 <body>
   <header class="site-header">
-    <div class="brand">
-      <div class="logo">E</div>
-      <div>
-        <h1>月別アーカイブ</h1>
-        <p>タグページから遷移できる月別まとめ</p>
+    <div class="header-leading">
+      <div class="brand">
+        <div class="logo">E</div>
+        <div>
+          <h1>月別アーカイブ</h1>
+          <p>タグページから遷移できる月別まとめ</p>
+        </div>
+      </div>
+      <div class="header-meta">
+        <span class="version-pill" data-site-version>v1.0.0</span>
+        <span class="tiny" data-site-updated>最終更新 0000/00/00</span>
       </div>
     </div>
     <div class="actions">
@@ -29,6 +35,7 @@
     </section>
   </main>
 
+  <script src="/assets/site-meta.js"></script>
   <script>
     const monthList = document.getElementById("monthList");
     const now = new Date();
@@ -54,5 +61,10 @@
 
     document.addEventListener("DOMContentLoaded", renderMonths);
   </script>
+
+<script>
+  window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };
+</script>
+<script defer src="/_vercel/insights/script.js"></script>
 </body>
 </html>

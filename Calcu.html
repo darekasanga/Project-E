@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>預かり保育 計算シート</title>
   <style>
-    body { font-family: "Noto Sans JP", system-ui, sans-serif; margin: 0; padding: 16px; background: #f8fafc; color: #111827; }
+ b dy { font-f: ily: "Noto San, JP", syst, -ui, sans-; rif; m: g; : 0; pa: ing:; 6px; backg: #f8fafc; afc; : #111827; 8
     h1 { margin: 0 0 12px; }
     h2 { margin: 0 0 12px; }
     .card { background: #fff; border: 1px solid #d4d4d8; border-radius: 12px; padding: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.06); margin-bottom: 16px; }
@@ -31,7 +31,7 @@
     <h1>預かり保育と延長の計算</h1>
     <div class="muted">1号認定 8:30-13:00 / 預かり保育 13:00-16:30 500円。預かり保育利用時は延長保育料金がかかりません。</div>
     <ul class="note-list">
-      <li>預かり保育の種類：午前(8:30-13:00) 500円、午後(13:00-16:30) 500円、1日(8:30-16:30) 1,000円。</li>
+      <li>預かり保育の種類：1日(8:30-16:30) 1,000円、午前(8:30-13:00) 500円、午後(13:00-16:30) 500円。延長（Encho）の長時間預かりもこの列でまとめて選択します。</li>
       <li>降園列の右に預かり保育と延長保育の列を追加しています。</li>
     </ul>
   </header>
@@ -76,11 +76,11 @@
           <td class="col-leave"><input class="time-input leave-input" type="time" value="16:30" aria-label="5月1日の降園時刻"></td>
           <td class="col-azukari">
             <div class="azukari-options" role="group" aria-label="預かり保育の選択">
-              <button type="button" class="plan-btn" data-plan="none">なし</button>
+              <button type="button" class="plan-btn" data-plan="fullday">1日 8:30-16:30</button>
               <button type="button" class="plan-btn" data-plan="morning">午前 8:30-13:00</button>
               <button type="button" class="plan-btn" data-plan="afternoon">午後 13:00-16:30</button>
-              <button type="button" class="plan-btn" data-plan="fullday">1日 8:30-16:30</button>
             </div>
+            <div class="muted">ボタンを選択解除すると「預かりなし / 延長のみ」の扱いになります。</div>
             <div class="azukari-summary">預かり保育なし / 0円</div>
           </td>
           <td class="col-extend"><span class="extension-text">0分 / 0円</span></td>
@@ -95,11 +95,11 @@
           <td class="col-leave"><input class="time-input leave-input" type="time" value="18:00" aria-label="5月2日の降園時刻"></td>
           <td class="col-azukari">
             <div class="azukari-options" role="group" aria-label="預かり保育の選択">
-              <button type="button" class="plan-btn" data-plan="none">なし</button>
+              <button type="button" class="plan-btn" data-plan="fullday">1日 8:30-16:30</button>
               <button type="button" class="plan-btn" data-plan="morning">午前 8:30-13:00</button>
               <button type="button" class="plan-btn" data-plan="afternoon">午後 13:00-16:30</button>
-              <button type="button" class="plan-btn" data-plan="fullday">1日 8:30-16:30</button>
             </div>
+            <div class="muted">ボタンを選択解除すると「預かりなし / 延長のみ」の扱いになります。</div>
             <div class="azukari-summary">預かり保育なし / 0円</div>
           </td>
           <td class="col-extend"><span class="extension-text">0分 / 0円</span></td>
@@ -116,9 +116,9 @@
 
     const planInfo = {
       none: { label: '預かり保育なし', fee: 0, range: '—' },
+      fullday: { label: '1日預かり', fee: 1000, range: '8:30-16:30' },
       morning: { label: '午前預かり', fee: 500, range: '8:30-13:00' },
-      afternoon: { label: '午後預かり', fee: 500, range: '13:00-16:30' },
-      fullday: { label: '1日預かり', fee: 1000, range: '8:30-16:30' }
+      afternoon: { label: '午後預かり', fee: 500, range: '13:00-16:30' }
     };
 
     const EXTENSION_BASE_MINUTES = 16 * 60 + 30; // 16:30
@@ -176,8 +176,10 @@
 
         row.querySelectorAll('.plan-btn').forEach((btn) => {
           btn.addEventListener('click', () => {
-            row.dataset.plan = btn.dataset.plan;
-            markActiveButton(row.querySelector('.col-azukari'), btn.dataset.plan);
+            const isActive = btn.classList.contains('active');
+            const nextPlan = isActive ? 'none' : btn.dataset.plan;
+            row.dataset.plan = nextPlan;
+            markActiveButton(row.querySelector('.col-azukari'), nextPlan);
             recalcRow(row);
           });
         });
@@ -200,5 +202,10 @@
 
     setupRows();
   </script>
+
+<script>
+  window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };
+</script>
+<script defer src="/_vercel/insights/script.js"></script>
 </body>
 </html>

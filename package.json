@@ -3,7 +3,13 @@
   "version": "1.0.0",
   "private": true,
   "type": "module",
+  "engines": {
+    "node": ">=18"
+  },
   "scripts": {
     "test": "echo \"No tests configured\""
+  },
+  "devDependencies": {
+    "webpack-cli": "^6.0.1"
   }
 }
