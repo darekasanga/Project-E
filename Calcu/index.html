@@ -236,12 +236,12 @@
       });
     }
 
+    // Row calculation functions
     function calcExtensionMinutes(leaveMinutes, planKey) {
       if (planKey !== 'none') return 0; // 預かり保育利用時は延長保育料金無し
       return Math.max(0, leaveMinutes - CONFIG.EXTENSION_BASE_MINUTES);
     }
 
-    // Row calculation functions
     function recalcRow(row) {
       const leaveInput = row.querySelector('.leave-input');
       const planKey = row.dataset.plan || 'none';
@@ -287,7 +287,7 @@
       });
     }
 
-    // Column visibility functions
+    // Column visibility management
     function updateColumnVisibility(table, button, forceActive) {
       const targetClass = button.getAttribute('data-target');
       const isActive = forceActive !== undefined ? forceActive : !button.classList.contains('active');
@@ -312,7 +312,7 @@
       });
     }
 
-    // UI update functions
+    // Update last modified timestamp
     function updateLastUpdated() {
       const lastUpdatedEl = document.getElementById('lastUpdated');
       const updated = new Date(document.lastModified);
