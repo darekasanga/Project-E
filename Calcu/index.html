@@ -202,20 +202,25 @@
   </section>
 
   <script>
-    const table = document.getElementById('detailTable');
-    const toggleContainer = document.getElementById('columnToggles');
+    /**
+     * Project-E Calculator - Main Application
+     * Childcare fee calculation system for 1号認定 kindergarten students
+     */
 
-    const planInfo = {
-      none: { label: '預かり保育なし', fee: 0, range: '—' },
-      fullday: { label: '1日預かり', fee: 1000, range: '8:30-16:30' },
-      morning: { label: '午前預かり', fee: 500, range: '8:30-13:00' },
-      afternoon: { label: '午後預かり', fee: 500, range: '13:00-16:30' }
+    // Configuration constants
+    const CONFIG = {
+      EXTENSION_BASE_MINUTES: 16 * 60 + 30, // 16:30
+      EXTENSION_UNIT: 30, // minutes
+      EXTENSION_FEE_PER_UNIT: 200,
+      PLAN_INFO: {
+        none: { label: '預かり保育なし', fee: 0, range: '—' },
+        fullday: { label: '1日預かり', fee: 1000, range: '8:30-16:30' },
+        morning: { label: '午前預かり', fee: 500, range: '8:30-13:00' },
+        afternoon: { label: '午後預かり', fee: 500, range: '13:00-16:30' }
+      }
     };
 
-    const EXTENSION_BASE_MINUTES = 16 * 60 + 30; // 16:30
-    const EXTENSION_UNIT = 30; // minutes
-    const EXTENSION_FEE_PER_UNIT = 200;
-
+    // Utility functions
     function timeToMinutes(timeValue) {
       const [hour, minute] = timeValue.split(':').map(Number);
       return hour * 60 + minute;
@@ -233,20 +238,21 @@
 
     function calcExtensionMinutes(leaveMinutes, planKey) {
       if (planKey !== 'none') return 0; // 預かり保育利用時は延長保育料金無し
-      return Math.max(0, leaveMinutes - EXTENSION_BASE_MINUTES);
+      return Math.max(0, leaveMinutes - CONFIG.EXTENSION_BASE_MINUTES);
     }
 
+    // Row calculation functions
     function recalcRow(row) {
       const leaveInput = row.querySelector('.leave-input');
       const planKey = row.dataset.plan || 'none';
 
       const leaveMinutes = timeToMinutes(leaveInput.value);
-      const plan = planInfo[planKey];
+      const plan = CONFIG.PLAN_INFO[planKey];
 
       const planFee = plan.fee;
       const extensionMinutes = calcExtensionMinutes(leaveMinutes, planKey);
-      const extensionUnits = Math.ceil(extensionMinutes / EXTENSION_UNIT);
-      const extensionFee = extensionMinutes > 0 ? extensionUnits * EXTENSION_FEE_PER_UNIT : 0;
+      const extensionUnits = Math.ceil(extensionMinutes / CONFIG.EXTENSION_UNIT);
+      const extensionFee = extensionMinutes > 0 ? extensionUnits * CONFIG.EXTENSION_FEE_PER_UNIT : 0;
 
       const summaryEl = row.querySelector('.azukari-summary');
       summaryEl.textContent = `${plan.label}${plan.range !== '—' ? ` (${plan.range})` : ''} / ${formatCurrency(planFee)}`;
@@ -258,7 +264,7 @@
       totalEl.textContent = formatCurrency(planFee + extensionFee);
     }
 
-    function setupRows() {
+    function setupRows(table) {
       table.querySelectorAll('tbody tr').forEach((row) => {
         const initialPlan = row.dataset.plan || 'none';
         row.dataset.plan = initialPlan;
@@ -281,7 +287,8 @@
       });
     }
 
-    function updateColumnVisibility(button, forceActive) {
+    // Column visibility functions
+    function updateColumnVisibility(table, button, forceActive) {
       const targetClass = button.getAttribute('data-target');
       const isActive = forceActive !== undefined ? forceActive : !button.classList.contains('active');
       button.classList.toggle('active', isActive);
@@ -291,18 +298,21 @@
       });
     }
 
-    toggleContainer.addEventListener('click', (event) => {
-      const button = event.target.closest('.toggle-btn');
-      if (!button) return;
-      updateColumnVisibility(button);
-    });
-
-    function initColumnButtons() {
+    function initColumnButtons(table, toggleContainer) {
       toggleContainer.querySelectorAll('.toggle-btn').forEach((button) => {
-        updateColumnVisibility(button, true);
+        updateColumnVisibility(table, button, true);
       });
     }
 
+    function setupColumnToggles(table, toggleContainer) {
+      toggleContainer.addEventListener('click', (event) => {
+        const button = event.target.closest('.toggle-btn');
+        if (!button) return;
+        updateColumnVisibility(table, button);
+      });
+    }
+
+    // UI update functions
     function updateLastUpdated() {
       const lastUpdatedEl = document.getElementById('lastUpdated');
       const updated = new Date(document.lastModified);
@@ -310,9 +320,28 @@
       lastUpdatedEl.textContent = formatted;
     }
 
-    setupRows();
-    initColumnButtons();
-    updateLastUpdated();
+    /**
+     * Main application initialization
+     * Called when DOM is ready
+     */
+    function main() {
+      // Get DOM elements
+      const table = document.getElementById('detailTable');
+      const toggleContainer = document.getElementById('columnToggles');
+
+      // Initialize calculator components
+      setupRows(table);
+      initColumnButtons(table, toggleContainer);
+      setupColumnToggles(table, toggleContainer);
+      updateLastUpdated();
+    }
+
+    // Initialize application when DOM is ready
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', main);
+    } else {
+      main();
+    }
   </script>
 
 <script>
