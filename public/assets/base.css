@@ -50,6 +50,13 @@ header.site-header {
   border-bottom: 1px solid var(--border);
 }
 
+.header-leading {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
 .brand {
   display: flex;
   align-items: center;
@@ -79,6 +86,24 @@ header.site-header {
   margin: 2px 0 0;
   color: var(--muted);
   font-size: 13px;
+}
+
+.header-meta {
+  display: grid;
+  gap: 6px;
+  align-content: flex-start;
+}
+
+.header-meta .version-pill {
+  background: linear-gradient(135deg, var(--accent), #0ea34f);
+  color: #041902;
+  border: 1px solid #0f2f14;
+  padding: 8px 12px;
+  border-radius: 12px;
+  font-weight: 700;
+  font-size: 13px;
+  width: fit-content;
+  box-shadow: 0 8px 24px rgba(6, 199, 85, 0.28);
 }
 
 .actions {
@@ -562,6 +587,7 @@ footer {
 
 @media (max-width: 719px) {
   header.site-header { flex-direction: column; align-items: flex-start; }
+  .header-leading, .actions { width: 100%; }
   .container { padding: 16px 14px 54px; }
   .section-title { flex-direction: column; align-items: flex-start; }
 }
