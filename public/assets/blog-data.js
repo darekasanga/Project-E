@@ -100,8 +100,11 @@
       ? [...new Set(raw.footerIds.filter((idx) => Number.isInteger(idx) && idx >= 0 && idx < limit))]
       : [];
     const homeLatestIds = buildSelection(raw?.homeLatestIds, 4);
-    const homeFeaturedIds = buildSelection(raw?.homeFeaturedIds, 4);
-    return { heroId, featuredId, footerIds, homeLatestIds, homeFeaturedIds };
+    const homeFeaturedIds = buildSelection(raw?.homeFeaturedIds ?? raw?.featureSliderIds, 6);
+    const cardHeight = Number.isInteger(raw?.cardHeight)
+      ? Math.min(800, Math.max(240, raw.cardHeight))
+      : 380;
+    return { heroId, featuredId, footerIds, homeLatestIds, homeFeaturedIds, cardHeight };
   }
 
   function loadSettings() {

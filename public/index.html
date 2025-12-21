@@ -47,7 +47,7 @@
         <span class="tiny">管理ページで選択した記事をスライド表示</span>
       </div>
       <div class="scroll-row feature-row" id="featureRow"></div>
-      <p class="tiny muted" id="featureHint">トップページの特集枠です。管理ページの「トップページの注目記事」から設定できます。</p>
+      <p class="tiny muted" id="featureHint">トップ/一覧共通の横スライド特集です。管理ページの「特集スライド」と「カードの縦サイズ」から調整できます。</p>
     </section>
 
     <section class="panel stack latest-list" id="latestSection">
@@ -116,6 +116,14 @@
       return `${days}日前`;
     }
 
+    function applyCardHeight(settings) {
+      if (Number.isInteger(settings?.cardHeight)) {
+        document.documentElement.style.setProperty("--card-height", `${settings.cardHeight}px`);
+      } else {
+        document.documentElement.style.removeProperty("--card-height");
+      }
+    }
+
     function renderHero(articles) {
       const { article, idx } = BlogData.getHeroArticle();
       const target = article ?? articles[0];
@@ -146,7 +154,7 @@
     function renderFeatured(articles) {
       featureRow.innerHTML = "";
       const { list } = BlogData.getHomeFeaturedArticles();
-      const source = list.length ? list : articles.slice(0, 4).map((article, idx) => ({ article, idx }));
+      const source = list.length ? list : articles.slice(0, 6).map((article, idx) => ({ article, idx }));
       if (!source.length) {
         featureSection.style.display = "none";
         return new Set();
@@ -237,6 +245,8 @@
 
     document.addEventListener("DOMContentLoaded", () => {
       enforceAdminLinks();
+      const settings = BlogData.loadSettings();
+      applyCardHeight(settings);
       const articles = BlogData.loadArticles();
       renderHero(articles);
       const featuredIds = renderFeatured(articles);
