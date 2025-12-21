@@ -4,7 +4,7 @@ import path from "path";
 const BUNDLE_DATA_PATH = path.join(process.cwd(), "api", "articles-data.json");
 const STORAGE_FILE_PATH =
   process.env.ARTICLES_DATA_PATH ||
-  path.join(process.cwd(), "data", "articles-data.json");
+  path.join("/tmp", "articles-data.json");
 const seedArticles = [
   {
     title: "スクロールスナップで魅せるiPad特集",
