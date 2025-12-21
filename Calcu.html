@@ -181,6 +181,10 @@
     <div style="flex:1;">
       <h1>延長・預り保育 計算</h1>
       <p>延長：30分200円（3,000円上限）／ 預り：定額（要件反映済）</p>
+      <p style="font-size:11px;margin:4px 0 0;opacity:0.85;">
+        <span style="font-weight:700;">v1.3.0</span> | 
+        最終更新: <span id="lastUpdated">--</span>
+      </p>
     </div>
     <button id="toggleSidebar" class="sidebar-toggle">サイドバーをとじる</button>
   </header>
@@ -665,9 +669,9 @@ function renderDetails(details){
       const tagType = item.typeKey==="1gou" ? `<span class="tag on">1号</span>` : `<span class="tag">区分</span>`;
 
       const vacationBtnLabel =
-        item.vacationMode==="ALL" ? "長期休暇(1日)" :
-        item.vacationMode==="AM"  ? "長期休暇(午前)" :
-        item.vacationMode==="PM"  ? "長期休暇(午後)" :
+        item.vacationMode==="ALL" ? "1日 1000円" :
+        item.vacationMode==="AM"  ? "午前 500円" :
+        item.vacationMode==="PM"  ? "午後 500円" :
         "長期休暇";
       const vacationBtnClass = `small vac-btn vacationBtn ${item.vacationMode ? 'active' : ''}`;
 
@@ -707,9 +711,9 @@ function renderDetails(details){
             <input class="time-input leaveInput" data-rk="${esc(item.recordKey)}" value="${esc(item.leave)}" placeholder="HH:MM">
             <div class="diff">${formatDiff(item.deltaLeave)}</div>
           </td>
-          <td>${item.extMinutes>0 ? `${item.extMinutes}分` : "-"}</td>
-          <td>${item.extFee.toLocaleString()}円</td>
-          <td><b>${item.totalFee.toLocaleString()}円</b></td>
+          <td>${item.extMinutes>0 ? `${item.extMinutes}分` : "—"}</td>
+          <td>${item.extMinutes>0 ? `${item.extFee.toLocaleString()}円` : "適用なし"}</td>
+          <td><b>${item.extMinutes>0 || item.azukariFee>0 ? `${item.totalFee.toLocaleString()}円` : "—"}</b></td>
         </tr>
       `;
     }).join("");
@@ -967,6 +971,17 @@ function applySettingsToInputs(){
   extBufferEl.value    = String(state.extBuffer ?? 0);
   azJudgeEl.value      = String(state.azJudge ?? "15:00");
 }
+
+function updateLastModified(){
+  const el = document.getElementById('lastUpdated');
+  if (!el) return;
+  const now = new Date();
+  const formatted = `${now.getFullYear()}年${String(now.getMonth()+1).padStart(2,'0')}月${String(now.getDate()).padStart(2,'0')}日 ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+  el.textContent = formatted;
+}
+
+// Initialize on load
+updateLastModified();
 </script>
 </body>
 </html>
