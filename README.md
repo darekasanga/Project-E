@@ -7,7 +7,7 @@ Articles API data is stored in a configurable location. Set the `ARTICLES_DATA_P
 **Default behavior:**
 - If `ARTICLES_DATA_PATH` is not set, the API writes to `/tmp/articles-data.json`
 - On Vercel's serverless runtime, `/tmp` is the only writable directory, but data is ephemeral and lost between deployments
-- For persistent storage on Vercel, configure `ARTICLES_DATA_PATH` to point to a writable external storage solution (e.g., Vercel KV, database, or external file storage)
+- For persistent storage on Vercel, configure `ARTICLES_DATA_PATH` to point to a mounted volume or external file storage location
 - For local development with persistent storage, set `ARTICLES_DATA_PATH` to a local directory (e.g., `./data/articles-data.json`)
 
 ### Runtime requirements
