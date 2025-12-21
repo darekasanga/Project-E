@@ -80,6 +80,29 @@
     </section>
 
     <section class="panel stack">
+      <div class="section-title" style="align-items: flex-end;">
+        <div>
+          <h3>バックアップ / 復元</h3>
+          <p class="tiny" style="margin:4px 0 0;">JSONを保存・復元して、アップデート後も記事や設定を残せます。</p>
+        </div>
+        <div class="inline-chips">
+          <span class="badge">記事・設定・リンク・コメント</span>
+          <span class="badge">ローカル保存 + JSON</span>
+        </div>
+      </div>
+      <div class="flex" style="gap:10px; flex-wrap: wrap; align-items: center;">
+        <button class="primary" type="button" id="backupExport">バックアップを作成</button>
+        <button class="secondary" type="button" id="backupImport">JSONを復元</button>
+        <label class="pill ghost" style="cursor:pointer; gap:6px; align-items:center;">
+          ファイルを読み込む
+          <input id="backupFile" type="file" accept="application/json" style="display:none;">
+        </label>
+        <span class="tiny" id="backupStatus">ローカルにも自動保存されます。</span>
+      </div>
+      <textarea id="backupTextarea" rows="8" style="width:100%; background:#050505; color:var(--text); border:1px solid var(--border); border-radius: var(--radius); padding:10px; font-family: ui-monospace, SFMono-Regular, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;"></textarea>
+    </section>
+
+    <section class="panel stack">
       <div class="section-title">
         <h3>文言設定</h3>
         <span class="tiny">一覧ページの各項目テキストを変更</span>
@@ -266,6 +289,11 @@
   const pageLinkStatus = document.getElementById("pageLinkStatus");
   const pageLinkList = document.getElementById("pageLinkList");
   const pageLinkReset = document.getElementById("pageLinkReset");
+  const backupTextarea = document.getElementById("backupTextarea");
+  const backupStatus = document.getElementById("backupStatus");
+  const backupExportBtn = document.getElementById("backupExport");
+  const backupImportBtn = document.getElementById("backupImport");
+  const backupFileInput = document.getElementById("backupFile");
   let editingLinkId = null;
   let editingIdx = null;
   let imageData = "";
@@ -529,6 +557,40 @@
     copyExtraInput.value = "";
     copyExtraStatus.textContent = `${next.length}件の文言を保存しました。`;
     renderCopyExtras();
+  }
+
+  function refreshBackupTextarea() {
+    const snapshot = BlogData.exportState();
+    backupTextarea.value = JSON.stringify(snapshot, null, 2);
+    const date = new Date(snapshot.exportedAt);
+    backupStatus.textContent = `記事 ${snapshot.articles.length} 件を ${date.toLocaleString()} にバックアップしました。`;
+  }
+
+  function handleBackupImport(event) {
+    event?.preventDefault?.();
+    try {
+      const parsed = JSON.parse(backupTextarea.value || "{}");
+      const result = BlogData.importState(parsed);
+      backupStatus.textContent = `記事 ${result.articles.length} 件を復元しました。`;
+      renderList();
+      renderSettingsForm();
+      renderCopyForm();
+      renderCopyExtras();
+      renderPageLinks();
+    } catch (err) {
+      backupStatus.textContent = err?.message || "JSONの解析に失敗しました。";
+    }
+  }
+
+  function handleBackupFile(event) {
+    const [file] = event.target.files || [];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      backupTextarea.value = reader.result;
+      backupStatus.textContent = `${file.name} を読み込みました。JSONを復元ボタンで適用してください。`;
+    };
+    reader.readAsText(file);
   }
 
   function resetPageLinkForm(link = {}) {
@@ -803,6 +865,7 @@
     renderCopyExtras();
     renderPageLinks();
     resetPageLinkForm();
+    refreshBackupTextarea();
   });
 
   form.addEventListener("submit", handleSave);
@@ -829,6 +892,9 @@
   pageLinkForm.addEventListener("submit", handlePageLinkSave);
   pageLinkReset.addEventListener("click", () => resetPageLinkForm());
   pageLinkList.addEventListener("click", handlePageLinkListClick);
+  backupExportBtn.addEventListener("click", refreshBackupTextarea);
+  backupImportBtn.addEventListener("click", handleBackupImport);
+  backupFileInput.addEventListener("change", handleBackupFile);
 </script>
 
 <script>
