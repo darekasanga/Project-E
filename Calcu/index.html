@@ -236,7 +236,7 @@
 
     // Utility functions
     function timeToMinutes(timeValue) {
-      if (!timeValue || timeValue === '') return 0;
+      if (!timeValue) return 0;
       const [hour, minute] = timeValue.split(':').map(Number);
       return hour * 60 + minute;
     }
