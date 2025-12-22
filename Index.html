@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>保育園延長・預かり保育計算ツール | トップページ</title>
+  <style>
+    :root {
+      --accent: #06b6d4;
+      --accent-2: #0891b2;
+      --muted: #0c1318;
+      --panel: #172530;
+      --border: #1e3a4a;
+      --text: #f8fafc;
+      --subtext: #cbd5e1;
+      --glow: 0 12px 45px rgba(6, 182, 212, 0.26);
+    }
+    * {
+      box-sizing: border-box;
+    }
+    html, body {
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      font-family: "Noto Sans JP", "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+      background: radial-gradient(circle at 20% 20%, rgba(6, 182, 212, 0.22), transparent 32%),
+        radial-gradient(circle at 80% 0%, rgba(8, 145, 178, 0.18), transparent 32%),
+        #0a1420;
+      color: var(--text);
+      line-height: 1.6;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 900px;
+      width: 100%;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 48px;
+    }
+
+    .logo {
+      width: 80px;
+      height: 80px;
+      border-radius: 20px;
+      background: linear-gradient(145deg, #e0f2fe, #cffafe);
+      color: #0891b2;
+      font-weight: 900;
+      font-size: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 24px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+    }
+
+    h1 {
+      font-size: 32px;
+      font-weight: 800;
+      margin: 0 0 12px;
+      letter-spacing: 0.5px;
+    }
+
+    .subtitle {
+      font-size: 16px;
+      color: var(--subtext);
+      margin: 0;
+    }
+
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 24px;
+      margin-bottom: 32px;
+    }
+
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 28px;
+      box-shadow: var(--glow);
+      transition: transform 0.2s, box-shadow 0.2s;
+      text-decoration: none;
+      color: var(--text);
+      display: block;
+    }
+
+    .card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 16px 50px rgba(6, 182, 212, 0.35);
+    }
+
+    .card-title {
+      font-size: 20px;
+      font-weight: 800;
+      margin: 0 0 12px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .card-icon {
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      background: linear-gradient(120deg, var(--accent), var(--accent-2));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+    }
+
+    .card-description {
+      font-size: 14px;
+      color: var(--subtext);
+      margin: 0 0 16px;
+      line-height: 1.5;
+    }
+
+    .card-features {
+      list-style: none;
+      padding: 0;
+      margin: 0 0 20px;
+    }
+
+    .card-features li {
+      font-size: 13px;
+      color: var(--subtext);
+      padding: 6px 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .card-features li:last-child {
+      border-bottom: none;
+    }
+
+    .card-features li::before {
+      content: "✓";
+      color: var(--accent);
+      font-weight: bold;
+      margin-right: 8px;
+    }
+
+    .btn {
+      display: inline-block;
+      padding: 10px 20px;
+      background: linear-gradient(120deg, var(--accent), var(--accent-2));
+      color: #fff;
+      border-radius: 12px;
+      text-decoration: none;
+      font-weight: 800;
+      font-size: 14px;
+      transition: opacity 0.2s;
+      text-align: center;
+    }
+
+    .btn:hover {
+      opacity: 0.9;
+    }
+
+    .info-panel {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 24px;
+      box-shadow: var(--glow);
+    }
+
+    .info-title {
+      font-size: 18px;
+      font-weight: 800;
+      margin: 0 0 16px;
+      color: var(--text);
+    }
+
+    .info-content {
+      font-size: 14px;
+      color: var(--subtext);
+      line-height: 1.7;
+    }
+
+    .info-content ul {
+      margin: 12px 0;
+      padding-left: 20px;
+    }
+
+    .info-content li {
+      margin: 8px 0;
+    }
+
+    footer {
+      text-align: center;
+      margin-top: 48px;
+      color: var(--subtext);
+      font-size: 13px;
+    }
+
+    @media (max-width: 768px) {
+      h1 {
+        font-size: 24px;
+      }
+
+      .cards {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div class="logo">保</div>
+      <h1>保育園延長・預かり保育計算ツール</h1>
+      <p class="subtitle">1号認定の方向けに、預かり保育と延長保育の料金を簡単に計算できます</p>
+    </header>
+
+    <div class="cards">
+      <a href="Calcu/index.html" class="card">
+        <div class="card-title">
+          <div class="card-icon">🌟</div>
+          預かり保育計算シート
+        </div>
+        <p class="card-description">日次単位でシンプルに計算できるツール</p>
+        <ul class="card-features">
+          <li>日ごとの登園・降園時刻入力</li>
+          <li>預かり保育プランの選択</li>
+          <li>延長保育料金の自動計算</li>
+          <li>列表示の切り替え機能</li>
+          <li>手軽に使えるシンプルUI</li>
+        </ul>
+        <div class="btn">計算シートを開く →</div>
+      </a>
+
+      <a href="Chat/Index.html" class="card">
+        <div class="card-title">
+          <div class="card-icon">📊</div>
+          チャット目次メーカー
+        </div>
+        <p class="card-description">チャットから目次を生成するユーティリティ</p>
+        <ul class="card-features">
+          <li>チャット履歴の解析</li>
+          <li>目次の自動生成</li>
+          <li>構造化された出力</li>
+          <li>使いやすいインターフェース</li>
+          <li>即座に使える機能</li>
+        </ul>
+        <div class="btn">ツールを開く →</div>
+      </a>
+
+      <a href="/index.html" class="card">
+        <div class="card-title">
+          <div class="card-icon">📰</div>
+          Emperor News
+        </div>
+        <p class="card-description">記事管理とブログシステム</p>
+        <ul class="card-features">
+          <li>記事の作成と編集</li>
+          <li>タグベースの整理</li>
+          <li>アーカイブビュー</li>
+          <li>管理パネル</li>
+          <li>ChatGPT連携</li>
+        </ul>
+        <div class="btn">ブログを開く →</div>
+      </a>
+
+      <a href="/draw" class="card">
+        <div class="card-title">
+          <div class="card-icon">🖌️</div>
+          Draw & Chat
+        </div>
+        <p class="card-description">描画ツールとチャットの統合環境</p>
+        <ul class="card-features">
+          <li>フリーハンド描画</li>
+          <li>画像生成機能</li>
+          <li>リアルタイムチャット</li>
+          <li>キャプション自動生成</li>
+          <li>使いやすいインターフェース</li>
+        </ul>
+        <div class="btn">ツールを開く →</div>
+      </a>
+    </div>
+
+    <div class="info-panel">
+      <h2 class="info-title">💡 ご利用について</h2>
+      <div class="info-content">
+        <p><strong>メインの預かり保育計算ツールは、1号認定の保護者の方向けに設計されています。</strong></p>
+        <ul>
+          <li>預かり保育を利用すれば、延長料金がかからないことを確認できます</li>
+          <li>基本の教育時間：8:30〜13:00</li>
+          <li>預かり保育時間：13:00〜16:30（500円）</li>
+          <li>延長保育：16:30以降（30分200円、上限3,000円/月）</li>
+        </ul>
+        <p>お子様の登降園時刻を入力することで、最適なプランと料金を確認できます。</p>
+        <p style="margin-top: 16px;">その他、チャット目次メーカー、ブログシステム、描画ツールなどの便利なツールも利用できます。</p>
+      </div>
+    </div>
+
+    <footer>
+      <p>© 2024 保育園延長・預かり保育計算ツール</p>
+    </footer>
+  </div>
+</body>
+</html>

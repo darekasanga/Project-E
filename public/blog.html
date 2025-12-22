@@ -1,0 +1,616 @@
+<!doctype html>
+<html lang="ja">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>シンプルなモバイルブログ</title>
+<style>
+  :root {
+    --bg: #070707;
+    --panel: #0e0e0e;
+    --line: #06c755;
+    --text: #f7f7f7;
+    --muted: #9ca3af;
+    --border: #1f1f1f;
+    --radius-lg: 20px;
+    --radius: 12px;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: "SF Pro Display", "Inter", "Noto Sans JP", system-ui, sans-serif;
+    color: var(--text);
+    background: var(--bg);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    padding: 18px;
+  }
+  header {
+    position: sticky;
+    top: 0;
+    z-index: 5;
+    padding: 14px;
+    border-radius: var(--radius-lg);
+    background: var(--panel);
+    border: 1px solid var(--border);
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 12px;
+    align-items: center;
+  }
+  .logo-wrap { display: flex; align-items: center; gap: 10px; }
+  .logo {
+    width: 42px;
+    height: 42px;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    display: grid;
+    place-items: center;
+    font-weight: 700;
+    color: var(--line);
+    background: #0b0b0b;
+  }
+  .title h1 { margin: 0; font-size: 19px; letter-spacing: 0.01em; }
+  .title p { margin: 4px 0 0; color: var(--muted); font-size: 13px; }
+  .nav-actions { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+  .pill {
+    border-radius: 999px;
+    padding: 8px 12px;
+    border: 1px solid var(--border);
+    background: #0b0b0b;
+    color: var(--text);
+    text-decoration: none;
+    font-size: 13px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .pill.primary {
+    background: var(--line);
+    color: #041902;
+    font-weight: 700;
+    border-color: #0f2f14;
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 14px;
+  }
+  section.block {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 16px;
+  }
+  .block h2 { margin: 0 0 6px; font-size: 16px; letter-spacing: 0.01em; }
+  .block p.desc { margin: 0 0 12px; color: var(--muted); font-size: 13px; line-height: 1.5; }
+
+  .scroll-shell {
+    overflow: hidden;
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--border);
+    background: #0b0b0b;
+  }
+  .scroll-track {
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: 78%;
+    gap: 12px;
+    overflow-x: auto;
+    padding: 12px;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+  }
+  .scroll-track::-webkit-scrollbar { height: 6px; }
+  .scroll-track::-webkit-scrollbar-thumb { background: #1f1f1f; border-radius: 999px; }
+
+  .card {
+    --card-bg: #fdfdfd;
+    --card-text: #0a0a0a;
+    --card-weak: #334155;
+    --card-border: #e5e7eb;
+    --card-accent: rgba(0,0,0,0.04);
+    background: var(--card-bg);
+    color: var(--card-text);
+    border: 1px solid var(--card-border);
+    border-radius: var(--radius-lg);
+    padding: 14px;
+    scroll-snap-align: start;
+    display: grid;
+    gap: 8px;
+  }
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 10px;
+    border-radius: 999px;
+    background: #0f172a;
+    border: 1px solid #e5e7eb;
+    color: #e2e8f0;
+    font-weight: 600;
+    font-size: 12px;
+  }
+  .card h3 { margin: 0; font-size: 17px; color: var(--card-text); }
+  .card p { margin: 0; color: var(--card-weak); font-size: 14px; line-height: 1.5; }
+  .meta { display: flex; gap: 6px; align-items: center; color: var(--card-weak); font-size: 12px; }
+  .meta a { color: inherit; text-decoration: none; font-weight: 600; }
+  .hero-img {
+    width: 100%;
+    border-radius: var(--radius);
+    aspect-ratio: 16 / 9;
+    object-fit: cover;
+    border: 1px solid var(--border);
+  }
+
+  .form { display: grid; gap: 10px; }
+  .field label { display: block; font-size: 12px; color: var(--muted); margin-bottom: 4px; }
+  .field input, .field textarea {
+    width: 100%;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    padding: 10px 12px;
+    background: #0b0b0b;
+    color: var(--text);
+    font-size: 14px;
+  }
+  .field textarea { min-height: 120px; resize: vertical; }
+  .actions { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+  button.primary {
+    border: none;
+    border-radius: 12px;
+    padding: 10px 14px;
+    background: var(--line);
+    color: #041902;
+    font-weight: 700;
+    cursor: pointer;
+  }
+  button.secondary {
+    border: none;
+    border-radius: 12px;
+    padding: 10px 14px;
+    background: #0b0b0b;
+    color: var(--text);
+    cursor: pointer;
+  }
+  .feed { display: grid; gap: 12px; margin-top: 10px; }
+  .feed-card {
+    --card-bg: #ffffff;
+    --card-text: #0a0a0a;
+    --card-weak: #334155;
+    --card-border: #e5e7eb;
+    --card-accent: rgba(0,0,0,0.04);
+    border: 1px solid var(--card-border);
+    border-radius: var(--radius);
+    background: var(--card-bg);
+    color: var(--card-text);
+    padding: 12px;
+    display: grid;
+    gap: 8px;
+  }
+  .feed-card .top { display: grid; gap: 10px; align-items: flex-start; justify-content: flex-start; }
+  .feed-card h4 { margin: 0; font-size: 16px; color: var(--card-text); }
+  .feed-card p { margin: 0; color: var(--card-weak); line-height: 1.5; }
+  .tag-row { display: flex; gap: 8px; flex-wrap: wrap; }
+  .tag {
+    padding: 6px 10px;
+    border-radius: 999px;
+    border: 1px solid var(--card-border, #e5e7eb);
+    background: var(--card-accent, #f5f7fb);
+    font-size: 12px;
+    color: var(--card-text, #0f172a);
+    text-decoration: none;
+  }
+  .empty { text-align: center; color: var(--muted); padding: 20px; }
+  .share-buttons { display: grid; grid-template-columns: 1fr; gap: 8px; width: 100%; }
+  .share-btn {
+    padding: 12px 14px;
+    min-height: 48px;
+    border-radius: 10px;
+    border: none;
+    background: #0b0b0b;
+    color: var(--text);
+    text-decoration: none;
+    font-size: 13px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    justify-content: center;
+    width: 100%;
+  }
+  .share-btn.line { background: var(--line); color: #041902; font-weight: 700; }
+  .marquee { display: flex; gap: 10px; overflow: hidden; position: relative; }
+  .marquee-track { display: flex; gap: 10px; animation: slide 26s linear infinite; }
+  .marquee .chip {
+    padding: 8px 12px;
+    border-radius: 12px;
+    background: #0b0b0b;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    white-space: nowrap;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+  @keyframes slide { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
+  @media (max-width: 720px) { header { grid-template-columns: 1fr; } .scroll-track { grid-auto-columns: 88%; } }
+</style>
+
+<body>
+  <header>
+    <div class="logo-wrap">
+      <div class="logo">E</div>
+      <div class="title">
+        <h1>Emperor Mobile News</h1>
+        <p>黒ベースのシンプルビュー + 公式LINEアカウント配信</p>
+      </div>
+    </div>
+    <div class="nav-actions">
+      <a class="pill" href="/">トップへ</a>
+      <a class="pill primary" href="#upload">ChatGPTから貼り付け</a>
+    </div>
+  </header>
+
+  <section class="block">
+    <h2>おすすめ記事</h2>
+    <p class="desc">iPhone / iPadの慣性スクロールに合わせた横スナップカード。黒基調で余計な装飾を排し、読みやすさを優先しています。</p>
+    <div class="scroll-shell">
+      <div class="scroll-track" id="featureTrack">
+        <!-- feature cards injected here -->
+      </div>
+    </div>
+    <div class="marquee" aria-hidden="true">
+      <div class="marquee-track" id="tagMarquee"></div>
+      <div class="marquee-track" id="tagMarqueeClone"></div>
+    </div>
+  </section>
+
+  <section class="block" id="upload">
+    <h2>ChatGPTから直接アップロード</h2>
+    <p class="desc">タイトルと本文をそのまま貼り付け。カバー画像を選べば、その場で記事カードを生成し、モバイル向けビューに反映します。</p>
+    <div class="grid">
+      <div class="form">
+        <div class="field">
+          <label for="title">タイトル</label>
+          <input id="title" placeholder="例: Vision Proで作る没入型ブログ" />
+        </div>
+        <div class="field">
+          <label for="body">本文または概要</label>
+          <textarea id="body" placeholder="本文をそのままペースト"></textarea>
+        </div>
+        <div class="field">
+          <label for="tags">タグ (カンマ区切り)</label>
+          <input id="tags" placeholder="AR, iPad, SwiftUI" />
+        </div>
+        <div class="field">
+          <label for="image">カバー画像 (オプション)</label>
+          <input id="image" type="file" accept="image/*" />
+        </div>
+        <div class="actions">
+          <button class="primary" id="addArticle">アップロードして追加</button>
+          <button class="secondary" id="seedDemo">デモ記事を追加</button>
+        </div>
+      </div>
+      <div>
+        <div class="block" style="margin:0; background: #0b0b0b; border-style: dashed;">
+          <h2 style="display:flex;align-items:center;gap:8px;">LINE掲載・配信リンク</h2>
+          <p class="desc">公式LINEアカウント向けのシェアURLを生成。友だち追加ページを経由して配信できます。</p>
+          <div class="share-buttons">
+            <a class="share-btn line" id="lineOfficial" href="https://page.line.me/projecte_official" target="_blank" rel="noreferrer">公式LINEを開く</a>
+            <a class="share-btn" id="copyLink" href="#">ページURLをコピー</a>
+          </div>
+          <p class="desc" style="margin-top:12px;">LINEブラウザやiOS Safariでのスクロールに最適化。公式アカウントの友だち追加リンク（page.line.me）を採用しています。</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="block">
+    <h2>投稿済みフィード</h2>
+    <p class="desc">アップロードされた記事はモバイルファーストなカードとして配信。LINE公式アカウントのシェアボタン付きです。</p>
+    <div class="feed" id="feed"></div>
+  </section>
+
+<script>
+  const featureTrack = document.getElementById("featureTrack");
+  const feed = document.getElementById("feed");
+  const tagMarquee = document.getElementById("tagMarquee");
+  const tagMarqueeClone = document.getElementById("tagMarqueeClone");
+  const officialLineAccountId = "@projecte_official";
+  const officialLinePage = "https://page.line.me/projecte_official";
+
+  const baseArticles = [
+    {
+      id: "post-101",
+      title: "スクロールスナップで魅せるiPad特集",
+      body: "iPadOSのオーバースクロールに合わせた柔らかなカードUI。モバイルファーストの編集フローを紹介。",
+      tags: ["iPad", "UI", "ScrollSnap"],
+      image: "https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?auto=format&fit=crop&w=900&q=80",
+    },
+    {
+      id: "post-102",
+      title: "LINE配信テンプレート付き記事運用",
+      body: "配信用のOGPとLINEシェアURLをワンクリック生成。チャット経由での下書きアップロードにも対応。",
+      tags: ["LINE", "OGP", "Automation"],
+      image: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=900&q=80",
+    },
+    {
+      id: "post-103",
+      title: "ChatGPT→ブログ 直貼りワークフロー",
+      body: "ChatGPTで生成した文章をそのままペースト。カバー画像とタグを加えて即公開。",
+      tags: ["ChatGPT", "Workflow", "Creator"],
+      image: "https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=900&q=80",
+    }
+  ];
+
+  const themeCache = new Map();
+  const fallbackTheme = { bg: "#fdfdfd", text: "#0a0a0a", weak: "#334155", border: "#e5e7eb", accent: "rgba(0,0,0,0.04)" };
+
+  function luminance(r, g, b) {
+    return (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+  }
+
+  function toTheme(r, g, b) {
+    const soften = (v) => (v > 128 ? Math.round(v * 0.5) : v);
+    r = soften(r); g = soften(g); b = soften(b);
+    const text = luminance(r, g, b) > 0.58 ? "#0a0a0a" : "#f7f7f7";
+    const weak = text === "#f7f7f7" ? "rgba(247,247,247,0.82)" : "rgba(10,10,10,0.72)";
+    return {
+      bg: `rgb(${r}, ${g}, ${b})`,
+      text,
+      weak,
+      border: `rgba(${r}, ${g}, ${b}, 0.38)`,
+      accent: text === "#f7f7f7" ? "rgba(255,255,255,0.12)" : "rgba(0,0,0,0.06)",
+    };
+  }
+
+  function extractThemeFromImage(src) {
+    if (!src) return Promise.resolve(fallbackTheme);
+    if (themeCache.has(src)) return Promise.resolve(themeCache.get(src));
+
+    return new Promise((resolve) => {
+      const img = new Image();
+      img.crossOrigin = "anonymous";
+      img.src = src;
+      img.onload = () => {
+        try {
+          const canvas = document.createElement("canvas");
+          canvas.width = canvas.height = 24;
+          const ctx = canvas.getContext("2d", { willReadFrequently: true });
+          ctx.drawImage(img, 0, 0, 24, 24);
+          const data = ctx.getImageData(0, 0, 24, 24).data;
+          let r = 0, g = 0, b = 0;
+          const count = data.length / 4;
+          for (let i = 0; i < data.length; i += 4) {
+            r += data[i];
+            g += data[i + 1];
+            b += data[i + 2];
+          }
+          const theme = toTheme(Math.round(r / count), Math.round(g / count), Math.round(b / count));
+          themeCache.set(src, theme);
+          resolve(theme);
+        } catch (err) {
+          themeCache.set(src, fallbackTheme);
+          resolve(fallbackTheme);
+        }
+      };
+      img.onerror = () => {
+        themeCache.set(src, fallbackTheme);
+        resolve(fallbackTheme);
+      };
+    });
+  }
+
+  function applyCardTheme(el, image) {
+    extractThemeFromImage(image).then((theme) => {
+      el.style.setProperty("--card-bg", theme.bg);
+      el.style.setProperty("--card-text", theme.text);
+      el.style.setProperty("--card-weak", theme.weak);
+      el.style.setProperty("--card-border", theme.border);
+      el.style.setProperty("--card-accent", theme.accent);
+    });
+  }
+
+  function uid() {
+    return crypto.randomUUID?.() || `post-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+  }
+
+  function isValidId(id) {
+    return typeof id === "string" && (/^post-[a-z0-9-]{8,}$/i.test(id) || /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(id));
+  }
+
+  function normalizeArticles(list) {
+    return list.map(item => ({ ...item, id: isValidId(item.id) ? item.id : uid() }));
+  }
+
+  function cleanSavedText(raw) {
+    if (typeof raw !== "string") return raw;
+    const lines = raw.split(/\r?\n/).filter(Boolean);
+    const filtered = lines.filter(line => {
+      const trimmed = line.trim();
+      return trimmed && !trimmed.startsWith("<<<<<<<") && !trimmed.startsWith("=======") && !trimmed.startsWith(">>>>>>>");
+    });
+    return filtered.join("\n");
+  }
+
+  function storedArticles() {
+    const raw = localStorage.getItem("emperor_articles");
+    const cleaned = cleanSavedText(raw);
+    if (cleaned && cleaned !== raw) {
+      localStorage.setItem("emperor_articles", cleaned);
+    }
+    if (!cleaned) return [...baseArticles];
+    try {
+      const parsed = JSON.parse(cleaned);
+      return Array.isArray(parsed) ? parsed : [...baseArticles];
+    } catch (err) {
+      console.warn("saved articles were corrupted, resetting", err);
+      return [...baseArticles];
+    }
+  }
+
+  function loadArticles() {
+    const data = normalizeArticles(storedArticles());
+    persist(data);
+    renderFeatures(data);
+    renderFeed(data);
+  }
+
+  function persist(articles) {
+    localStorage.setItem("emperor_articles", JSON.stringify(normalizeArticles(articles)));
+  }
+
+  function buildOfficialLineShare(url) {
+    return `https://social-plugins.line.me/lineit/share?url=${encodeURIComponent(url)}&accountId=${encodeURIComponent(officialLineAccountId)}`;
+  }
+
+  function observeCard(el) {
+    el.style.transform = "translateY(16px)";
+    el.style.opacity = 0;
+    observer.observe(el);
+  }
+
+  function tagLink(tag) {
+    const safe = encodeURIComponent(tag);
+    return `<a class="tag" href="/blog-tag.html?tag=${safe}">#${tag}</a>`;
+  }
+
+  function renderFeatures(list) {
+    featureTrack.innerHTML = "";
+    list.forEach((item, idx) => {
+      const div = document.createElement("article");
+      div.className = "card";
+      const tags = (item.tags || []).map(tagLink).join("");
+      div.innerHTML = `
+        <div class="badge">特集 ${idx + 1}</div>
+        <h3>${item.title}</h3>
+        <p>${item.body}</p>
+        ${item.image ? `<img class="hero-img" src="${item.image}" alt="${item.title}">` : ""}
+        <div class="meta">
+          <span>iOS向けスナップビュー</span>
+          <span>｜</span>
+          <span>タグ</span>
+        </div>
+        <div class="tag-row">${tags || '<span class="tag">#untagged</span>'}</div>
+      `;
+      featureTrack.appendChild(div);
+      observeCard(div);
+      applyCardTheme(div, item.image);
+    });
+  }
+
+  function renderFeed(list) {
+    feed.innerHTML = "";
+    if (!list.length) {
+      feed.innerHTML = '<div class="empty">まだ記事がありません。ChatGPTからアップロードしてみてください。</div>';
+      return;
+    }
+    list.forEach((item, idx) => {
+      const card = document.createElement("article");
+      card.className = "feed-card";
+      const url = `${location.origin}/blog-article.html?id=${item.id}`;
+      const shareUrl = buildOfficialLineShare(url);
+      card.id = `post-${item.id}`;
+      card.innerHTML = `
+        <div class="top">
+          <div>
+            <div class="badge">NEW</div>
+            <h4>${item.title}</h4>
+          </div>
+          <div class="share-buttons">
+            <a class="share-btn line" href="${shareUrl}" target="_blank" rel="noreferrer">公式LINEで共有</a>
+            <a class="share-btn" href="${url}" target="_blank">もっと読む</a>
+          </div>
+        </div>
+        ${item.image ? `<img class="hero-img" src="${item.image}" alt="${item.title}">` : ""}
+        <p>${item.body}</p>
+        <div class="tag-row">${(item.tags || []).map(tagLink).join("")}</div>
+      `;
+      feed.appendChild(card);
+      observeCard(card);
+      applyCardTheme(card, item.image);
+    });
+    buildTagMarquee(list.flatMap(i => i.tags || []));
+  }
+
+  function buildTagMarquee(tags) {
+    const unique = Array.from(new Set(tags.length ? tags : ["iPhone", "iPad", "LINE配信", "ChatGPTアップロード", "スクロールビュー"]));
+    const chips = unique.map(tag => `<a class="chip" href="/blog-tag.html?tag=${encodeURIComponent(tag)}">#${tag} ▶</a>`).join("");
+    tagMarquee.innerHTML = chips;
+    tagMarqueeClone.innerHTML = chips;
+  }
+
+  function readFileAsDataURL(file) {
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result);
+      reader.readAsDataURL(file);
+    });
+  }
+
+  document.getElementById("addArticle").addEventListener("click", async () => {
+    const title = document.getElementById("title").value.trim();
+    const body = document.getElementById("body").value.trim();
+    const tags = document.getElementById("tags").value.split(",").map(t => t.trim()).filter(Boolean);
+    const imgFile = document.getElementById("image").files[0];
+
+    if (!title || !body) {
+      alert("タイトルと本文を入力してください。");
+      return;
+    }
+
+    const list = storedArticles();
+    const image = imgFile ? await readFileAsDataURL(imgFile) : "";
+
+    const article = { id: uid(), title, body, tags, image };
+    const updated = [article, ...list];
+    persist(updated);
+    renderFeatures(updated);
+    renderFeed(updated);
+
+    document.getElementById("body").value = "";
+    document.getElementById("title").value = "";
+    document.getElementById("tags").value = "";
+    document.getElementById("image").value = "";
+  });
+
+  document.getElementById("seedDemo").addEventListener("click", () => {
+    persist(baseArticles);
+    renderFeatures(baseArticles);
+    renderFeed(baseArticles);
+  });
+
+  document.getElementById("copyLink").addEventListener("click", (e) => {
+    e.preventDefault();
+    navigator.clipboard?.writeText(location.href).then(() => {
+      alert("ページURLをコピーしました。LINEトークにそのまま貼れます。");
+    }).catch(() => alert("コピーに失敗しました"));
+  });
+
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.style.transition = "transform 600ms ease, opacity 600ms ease";
+        entry.target.style.transform = "translateY(0)";
+        entry.target.style.opacity = 1;
+        observer.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.2 });
+
+  document.addEventListener("DOMContentLoaded", () => {
+    document.getElementById("lineOfficial").href = officialLinePage;
+    document.getElementById("lineOfficial").textContent = `${officialLineAccountId} を開く`;
+    loadArticles();
+  });
+</script>
+
+<script>
+  window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };
+</script>
+<script defer src="/_vercel/insights/script.js"></script>
+</body>
+</html>

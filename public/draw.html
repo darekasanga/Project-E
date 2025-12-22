@@ -1,0 +1,193 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Emperor News – Draw & Chat</title>
+<link rel="icon" href="/favicon.ico" type="image/x-icon" />
+<style>
+  :root{--bg:#0b0c10;--panel:#0f141a;--text:#eaecef;--muted:#9aa4af;--border:#30363d;--brand:#1f6feb;}
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{margin:0;background:var(--bg);color:var(--text);font:16px/1.6 system-ui,Segoe UI,Roboto,Helvetica,Arial;display:flex;gap:0;overflow:hidden}
+  #drawPanel,#chatPanel{flex:1;min-width:0;display:flex;flex-direction:column;padding:16px;background:var(--panel);border:1px solid var(--border)}
+  #divider{width:70px;min-width:70px;background:var(--bg);display:flex;align-items:center;justify-content:center;border-inline:1px solid var(--border)}
+  h2{margin:0 0 10px}
+  .row{display:flex;gap:.5rem;flex-wrap:wrap;align-items:center}
+  .btn{background:var(--brand);color:#fff;border:0;border-radius:10px;padding:8px 14px;cursor:pointer}
+  .ghost{background:#2d333b}
+  label{font-size:.9rem;color:var(--muted)}
+  #toolbar{margin-bottom:10px}
+  #drawCanvasWrap{flex:1;min-height:240px;display:flex;align-items:stretch}
+  #drawCanvas{width:100%;height:100%;background:#fff;border-radius:10px;border:2px solid var(--border);touch-action:none;display:block}
+  #chatLog{flex:1;min-height:120px;overflow:auto;background:#0e1116;border:1px solid var(--border);border-radius:10px;padding:10px;white-space:pre-wrap}
+  #chatInput{width:100%;padding:10px;border-radius:8px;border:1px solid var(--border);background:#0e1116;color:var(--text)}
+  #status,#genStatus{color:var(--muted);margin:.25rem 0}
+  @media (max-width:900px){body{flex-direction:column}#divider{width:100%;min-width:100%;height:70px}}
+</style>
+</head>
+<body>
+
+<section id="drawPanel">
+  <h2>🖌️ Draw Field</h2>
+  <div id="toolbar" class="row">
+    <label>Color <input type="color" id="color" value="#000000"></label>
+    <label>Size <input type="range" id="size" min="1" max="24" value="4"></label>
+    <button id="clear" class="btn ghost">Clear</button>
+    <button id="save"  class="btn ghost">Save</button>
+  </div>
+  <div id="drawCanvasWrap">
+    <canvas id="drawCanvas"></canvas>
+  </div>
+  <p id="status"></p>
+
+  <!-- Optional text→image -->
+  <h3 style="margin:8px 0 6px">🖌️ Generate Image from Prompt</h3>
+  <div class="row">
+    <input id="prompt" placeholder="e.g., temple on a hill at sunset, minimalist watercolor"
+           style="flex:1;padding:10px;border-radius:8px;border:1px solid var(--border);background:#0e1116;color:var(--text)">
+    <button id="gen" class="btn">Generate</button>
+    <span id="genStatus"></span>
+  </div>
+  <div id="genOut" style="margin-top:10px"></div>
+</section>
+
+<div id="divider" title="Send drawing to chat">
+  <button id="update" class="btn">▶ Update</button>
+</div>
+
+<section id="chatPanel">
+  <h2>💬 Chat Window</h2>
+  <div id="chatLog"></div>
+  <textarea id="chatInput" placeholder="Write a comment or question…"></textarea>
+  <div class="row" style="margin-top:8px">
+    <button id="sendBtn" class="btn">Comment</button>
+  </div>
+</section>
+
+<script src="/assets/lightbox.js"></script>
+<script>
+/* ===== HiDPI-correct, responsive canvas ===== */
+const canvas = document.getElementById('drawCanvas');
+const ctx = canvas.getContext('2d', { willReadFrequently: true });
+let drawing=false, dpr=1;
+
+function resizeCanvas(){
+  const rect = canvas.getBoundingClientRect();
+  dpr = window.devicePixelRatio || 1;
+  canvas.width  = Math.max(1, Math.round(rect.width  * dpr));
+  canvas.height = Math.max(1, Math.round(rect.height * dpr));
+  ctx.setTransform(1,0,0,1,0,0);
+  ctx.scale(dpr, dpr);
+}
+new ResizeObserver(resizeCanvas).observe(canvas.parentElement);
+window.addEventListener('orientationchange', ()=>setTimeout(resizeCanvas,50));
+window.addEventListener('load', resizeCanvas);
+
+function getPos(e){
+  const r = canvas.getBoundingClientRect();
+  const p = e.touches ? e.touches[0] : e;
+  // because we scaled the context (not coordinates), use CSS pixels here
+  return { x: p.clientX - r.left, y: p.clientY - r.top };
+}
+const color = document.getElementById('color');
+const size  = document.getElementById('size');
+
+function start(e){ drawing=true; ctx.beginPath(); const p=getPos(e); ctx.moveTo(p.x,p.y); }
+function move(e){
+  if(!drawing) return;
+  const p=getPos(e);
+  ctx.lineCap='round'; ctx.lineJoin='round';
+  ctx.strokeStyle=color.value; ctx.lineWidth=+size.value;
+  ctx.lineTo(p.x,p.y); ctx.stroke();
+}
+function end(){ drawing=false; }
+
+canvas.addEventListener('mousedown', start);
+canvas.addEventListener('mousemove', move);
+window.addEventListener('mouseup', end);
+canvas.addEventListener('touchstart', e=>{e.preventDefault();start(e)}, {passive:false});
+canvas.addEventListener('touchmove',  e=>{e.preventDefault();move(e)},  {passive:false});
+canvas.addEventListener('touchend',   end);
+
+document.getElementById('clear').onclick=()=>ctx.clearRect(0,0,canvas.width,canvas.height);
+document.getElementById('save').onclick =()=>{const a=document.createElement('a');a.href=canvas.toDataURL('image/png');a.download='sketch.png';a.click();};
+
+/* ===== Chat & Caption ===== */
+const chatLog=document.getElementById('chatLog');
+const chatInput=document.getElementById('chatInput');
+const sendBtn=document.getElementById('sendBtn');
+const updateBtn=document.getElementById('update');
+const statusEl=document.getElementById('status');
+
+function append(role,text){
+  const who=role==='user'?'👤 You':role==='assistant'?'🤖 AI':'📝';
+  const div=document.createElement('div'); div.style.margin='6px 0';
+  div.innerHTML=`<strong>${who}:</strong> ${text}`;
+  chatLog.appendChild(div); chatLog.scrollTop=chatLog.scrollHeight;
+}
+async function sendChat(text){
+  append('user', text);
+  try{
+    const r = await fetch('/api/chat', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({
+        system:'You are a concise assistant helping describe and improve sketches.',
+        messages:[{role:'user',content:text}]
+      })
+    });
+    const d = await r.json();
+    append('assistant', d.reply || 'No reply.');
+  }catch(e){ append('assistant','Error: '+e.message); }
+}
+sendBtn.onclick=()=>{const t=chatInput.value.trim(); if(!t) return; chatInput.value=''; sendChat(t);};
+chatInput.addEventListener('keydown', e => (e.key==='Enter') && sendBtn.click());
+
+updateBtn.onclick=async ()=>{
+  statusEl.textContent='Describing sketch…';
+  try{
+    const imageBase64 = canvas.toDataURL('image/png');
+    const r = await fetch('/api/caption', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ imageBase64 })
+    });
+    const d = await r.json();
+    const desc = d.caption || 'No description.';
+    statusEl.textContent='Done';
+    append('assistant','Sketch description: '+desc);
+  }catch(e){ statusEl.textContent='Error: '+e.message; }
+};
+
+/* ===== Optional: Text → Image ===== */
+document.getElementById('gen').onclick = async ()=>{
+  const prompt = document.getElementById('prompt').value.trim();
+  if(!prompt){ document.getElementById('genStatus').textContent='Enter a prompt.'; return; }
+  document.getElementById('genStatus').textContent='Generating…';
+  try{
+    const r = await fetch('/api/generate-image', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ prompt })
+    });
+    const data = await r.json();
+    const out = document.getElementById('genOut'); out.innerHTML='';
+    if(data.imageBase64){
+      const img = new Image(); img.style.maxWidth='420px'; img.style.border='1px solid var(--border)'; img.style.borderRadius='10px';
+      img.src='data:image/png;base64,'+data.imageBase64;
+      out.appendChild(img);
+      document.getElementById('genStatus').textContent='Done';
+    }else{
+      document.getElementById('genStatus').textContent='No image returned';
+    }
+  }catch(e){ document.getElementById('genStatus').textContent='Error: '+e.message; }
+};
+</script>
+
+<script>
+  window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };
+</script>
+<script defer src="/_vercel/insights/script.js"></script>
+</body>
+</html>
