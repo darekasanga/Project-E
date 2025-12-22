@@ -84,20 +84,35 @@ applyCopySourceBtn.addEventListener("click", applyCopySource);
 **Code Reference**:
 ```javascript
 function applySidebarState() {
-  const savedState = localStorage.getItem("sidebar") === "open";
-  if (savedState) sidebar.classList.add("open");
+  document.body.classList.toggle("sidebar-collapsed", !!state.sidebarCollapsed);
+  toggleSidebarBtn.textContent = state.sidebarCollapsed ? "サイドバーをひらく" : "サイドバーをとじる";
 }
 
 function applySettingsToInputs() {
-  const data = loadSettings();
-  // Apply column visibility based on saved settings
-  // ...implementation
+  // Apply saved buffer settings to input fields
+  arriveBufferEl.value = String(state.arriveBuffer ?? 0);
+  leaveBufferEl.value  = String(state.leaveBuffer ?? 0);
+  extBufferEl.value    = String(state.extBuffer ?? 0);
+  azJudgeEl.value      = String(state.azJudge ?? "15:00");
 }
 
 function applyTimeEdit(inputEl, which) {
-  // Validate and format time input
-  // Apply calculated values based on time changes
-  // ...implementation
+  const rk = inputEl.dataset.rk;
+  const t = sanitizeHHMM(inputEl.value);
+  const m = parseTimeToMinutes(t);
+  const o = state.overridesByKey[rk] || {};
+  if (m == null) {
+    // Empty or invalid → remove override
+    if (which === "arrive") delete o.arriveMinutes;
+    if (which === "leave")  delete o.leaveMinutes;
+  } else {
+    // Apply time override
+    if (which === "arrive") o.arriveMinutes = m;
+    if (which === "leave")  o.leaveMinutes  = m;
+  }
+  state.overridesByKey[rk] = o;
+  saveState();
+  rerun();
 }
 ```
 
@@ -146,8 +161,8 @@ When implementing new "apply" functionality:
 ## Related Files
 
 - `/public/blog-edit.html` - Main implementation of applyCopySource
-- `/Calcu/index.html` - Calculator apply functions
-- `/Calcu.html` - Duplicate of calculator with apply functions
+- `/Calcu/index.html` - Calculator apply functions (main implementation)
+- `/Calcu.html` - Root-level calculator file that redirects to /Calcu/index.html for backward compatibility
 - `/test-apply.html` - Test and demonstration page
 - Various blog files (`blog.html`, `blog-public.html`, `blog-tag.html`, `blog-article.html`) - applyCardTheme implementations
 
