@@ -174,14 +174,13 @@ npm test
 
 ### Runtime Requirements
 
-- Node.js 18 runtime (configured in `vercel.json`)
+- Node.js 18 runtime
 - Persistent storage for articles data
 - Environment variables for API keys (if using AI features)
 
 ### Vercel Deployment
 
 The project is configured for Vercel deployment with:
-- Serverless function runtime: `nodejs18.x`
 - URL rewrites for clean routing
 - Automatic HTTPS and CDN distribution
 
