@@ -9,10 +9,15 @@ on:
 jobs:
   ci-cd:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      deployments: write
 
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
 
     - name: Setup Node.js
       uses: actions/setup-node@v4
@@ -30,6 +35,10 @@ jobs:
 
     - name: Deploy to Vercel
       if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-      env:
-        VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-      run: npx vercel@latest --prod --yes
+      uses: amondnet/vercel-action@v25
+      with:
+        vercel-token: ${{ secrets.VERCEL_TOKEN }}
+        vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
+        vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
+        vercel-args: '--prod'
+        github-token: ${{ secrets.GITHUB_TOKEN }}
