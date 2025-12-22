@@ -117,12 +117,25 @@ The application uses Vercel rewrites (configured in `vercel.json`) to handle rou
 ```json
 {
   "rewrites": [
+    { "source": "/Index.html", "destination": "/Index.html" },
+    { "source": "/Calcu.html", "destination": "/Calcu.html" },
+    { "source": "/Calcu/(.*)", "destination": "/Calcu/$1" },
+    { "source": "/Chat/(.*)", "destination": "/Chat/$1" },
     { "source": "/draw", "destination": "/public/draw.html" },
     { "source": "/api/(.*)", "destination": "/api/$1" },
     { "source": "/(.*)", "destination": "/public/$1" }
   ]
 }
 ```
+
+**Routing Behavior:**
+- `/Index.html` - Portal page (main navigation hub)
+- `/Calcu.html` - Calcu redirect page with auto-refresh to `/Calcu/index.html`
+- `/Calcu/*` - Calculator application files
+- `/Chat/*` - Chat TOC maker application files
+- `/draw` - Drawing utility (from public directory)
+- `/api/*` - API endpoints
+- All other paths - Blog system files from public directory (default)
 
 Additionally, `Calcu.html` serves as a redirect page with automatic meta-refresh to `Calcu/index.html`, maintaining backward compatibility while organizing the calculator in its own directory.
 
