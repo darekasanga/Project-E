@@ -2,282 +2,986 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8" />
+  <title>延長・預り保育 計算（完成版）</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>保育園延長・預かり保育計算ツール | トップページ</title>
   <style>
-    :root {
-      --accent: #06b6d4;
-      --accent-2: #0891b2;
-      --muted: #0c1318;
-      --panel: #172530;
-      --border: #1e3a4a;
-      --text: #f8fafc;
-      --subtext: #cbd5e1;
-      --glow: 0 12px 45px rgba(6, 182, 212, 0.26);
+    :root{
+      --accent:#06b6d4;
+      --accent-2:#0891b2;
+      --muted:#ecfeff;
+      --border:#a5f3fc;
+      --text:#111827;
+      --subtext:#0e7490;
+      --weekend-bg:#cffafe;
+      --weekday-bg:#e0f2fe;
     }
-    * {
-      box-sizing: border-box;
-    }
-    html, body {
-      margin: 0;
-      padding: 0;
-    }
-    body {
-      font-family: "Noto Sans JP", "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
-      background: radial-gradient(circle at 20% 20%, rgba(6, 182, 212, 0.22), transparent 32%),
-        radial-gradient(circle at 80% 0%, rgba(8, 145, 178, 0.18), transparent 32%),
-        #0a1420;
-      color: var(--text);
-      line-height: 1.6;
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      padding: 20px;
+    *{box-sizing:border-box;}
+    html,body{margin:0;padding:0;}
+    body{
+      font-family:"Noto Sans JP",system-ui,-apple-system,"Segoe UI",sans-serif;
+      background:#fff;color:var(--text);line-height:1.5;
+      touch-action: manipulation;
+      overscroll-behavior: none;
     }
 
-    .container {
-      max-width: 900px;
-      width: 100%;
+    header{
+      background:linear-gradient(120deg,var(--accent),var(--accent-2));
+      color:#fff;padding:14px 20px;
+      display:flex;align-items:center;gap:12px;
+      position:sticky;top:0;z-index:50;
+      box-shadow:0 2px 12px rgba(0,0,0,.12);
+    }
+    .logo-circle{
+      width:40px;height:40px;border-radius:50%;
+      background:#fff;color:#06b6d4;font-weight:800;
+      display:flex;align-items:center;justify-content:center;
+      box-shadow:0 2px 6px rgba(0,0,0,.18);
+    }
+    header h1{margin:0;font-size:20px;font-weight:700;}
+    header p{margin:2px 0 0;font-size:12px;opacity:.9;}
+    .sidebar-toggle{
+      margin-left:auto;
+      border:none;border-radius:999px;
+      padding:6px 10px;
+      background:#0891b2;color:#fff;
+      font-weight:700;font-size:12px;cursor:pointer;
     }
 
-    header {
-      text-align: center;
-      margin-bottom: 48px;
+    main{
+      padding:16px;
+      max-width:1200px;margin:0 auto 60px;
+      display:grid;grid-template-columns:minmax(280px,340px) 1fr;
+      gap:16px;align-items:flex-start;
     }
+    body.sidebar-collapsed main{grid-template-columns:1fr;}
+    body.sidebar-collapsed .sidebar{display:none;}
 
-    .logo {
-      width: 80px;
-      height: 80px;
-      border-radius: 20px;
-      background: linear-gradient(145deg, #e0f2fe, #cffafe);
-      color: #0891b2;
-      font-weight: 900;
-      font-size: 36px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      margin: 0 auto 24px;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+    .panel{
+      background:#fff;border:1px solid #e5e7eb;border-radius:12px;
+      padding:14px 14px;box-shadow:0 6px 20px rgba(15,23,42,.06);
+      margin-bottom:16px;
     }
-
-    h1 {
-      font-size: 32px;
-      font-weight: 800;
-      margin: 0 0 12px;
-      letter-spacing: 0.5px;
+    .panel h2{margin:0 0 10px;font-size:16px;font-weight:800;}
+    label{display:block;font-size:13px;font-weight:700;color:var(--subtext);margin-bottom:6px;}
+    input[type="file"],input[type="number"],input[type="text"],button{
+      font:inherit;
     }
-
-    .subtitle {
-      font-size: 16px;
-      color: var(--subtext);
-      margin: 0;
+    input[type="file"],input[type="number"],input[type="text"]{
+      width:100%;padding:10px 12px;border:1px solid var(--border);
+      border-radius:10px;background:#fff;
     }
+    input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(6,182,212,.16);}
 
-    .cards {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-      gap: 24px;
-      margin-bottom: 32px;
+    .row{display:flex;gap:10px;align-items:flex-start;flex-wrap:wrap;}
+    .row > div{flex:1;min-width:120px;}
+
+    button{
+      border:none;border-radius:10px;
+      padding:10px 12px;font-weight:800;cursor:pointer;
+      background:var(--accent);color:#fff;
     }
-
-    .card {
-      background: var(--panel);
-      border: 1px solid var(--border);
-      border-radius: 18px;
-      padding: 28px;
-      box-shadow: var(--glow);
-      transition: transform 0.2s, box-shadow 0.2s;
-      text-decoration: none;
-      color: var(--text);
-      display: block;
+    button.small{
+      padding:4px 10px;font-size:11px;border-radius:999px;
+      background:#f3f4f6;color:#111827;border:1px solid #d1d5db;
+      font-weight:700;
     }
-
-    .card:hover {
-      transform: translateY(-4px);
-      box-shadow: 0 16px 50px rgba(6, 182, 212, 0.35);
+    button.small.primary{
+      background:var(--accent);color:#fff;border-color:var(--accent);
     }
-
-    .card-title {
-      font-size: 20px;
-      font-weight: 800;
-      margin: 0 0 12px;
-      display: flex;
-      align-items: center;
-      gap: 10px;
+    button.small.warn{
+      background:#f97316;color:#fff;border-color:#f97316;
     }
+    button:disabled{opacity:.6;cursor:not-allowed;}
+    .muted{color:var(--subtext);font-size:12px;}
+    .date-range{font-weight:800;margin-bottom:6px;}
 
-    .card-icon {
-      width: 36px;
-      height: 36px;
-      border-radius: 10px;
-      background: linear-gradient(120deg, var(--accent), var(--accent-2));
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 18px;
+    table{width:100%;border-collapse:collapse;margin-top:10px;background:#fff;}
+    th,td{border:1px solid #e5e7eb;padding:6px 8px;font-size:12px;vertical-align:top;}
+    th{background:var(--muted);font-weight:800;}
+    caption{text-align:left;font-weight:800;margin-bottom:6px;}
+
+    .tabs{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px;}
+    .tab-button{
+      padding:8px 14px;border-radius:999px;border:1px solid #a5f3fc;
+      background:#f0fdfa;color:#0e7490;font-weight:700;font-size:13px;cursor:pointer;
     }
+    .tab-button.active{background:var(--accent);border-color:var(--accent);color:#fff;}
+    .tab-panel{display:none;}
+    .tab-panel.active{display:block;}
 
-    .card-description {
-      font-size: 14px;
-      color: var(--subtext);
-      margin: 0 0 16px;
-      line-height: 1.5;
+    /* 日カード */
+    th.col-day,td.col-day{width:86px;padding:0;border:none;}
+    .daycard{
+      width:86px;min-height:132px;
+      border:1px solid #e5e7eb;border-radius:10px;
+      margin:0 auto;background:#fff;
+      position:relative;padding:6px 6px 8px;
+      display:flex;flex-direction:column;gap:4px;align-items:center;
     }
-
-    .card-features {
-      list-style: none;
-      padding: 0;
-      margin: 0 0 20px;
+    .daycard::before{
+      content:"";position:absolute;left:0;top:0;height:100%;width:5px;
+      border-radius:10px 0 0 10px;background:#06b6d4;
     }
+    .daycard.type-1gou::before{background:#22d3ee;}
+    .daycard.type-short::before{background:#67e8f9;}
+    .daycard.type-standard::before{background:#06b6d4;}
+    .daycard.status-absent::before{background:#ef4444;}
+    .daycard.status-closed::before{background:#9ca3af;}
 
-    .card-features li {
-      font-size: 13px;
-      color: var(--subtext);
-      padding: 6px 0;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    .dc-week{font-size:10px;color:#6b7280;font-weight:700;}
+    .dc-date{font-size:18px;font-weight:900;}
+    .pill{
+      font-size:11px;border-radius:999px;padding:2px 8px;
+      border:1px solid #d1d5db;background:#fff;color:#374151;font-weight:700;
     }
-
-    .card-features li:last-child {
-      border-bottom: none;
+    .pill.attend{border-color:#0891b2;color:#155e75;}
+    .pill.absent{border-color:#b91c1c;color:#7f1d1d;}
+    .pill.closed{border-color:#ea580c;color:#9a3412;}
+    .dc-tags{display:flex;flex-wrap:wrap;gap:4px;justify-content:center;min-height:18px;}
+    .tag{
+      font-size:9px;border-radius:999px;padding:1px 6px;
+      border:1px solid #d1d5db;color:#6b7280;background:transparent;
+      font-weight:700;
     }
+    .tag.on{background:#cffafe;border-color:#06b6d4;color:#155e75;}
+    .tag.az{background:#fef9c3;border-color:#f59e0b;color:#92400e;}
 
-    .card-features li::before {
-      content: "✓";
-      color: var(--accent);
-      font-weight: bold;
-      margin-right: 8px;
+    .time-input{
+      width:78px;font-size:12px;padding:4px 6px;border-radius:8px;border:1px solid #d1d5db;
     }
+    .diff{font-size:11px;color:#6b7280;margin-top:2px;}
 
-    .btn {
-      display: inline-block;
-      padding: 10px 20px;
-      background: linear-gradient(120deg, var(--accent), var(--accent-2));
-      color: #fff;
-      border-radius: 12px;
-      text-decoration: none;
-      font-weight: 800;
-      font-size: 14px;
-      transition: opacity 0.2s;
-      text-align: center;
+    .type-toggle{display:flex;flex-direction:column;gap:4px;align-items:center;}
+    .typeBtn{width:92px;white-space:normal;line-height:1.15;}
+    .typeBtn.active{background:var(--accent);border-color:var(--accent);color:#fff;}
+
+    .vac-btn{
+      width:92px;border-radius:12px;
+      border:1px solid #d1d5db;background:#fff;color:#374151;
+      padding:6px 8px;font-weight:800;font-size:11px;
     }
+    .vac-btn.active{background:#fef3c7;border-color:#f59e0b;color:#92400e;}
 
-    .btn:hover {
-      opacity: 0.9;
+    .az-chip{
+      width:100%;border:1px dashed #f59e0b;border-radius:10px;
+      padding:4px 6px;background:#fffbeb;
+      display:flex;flex-direction:column;gap:2px;align-items:center;
+      font-size:11px;font-weight:700;color:#92400e;
     }
+    .az-chip.off{border-color:#d4d4d8;background:#f8fafc;color:#6b7280;}
+    .az-chip .fee{font-size:12px;font-weight:900;}
+    .auto-note{font-size:10px;color:#6b7280;}
 
-    .info-panel {
-      background: var(--panel);
-      border: 1px solid var(--border);
-      border-radius: 18px;
-      padding: 24px;
-      box-shadow: var(--glow);
-    }
-
-    .info-title {
-      font-size: 18px;
-      font-weight: 800;
-      margin: 0 0 16px;
-      color: var(--text);
-    }
-
-    .info-content {
-      font-size: 14px;
-      color: var(--subtext);
-      line-height: 1.7;
-    }
-
-    .info-content ul {
-      margin: 12px 0;
-      padding-left: 20px;
-    }
-
-    .info-content li {
-      margin: 8px 0;
-    }
-
-    footer {
-      text-align: center;
-      margin-top: 48px;
-      color: var(--subtext);
-      font-size: 13px;
-    }
-
-    @media (max-width: 768px) {
-      h1 {
-        font-size: 24px;
-      }
-
-      .cards {
-        grid-template-columns: 1fr;
-      }
-    }
+    .row-selected td{outline:2px solid #22d3ee;outline-offset:-2px;}
   </style>
 </head>
 <body>
-  <div class="container">
-    <header>
-      <div class="logo">保</div>
-      <h1>保育園延長・預かり保育計算ツール</h1>
-      <p class="subtitle">1号認定の方向けに、預かり保育と延長保育の料金を簡単に計算できます</p>
-    </header>
+  <header>
+    <div class="logo-circle">園</div>
+    <div style="flex:1;">
+      <h1>延長・預り保育 計算</h1>
+      <p>延長：30分200円（3,000円上限）／ 預り：定額（要件反映済）</p>
+      <p style="font-size:11px;margin:4px 0 0;opacity:0.85;">
+        <span style="font-weight:700;">v1.3.0</span> | 
+        最終更新: <span id="lastUpdated">--</span>
+      </p>
+    </div>
+    <button id="toggleSidebar" class="sidebar-toggle">サイドバーをとじる</button>
+  </header>
 
-    <div class="cards">
-      <a href="Calcu/index.html" class="card">
-        <div class="card-title">
-          <div class="card-icon">🌟</div>
-          預かり保育計算シート
+  <main>
+    <div class="sidebar" id="sidebar">
+      <section class="panel">
+        <h2>入力</h2>
+        <label for="csvFile">登降園実績表（月ごと・CSV）</label>
+        <input id="csvFile" type="file" accept=".csv,text/csv" />
+        <div style="margin-top:10px;">
+          <button id="calculate" type="button">計算する</button>
         </div>
-        <p class="card-description">日次単位でシンプルに計算できるツール</p>
-        <ul class="card-features">
-          <li>日ごとの登園・降園時刻入力</li>
-          <li>預かり保育プランの選択</li>
-          <li>延長保育料金の自動計算</li>
-          <li>列表示の切り替え機能</li>
-          <li>手軽に使えるシンプルUI</li>
-        </ul>
-        <div class="btn">計算シートを開く →</div>
-      </a>
+        <p class="muted" style="margin:10px 0 0;">
+          期待列：日付 / 出欠 / 名前 / 園 / 所属 / 登園時刻 / 降園時刻
+        </p>
+      </section>
 
-      <a href="Chat/Index.html" class="card">
-        <div class="card-title">
-          <div class="card-icon">📊</div>
-          チャット目次メーカー
+      <section class="panel">
+        <h2>設定</h2>
+        <div class="row">
+          <div>
+            <label>登園バッファ（分）</label>
+            <input id="arriveBuffer" type="number" min="0" step="1" value="0">
+            <div class="muted">登園が早い判定を緩める（登園時刻＋分）</div>
+          </div>
+          <div>
+            <label>降園バッファ（分）</label>
+            <input id="leaveBuffer" type="number" min="0" step="1" value="0">
+            <div class="muted">降園が遅い判定を緩める（降園時刻−分）</div>
+          </div>
         </div>
-        <p class="card-description">チャットから目次を生成するユーティリティ</p>
-        <ul class="card-features">
-          <li>チャット履歴の解析</li>
-          <li>目次の自動生成</li>
-          <li>構造化された出力</li>
-          <li>使いやすいインターフェース</li>
-          <li>即座に使える機能</li>
-        </ul>
-        <div class="btn">ツールを開く →</div>
-      </a>
-      <a class="link-card" href="public/index.html">
-        <div class="link-title">Emperor News</div>
-        <p class="link-desc">ブログ記事の閲覧と管理ができるEmperor Newsのトップページです。</p>
-      </a>
+
+        <div class="row" style="margin-top:10px;">
+          <div>
+            <label>預り判定時刻（通常日）</label>
+            <input id="azJudge" type="text" value="15:00">
+            <div class="muted">例：15:00（この時刻まで園にいれば預り500円）</div>
+          </div>
+          <div>
+            <label>延長バッファ（分）</label>
+            <input id="extBuffer" type="number" min="0" step="1" value="0">
+            <div class="muted">延長の判定に使う（朝夕共通）</div>
+          </div>
+        </div>
+
+        <div style="margin-top:10px;">
+          <button id="saveSettings" class="small primary" type="button">設定を保存</button>
+          <button id="resetSettings" class="small" type="button">設定リセット</button>
+        </div>
+      </section>
+
+      <section class="panel">
+        <h2>メモ</h2>
+        <div class="muted">
+          - 基本区分が1号認定で 8:30〜16:30 をカバー → 自動で「1号＋預り保育（500円）」<br>
+          - 日カードの「長期休暇」ボタンはタップで循環（OFF→1日(1,000円)→午前(500円)→午後(500円)→OFF）<br>
+          - 長期休暇を付けた日は出欠に関わらず「登園」扱いで集計
+        </div>
+      </section>
     </div>
 
-    <div class="info-panel">
-      <h2 class="info-title">💡 ご利用について</h2>
-      <div class="info-content">
-        <p><strong>このツールは、1号認定の保護者の方向けに設計されています。</strong></p>
-        <ul>
-          <li>預かり保育を利用すれば、延長料金がかからないことを確認できます</li>
-          <li>基本の教育時間：8:30〜13:00</li>
-          <li>預かり保育時間：13:00〜16:30（500円）</li>
-          <li>延長保育：16:30以降（30分200円、上限3,000円/月）</li>
-        </ul>
-        <p>お子様の登降園時刻を入力することで、最適なプランと料金を確認できます。</p>
+    <div class="content">
+      <section class="panel">
+        <h2>月別・人別サマリー</h2>
+        <div id="summaryContainer" class="muted">CSVを読み込んで計算すると表示されます。</div>
+      </section>
+
+      <section class="panel">
+        <h2>日次明細</h2>
+        <div id="dateRangeLabel" class="date-range"></div>
+        <div id="detailContainer" class="muted">計算後に表示されます。</div>
+      </section>
+    </div>
+  </main>
+
+<script>
+/* =========================
+   状態・設定
+========================= */
+const STORAGE_KEY = "enchoAzukari_app_v1";
+
+const DEFAULT_SETTINGS = {
+  sidebarCollapsed: false,
+  arriveBuffer: 0,
+  leaveBuffer: 0,
+  extBuffer: 0,
+  azJudge: "15:00",
+  // 行ごとの上書き
+  overridesByKey: {} // recordKey -> { baseType?, type?, arriveMinutes?, leaveMinutes?, vacationMode? }
+};
+
+let state = loadState();
+
+/* =========================
+   定数（延長）
+========================= */
+const START_STANDARD = 7*60+30;
+const END_STANDARD   = 18*60+30;
+const START_SHORT    = 8*60+30;
+const END_SHORT      = 16*60+30;
+const START_1GOU     = 8*60+30;   // 8:30
+const END_1GOU       = 13*60;     // 13:00（教育枠）
+const EXT_UNIT_FEE   = 200;
+const MONTHLY_CAP    = 3000;
+
+/* =========================
+   定数（預り）
+========================= */
+const AZUKARI = {
+  NORMAL_FEE: 500,
+  LONG_FULL: 1000,
+  LONG_HALF: 500,
+  NORMAL_START: 13*60,      // 13:00
+  NORMAL_END: 16*60+30      // 16:30
+};
+// vacationMode: null | 'ALL' | 'AM' | 'PM'
+
+/* =========================
+   DOM
+========================= */
+const fileInput = document.getElementById("csvFile");
+const calculateBtn = document.getElementById("calculate");
+const summaryContainer = document.getElementById("summaryContainer");
+const detailContainer = document.getElementById("detailContainer");
+const dateRangeLabel = document.getElementById("dateRangeLabel");
+
+const toggleSidebarBtn = document.getElementById("toggleSidebar");
+const sidebarEl = document.getElementById("sidebar");
+
+const arriveBufferEl = document.getElementById("arriveBuffer");
+const leaveBufferEl  = document.getElementById("leaveBuffer");
+const extBufferEl    = document.getElementById("extBuffer");
+const azJudgeEl      = document.getElementById("azJudge");
+const saveSettingsBtn = document.getElementById("saveSettings");
+const resetSettingsBtn = document.getElementById("resetSettings");
+
+/* =========================
+   変数
+========================= */
+let originalRows = [];
+let lastResult = null;
+
+/* =========================
+   初期反映
+========================= */
+applySidebarState();
+applySettingsToInputs();
+
+toggleSidebarBtn.addEventListener("click", () => {
+  state.sidebarCollapsed = !state.sidebarCollapsed;
+  saveState();
+  applySidebarState();
+});
+
+saveSettingsBtn.addEventListener("click", () => {
+  state.arriveBuffer = clampInt(arriveBufferEl.value, 0, 999);
+  state.leaveBuffer  = clampInt(leaveBufferEl.value, 0, 999);
+  state.extBuffer    = clampInt(extBufferEl.value, 0, 999);
+  state.azJudge      = sanitizeHHMM(azJudgeEl.value) || "15:00";
+  saveState();
+  if (lastResult) rerun();
+});
+
+resetSettingsBtn.addEventListener("click", () => {
+  state.arriveBuffer = 0;
+  state.leaveBuffer = 0;
+  state.extBuffer = 0;
+  state.azJudge = "15:00";
+  saveState();
+  applySettingsToInputs();
+  if (lastResult) rerun();
+});
+
+calculateBtn.addEventListener("click", () => {
+  const file = fileInput.files && fileInput.files[0];
+  if (!file) return alert("CSVファイルを選択してください。");
+
+  const reader = new FileReader();
+  reader.onload = () => {
+    try{
+      const text = String(reader.result || "");
+      const rows = parseCSV(text);
+      originalRows = rows;
+      // override適用のキー辞書を作る（このCSV用）
+      const result = calculate(rows);
+      lastResult = result;
+      renderSummary(result.summary);
+      renderDetails(result.details);
+    }catch(e){
+      console.error(e);
+      alert("CSVの読み込みまたは計算中にエラーが発生しました。Consoleを確認してください。");
+    }
+  };
+  reader.readAsText(file);
+});
+
+/* =========================
+   計算コア
+========================= */
+function calculate(rows){
+  const arriveBuf = Number(state.arriveBuffer || 0);
+  const leaveBuf  = Number(state.leaveBuffer  || 0);
+  const extBuf    = Number(state.extBuffer    || 0);
+  const azJudgeMin = parseTimeToMinutes(state.azJudge) ?? (15*60);
+
+  const details = [];
+  const summaryMap = new Map();
+
+  let minKey=null, maxKey=null;
+
+  rows.forEach((row, idx) => {
+    const rawDate = str(row["日付"]);
+    if (!rawDate) return;
+
+    const {year,month,day} = splitYMD(rawDate);
+    if (!year || !month || !day) return;
+    const dateKey = Number(year)*10000 + Number(month)*100 + Number(day);
+    minKey = (minKey==null || dateKey<minKey) ? dateKey : minKey;
+    maxKey = (maxKey==null || dateKey>maxKey) ? dateKey : maxKey;
+
+    const name   = str(row["名前"]) || `不明(${idx})`;
+    const school = str(row["園"]) || "園未設定";
+    const clazz  = str(row["所属"]) || "クラス未設定";
+    const statusRaw = str(row["出欠"]);
+
+    // 出欠ラベル（表示用）
+    let attendLabel = "休園";
+    if (statusRaw && /欠/.test(statusRaw)) attendLabel = "欠園";
+    else if (statusRaw && /登|出|○/.test(statusRaw)) attendLabel = "登園";
+
+    // キー（保存用）
+    const recKey = makeRecordKey({rawDate, school, clazz, name});
+    const o = state.overridesByKey[recKey] || {};
+
+    // 時刻（CSV→分）
+    const baseArrive = parseTimeToMinutes(str(row["登園時刻"]));
+    const baseLeave  = parseTimeToMinutes(str(row["降園時刻"]));
+
+    // override時刻
+    const effArrive = (o.arriveMinutes!=null) ? o.arriveMinutes : baseArrive;
+    const effLeave  = (o.leaveMinutes !=null) ? o.leaveMinutes  : baseLeave;
+
+    // バッファ適用（判定用）
+    const arriveAdj = (effArrive!=null) ? effArrive + arriveBuf : null;
+    const leaveAdj  = (effLeave !=null) ? effLeave  - leaveBuf  : null;
+
+    // 基本区分（デフォは標準、必要ならここを拡張）
+    const baseType = o.baseType || "standard";
+    let typeKey = o.type || baseType; // 'standard' | 'short' | '1gou'
+
+    // 8:30-16:30 をカバーしているか（1号の自動判定用）
+    const coverFullRange = (arriveAdj!=null && leaveAdj!=null && arriveAdj <= START_1GOU && leaveAdj >= AZUKARI.NORMAL_END);
+    const autoOnegou = (baseType === "1gou" && coverFullRange);
+    if (autoOnegou) typeKey = "1gou";
+
+    // 休日/欠席/休園でも、長期休暇ONなら登園扱い
+    const vacationMode = o.vacationMode || null; // null|'ALL'|'AM'|'PM'
+    const isVacation = !!vacationMode;
+    if (isVacation) attendLabel = "登園";
+
+    // 区分ごとの延長基準（今まで通り）
+    let baseStart, baseEnd;
+    if (typeKey === "short") { baseStart=START_SHORT; baseEnd=END_SHORT; }
+    else if (typeKey === "1gou") { baseStart=START_1GOU; baseEnd=END_1GOU; } // 教育枠（延長は後ろを見ても良いが現状はこのまま）
+    else { baseStart=START_STANDARD; baseEnd=END_STANDARD; }
+
+    // 延長（朝夕）※登園が早い/降園が遅い、extBuf加味
+    let extMinutes = 0;
+    if (attendLabel === "登園") {
+      if (arriveAdj!=null){
+        const tStart = baseStart - extBuf;
+        if (arriveAdj < tStart) extMinutes += (tStart - arriveAdj);
+      }
+      if (leaveAdj!=null){
+        const tEnd = baseEnd + extBuf;
+        if (leaveAdj > tEnd) extMinutes += (leaveAdj - tEnd);
+      }
+    }
+    const extUnits = extMinutes>0 ? Math.ceil(extMinutes/30) : 0;
+    const extFeeRaw = extUnits * EXT_UNIT_FEE;
+
+    // 預り（ここが今回の要件）
+    // 自動：1号認定で、判定時刻(デフォ15:00)以降まで園にいれば 500円
+    // ただし、長期休暇モード優先
+    let azFee = 0;
+    let azLabel = "";
+    let azMinutes = 0;
+    let azAuto = false;
+
+    if (attendLabel === "登園") {
+      if (isVacation) {
+        if (vacationMode === "ALL") { azFee = AZUKARI.LONG_FULL; azLabel="長期休暇(1日)"; }
+        if (vacationMode === "AM")  { azFee = AZUKARI.LONG_HALF; azLabel="長期休暇(午前)"; }
+        if (vacationMode === "PM")  { azFee = AZUKARI.LONG_HALF; azLabel="長期休暇(午後)"; }
+        // 分は表示用（なくてもOK）
+        if (arriveAdj!=null && leaveAdj!=null) azMinutes = Math.max(0, leaveAdj - arriveAdj);
+      } else if (autoOnegou && leaveAdj!=null) {
+        azFee = AZUKARI.NORMAL_FEE;
+        azLabel = "預り保育（自動）";
+        azMinutes = Math.max(0, Math.min(leaveAdj, AZUKARI.NORMAL_END) - AZUKARI.NORMAL_START);
+        azAuto = true;
+      } else {
+        // 1号認定のときのみ
+        if (typeKey === "1gou" && leaveAdj!=null) {
+          // CSVが 8:30〜16:30 をカバーなら自動預り500
+          const judgeOn = (leaveAdj >= azJudgeMin);
+          if (coverFullRange || judgeOn) {
+            azFee = AZUKARI.NORMAL_FEE;
+            azLabel = coverFullRange ? "預り保育（自動）" : "預り保育";
+            azMinutes = Math.max(0, Math.min(leaveAdj, AZUKARI.NORMAL_END) - AZUKARI.NORMAL_START);
+            azAuto = coverFullRange;
+          }
+        }
+      }
+    }
+
+    // 合計
+    const totalFee = extFeeRaw + azFee;
+
+    // 明細
+    const weekday = getWeekdayLabel(`${year}/${month}/${day}`);
+    const detail = {
+      recordIndex: idx,
+      recordKey: recKey,
+
+      name, school, clazz,
+
+      date: `${year}/${month}/${day}`,
+      year, month, day, dateKey, weekday,
+
+      attendLabel,
+      typeKey,
+      typeLabel: typeKey==="1gou" ? "1号認定" : (typeKey==="short" ? "短時間" : "標準時間"),
+      autoOnegou,
+      coverFullRange,
+
+      arrive: effArrive!=null ? minutesToTime(effArrive) : "",
+      leave:  effLeave !=null ? minutesToTime(effLeave)  : "",
+
+      // 差分（表示用）
+      deltaArrive: (baseArrive!=null && effArrive!=null) ? (effArrive-baseArrive) : 0,
+      deltaLeave:  (baseLeave !=null && effLeave !=null) ? (effLeave-baseLeave)   : 0,
+
+      extMinutes,
+      extUnits,
+      extFee: extFeeRaw,
+
+      vacationMode,
+
+      azukariMinutes: azMinutes,
+      azukariFee: azFee,
+      azukariLabel: azLabel,
+      azAuto,
+
+      totalFee
+    };
+
+    details.push(detail);
+
+    // サマリー（名前×月×園）
+    const monthKey = `${year}-${month}`;
+    const sumKey = `${name}__${school}__${monthKey}`;
+    if (!summaryMap.has(sumKey)){
+      summaryMap.set(sumKey, {
+        name, school, month: monthKey,
+        extUnitsTotal: 0,
+        extFeeRaw: 0,
+        extFeeCapped: 0,
+        azFeeTotal: 0,
+        total: 0
+      });
+    }
+    const s = summaryMap.get(sumKey);
+    s.extUnitsTotal += extUnits;
+    s.extFeeRaw += extFeeRaw;
+    s.azFeeTotal += azFee;
+    // cappedは後で
+  });
+
+  // サマリー確定（延長の上限適用）
+  const summary = Array.from(summaryMap.values()).map(s=>{
+    const capped = Math.min(s.extFeeRaw, MONTHLY_CAP);
+    s.extFeeCapped = capped;
+    s.total = capped + s.azFeeTotal;
+    return s;
+  }).sort((a,b)=> a.name.localeCompare(b.name,'ja') || a.month.localeCompare(b.month));
+
+  // 詳細ソート（園/クラス/名前/日）
+  details.sort((a,b)=>
+    a.school.localeCompare(b.school,'ja') ||
+    a.clazz.localeCompare(b.clazz,'ja') ||
+    a.name.localeCompare(b.name,'ja') ||
+    a.dateKey - b.dateKey
+  );
+
+  // レンジ
+  if (minKey!=null && maxKey!=null){
+    const sY=Math.floor(minKey/10000);
+    const sM=Math.floor((minKey%10000)/100);
+    const sD=minKey%100;
+    const eY=Math.floor(maxKey/10000);
+    const eM=Math.floor((maxKey%10000)/100);
+    const eD=maxKey%100;
+    dateRangeLabel.textContent = `【${sY}/${sM}/${sD} ～ ${eY}/${eM}/${eD}】`;
+  } else {
+    dateRangeLabel.textContent = "";
+  }
+
+  return {summary, details};
+}
+
+/* =========================
+   描画
+========================= */
+function renderSummary(summary){
+  if (!summary.length){
+    summaryContainer.innerHTML = `<p class="muted">データがありません。</p>`;
+    return;
+  }
+  const rows = summary.map(s=>{
+    const extNote = s.extFeeRaw > s.extFeeCapped ? "（上限3,000円）" : "";
+    return `
+      <tr>
+        <td>${esc(s.name)}</td>
+        <td>${esc(s.school)}</td>
+        <td>${esc(s.month)}</td>
+        <td>${s.extUnitsTotal}</td>
+        <td>${s.extFeeCapped.toLocaleString()}円${extNote}</td>
+        <td>${s.azFeeTotal.toLocaleString()}円</td>
+        <td>${s.total.toLocaleString()}円</td>
+      </tr>
+    `;
+  }).join("");
+
+  summaryContainer.innerHTML = `
+    <div class="muted">延長：30分200円（上限3,000円）／ 預り：定額</div>
+    <table>
+      <thead>
+        <tr>
+          <th>名前</th><th>園</th><th>月</th>
+          <th>延長回数</th><th>延長料金</th><th>預り料金</th><th>合計</th>
+        </tr>
+      </thead>
+      <tbody>${rows}</tbody>
+    </table>
+  `;
+}
+
+function renderDetails(details){
+  if (!details.length){
+    detailContainer.innerHTML = `<p class="muted">データがありません。</p>`;
+    return;
+  }
+
+  // 園→クラス→氏名で絞るUI（シンプル）
+  const schools = uniq(details.map(d=>d.school)).sort((a,b)=>a.localeCompare(b,'ja'));
+  const activeSchool = schools[0];
+  const inSchool = details.filter(d=>d.school===activeSchool);
+
+  const classes = uniq(inSchool.map(d=>d.clazz)).sort((a,b)=>a.localeCompare(b,'ja'));
+  const activeClass = classes[0];
+  const filtered = inSchool.filter(d=>d.clazz===activeClass);
+
+  const byName = new Map();
+  filtered.forEach(d=>{
+    if(!byName.has(d.name)) byName.set(d.name, []);
+    byName.get(d.name).push(d);
+  });
+  const names = Array.from(byName.keys()).sort((a,b)=>a.localeCompare(b,'ja'));
+
+  let tabs = `<div class="tabs">` + names.map((n,i)=>`<button class="tab-button ${i===0?'active':''}" data-tab="p${i}">${esc(n)}</button>`).join("") + `</div>`;
+  let panels = names.map((n,i)=>{
+    const list = byName.get(n);
+
+    const rows = list.map(item=>{
+      const statusCls = item.attendLabel==="登園" ? "attend" : (item.attendLabel==="欠園" ? "absent" : "closed");
+      const dcType = item.typeKey==="1gou" ? "type-1gou" : (item.typeKey==="short" ? "type-short" : "type-standard");
+      const autoTypeTag = item.autoOnegou || item.azAuto;
+
+      const tagAz = item.azukariFee>0 ? `<span class="tag az on">${esc(item.azukariLabel || "預り")}</span>` : `<span class="tag az">預り</span>`;
+      const tagType = item.typeKey==="1gou" ? `<span class="tag on">1号</span>` : `<span class="tag">区分</span>`;
+
+      const vacationBtnLabel =
+        item.vacationMode==="ALL" ? "1日 1000円" :
+        item.vacationMode==="AM"  ? "午前 500円" :
+        item.vacationMode==="PM"  ? "午後 500円" :
+        "長期休暇";
+      const vacationBtnClass = `small vac-btn vacationBtn ${item.vacationMode ? 'active' : ''}`;
+
+      const azChip = `
+        <div class="az-chip ${item.azukariFee>0 ? '' : 'off'}">
+          <div>${item.azukariFee>0 ? esc(item.azukariLabel || "預り保育") : "預りなし"}</div>
+          ${item.azukariFee>0 ? `<div class="fee">${item.azukariFee.toLocaleString()}円</div>` : ``}
+          ${item.azAuto ? `<div class="auto-note">自動判定</div>` : ``}
+        </div>
+      `;
+
+      return `
+        <tr class="detail-row" data-index="${item.recordIndex}" data-rk="${esc(item.recordKey)}">
+          <td class="col-day">
+            <div class="daycard ${dcType} status-${statusCls}">
+              <div class="dc-week">${esc(item.weekday)}</div>
+              <div class="dc-date">${esc(item.day)}</div>
+              <div><span class="pill ${statusCls}">${esc(item.attendLabel)}</span></div>
+              <button type="button" class="${vacationBtnClass}" data-rk="${esc(item.recordKey)}">${vacationBtnLabel}</button>
+              <div class="dc-tags">${tagType}${tagAz}</div>
+              ${azChip}
+              ${autoTypeTag ? `<div class="auto-note">8:30〜16:30 自動判定</div>` : ``}
+            </div>
+          </td>
+          <td>
+            <div class="type-toggle" data-rk="${esc(item.recordKey)}">
+              <button type="button" class="small typeBtn ${item.typeKey==='standard'?'primary':''}" data-type="standard">標準</button>
+              <button type="button" class="small typeBtn ${item.typeKey==='short'?'primary':''}" data-type="short">短時間</button>
+              <button type="button" class="small typeBtn ${item.typeKey==='1gou'?'primary':''}" data-type="1gou">1号</button>
+            </div>
+          </td>
+          <td>
+            <input class="time-input arriveInput" data-rk="${esc(item.recordKey)}" value="${esc(item.arrive)}" placeholder="HH:MM">
+            <div class="diff">${formatDiff(item.deltaArrive)}</div>
+          </td>
+          <td>
+            <input class="time-input leaveInput" data-rk="${esc(item.recordKey)}" value="${esc(item.leave)}" placeholder="HH:MM">
+            <div class="diff">${formatDiff(item.deltaLeave)}</div>
+          </td>
+          <td>${item.extMinutes>0 ? `${item.extMinutes}分` : "—"}</td>
+          <td>${item.extMinutes>0 ? `${item.extFee.toLocaleString()}円` : "適用なし"}</td>
+          <td><b>${item.extMinutes>0 || item.azukariFee>0 ? `${item.totalFee.toLocaleString()}円` : "—"}</b></td>
+        </tr>
+      `;
+    }).join("");
+
+    return `
+      <div class="tab-panel ${i===0?'active':''}" id="p${i}">
+        <table>
+          <thead>
+            <tr>
+              <th class="col-day">日</th>
+              <th>区分</th>
+              <th>登園</th>
+              <th>降園</th>
+              <th>延長(分)</th>
+              <th>延長料金</th>
+              <th>合計</th>
+            </tr>
+          </thead>
+          <tbody>${rows}</tbody>
+        </table>
       </div>
-    </div>
+    `;
+  }).join("");
 
-    <footer>
-      <p>© 2024 保育園延長・預かり保育計算ツール</p>
-    </footer>
-  </div>
+  detailContainer.innerHTML = tabs + panels;
+
+  // タブ切替
+  const tabButtons = detailContainer.querySelectorAll(".tab-button");
+  const tabPanels = detailContainer.querySelectorAll(".tab-panel");
+  tabButtons.forEach(btn=>{
+    btn.addEventListener("click", ()=>{
+      const id = btn.dataset.tab;
+      tabButtons.forEach(b=>b.classList.remove("active"));
+      tabPanels.forEach(p=>p.classList.remove("active"));
+      btn.classList.add("active");
+      const panel = detailContainer.querySelector("#"+id);
+      if(panel) panel.classList.add("active");
+    });
+  });
+
+  // 長期休暇トグル（OFF→ALL→AM→PM→OFF）
+  detailContainer.querySelectorAll(".vacationBtn").forEach(btn=>{
+    btn.addEventListener("click",(e)=>{
+      e.stopPropagation();
+      const rk = btn.dataset.rk;
+      const o = state.overridesByKey[rk] || {};
+      const cur = o.vacationMode || null;
+      const next = (cur==null) ? "ALL" : (cur==="ALL" ? "AM" : (cur==="AM" ? "PM" : null));
+      if (next==null) delete o.vacationMode; else o.vacationMode = next;
+      // 長期休暇なら登園扱い（表示）
+      state.overridesByKey[rk] = o;
+      saveState();
+      rerun();
+    });
+  });
+
+  // 区分ボタン
+  detailContainer.querySelectorAll(".typeBtn").forEach(btn=>{
+    btn.addEventListener("click",(e)=>{
+      e.stopPropagation();
+      const wrap = btn.closest(".type-toggle");
+      const rk = wrap.dataset.rk;
+      const type = btn.dataset.type;
+      const o = state.overridesByKey[rk] || {};
+      o.type = type;
+      state.overridesByKey[rk] = o;
+      saveState();
+      rerun();
+    });
+  });
+
+  // 時刻入力（enter/blurで反映）
+  detailContainer.querySelectorAll(".arriveInput").forEach(inp=>{
+    inp.addEventListener("change", ()=>applyTimeEdit(inp, "arrive"));
+    inp.addEventListener("blur", ()=>applyTimeEdit(inp, "arrive"));
+  });
+  detailContainer.querySelectorAll(".leaveInput").forEach(inp=>{
+    inp.addEventListener("change", ()=>applyTimeEdit(inp, "leave"));
+    inp.addEventListener("blur", ()=>applyTimeEdit(inp, "leave"));
+  });
+
+  // 行選択の見た目
+  const rows = detailContainer.querySelectorAll("tr.detail-row");
+  rows.forEach(tr=>{
+    tr.addEventListener("click",()=>{
+      rows.forEach(r=>r.classList.remove("row-selected"));
+      tr.classList.add("row-selected");
+    });
+  });
+}
+
+/* =========================
+   便利関数
+========================= */
+function rerun(){
+  if (!originalRows.length) return;
+  const result = calculate(originalRows);
+  lastResult = result;
+  renderSummary(result.summary);
+  renderDetails(result.details);
+}
+
+function applyTimeEdit(inputEl, which){
+  const rk = inputEl.dataset.rk;
+  const t = sanitizeHHMM(inputEl.value);
+  const m = parseTimeToMinutes(t);
+  const o = state.overridesByKey[rk] || {};
+  if (m==null){
+    // 空 or 不正 → 解除
+    if (which==="arrive") delete o.arriveMinutes;
+    if (which==="leave")  delete o.leaveMinutes;
+  }else{
+    if (which==="arrive") o.arriveMinutes = m;
+    if (which==="leave")  o.leaveMinutes  = m;
+  }
+  state.overridesByKey[rk] = o;
+  saveState();
+  rerun();
+}
+
+function parseCSV(text){
+  // ざっくりCSV（カンマ、ダブルクォート対応）
+  const lines=[]; let cur=''; let row=[]; let inside=false;
+  for(let i=0;i<text.length;i++){
+    const ch=text[i], next=text[i+1];
+    if(ch==='\"'){
+      if(inside && next==='\"'){cur+='\"'; i++; continue;}
+      inside=!inside; continue;
+    }
+    if(ch===',' && !inside){row.push(cur); cur=''; continue;}
+    if((ch==='\n' || ch==='\r') && !inside){
+      if(ch==='\r' && next==='\n') i++;
+      row.push(cur); lines.push(row); row=[]; cur=''; continue;
+    }
+    cur+=ch;
+  }
+  if(cur || row.length){row.push(cur); lines.push(row);}
+
+  if(!lines.length) return [];
+  // ヘッダ行探し
+  let headerIndex=0;
+  for(let i=0;i<lines.length;i++){
+    const joined = lines[i].join("");
+    if(joined.includes("日付") && joined.includes("出欠") && joined.includes("名前")){
+      headerIndex=i; break;
+    }
+  }
+  let header = lines[headerIndex];
+  if(header[0] && header[0].charCodeAt(0)===0xFEFF) header[0]=header[0].slice(1);
+
+  const rows=[];
+  for(let i=headerIndex+1;i<lines.length;i++){
+    const line=lines[i];
+    if(line.length===1 && String(line[0]||"").trim()==="") continue;
+    const obj={};
+    for(let c=0;c<header.length;c++){
+      const key=String(header[c]||"").trim();
+      if(!key) continue;
+      obj[key]=line[c]??"";
+    }
+    rows.push(obj);
+  }
+  return rows;
+}
+
+function splitYMD(rawDate){
+  const m = String(rawDate).match(/^(\d{4})[-/](\d{1,2})[-/](\d{1,2})/);
+  if(!m) return {year:"",month:"",day:""};
+  return {year:m[1],month:String(m[2]).padStart(2,"0"),day:String(m[3]).padStart(2,"0")};
+}
+
+function getWeekdayLabel(ymd){
+  const d=new Date(String(ymd).replace(/-/g,'/'));
+  if(Number.isNaN(d.getTime())) return "";
+  return ["日","月","火","水","木","金","土"][d.getDay()];
+}
+
+function parseTimeToMinutes(t){
+  if(!t) return null;
+  const m = String(t).trim().match(/^(\d{1,2}):(\d{2})$/);
+  if(!m) return null;
+  const h=Number(m[1]), mi=Number(m[2]);
+  if(Number.isNaN(h)||Number.isNaN(mi) || mi<0||mi>59) return null;
+  return h*60+mi;
+}
+
+function minutesToTime(mins){
+  if(mins==null) return "";
+  const h=String(Math.floor(mins/60)).padStart(2,"0");
+  const m=String(mins%60).padStart(2,"0");
+  return `${h}:${m}`;
+}
+
+function sanitizeHHMM(v){
+  const s = String(v||"").trim();
+  if(s==="") return "";
+  const m = s.match(/^(\d{1,2})[:：](\d{2})$/);
+  if(!m) return "";
+  const hh = String(Math.min(23, Math.max(0, Number(m[1])))).padStart(2,"0");
+  const mmN = Number(m[2]);
+  if(Number.isNaN(mmN) || mmN<0 || mmN>59) return "";
+  const mm = String(mmN).padStart(2,"0");
+  return `${hh}:${mm}`;
+}
+
+function formatDiff(v){
+  const n = Number(v||0);
+  if(!n) return "±0分";
+  return (n>0?`+${n}`:`-${Math.abs(n)}`)+"分";
+}
+
+function uniq(arr){ return Array.from(new Set(arr)); }
+function str(v){ return String(v??"").trim(); }
+function esc(v){ return String(v??"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#39;"); }
+function clampInt(v,min,max){
+  const n = Number(v);
+  if(Number.isNaN(n)) return min;
+  return Math.max(min, Math.min(max, Math.floor(n)));
+}
+
+function makeRecordKey({rawDate, school, clazz, name}){
+  return [rawDate||"", school||"", clazz||"", name||""].join("|");
+}
+
+/* =========================
+   永続化
+========================= */
+function loadState(){
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if(!raw) return structuredClone(DEFAULT_SETTINGS);
+    const s = JSON.parse(raw);
+    return {
+      ...structuredClone(DEFAULT_SETTINGS),
+      ...s,
+      overridesByKey: s.overridesByKey || {}
+    };
+  }catch{
+    return structuredClone(DEFAULT_SETTINGS);
+  }
+}
+
+function saveState(){
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+}
+
+function applySidebarState(){
+  document.body.classList.toggle("sidebar-collapsed", !!state.sidebarCollapsed);
+  toggleSidebarBtn.textContent = state.sidebarCollapsed ? "サイドバーをひらく" : "サイドバーをとじる";
+}
+
+function applySettingsToInputs(){
+  arriveBufferEl.value = String(state.arriveBuffer ?? 0);
+  leaveBufferEl.value  = String(state.leaveBuffer ?? 0);
+  extBufferEl.value    = String(state.extBuffer ?? 0);
+  azJudgeEl.value      = String(state.azJudge ?? "15:00");
+}
+
+function updateLastModified(){
+  const el = document.getElementById('lastUpdated');
+  if (!el) return;
+  const now = new Date();
+  const formatted = `${now.getFullYear()}年${String(now.getMonth()+1).padStart(2,'0')}月${String(now.getDate()).padStart(2,'0')}日 ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+  el.textContent = formatted;
+}
+
+// Initialize on load
+updateLastModified();
+</script>
 </body>
 </html>
