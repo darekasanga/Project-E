@@ -190,11 +190,32 @@ The project is configured for Vercel deployment with:
 vercel --prod
 ```
 
+### Commit Signing & Verification
+
+⚠️ **Important**: Deployments require verified commits. If you encounter the error "Deployment was canceled because it was created with an unverified commit", please refer to [COMMIT_SIGNING.md](./COMMIT_SIGNING.md) for detailed instructions on setting up commit signing.
+
+Quick setup:
+```bash
+# Configure GPG signing
+git config --global commit.gpgsign true
+git config --global user.signingkey YOUR_GPG_KEY_ID
+```
+
+See [COMMIT_SIGNING.md](./COMMIT_SIGNING.md) for complete setup instructions.
+
 ### Environment Variables
 
 Configure these in your Vercel project settings:
+- `VERCEL_TOKEN` - Your Vercel authentication token (required for CI/CD)
+- `VERCEL_ORG_ID` - Your Vercel organization ID (required for CI/CD)
+- `VERCEL_PROJECT_ID` - Your Vercel project ID (required for CI/CD)
 - `ARTICLES_DATA_PATH` - Path for article data storage (optional)
 - Additional API keys for chat/image generation services (as needed)
+
+For GitHub repository secrets (Settings → Secrets and variables → Actions):
+- `VERCEL_TOKEN` - Generate from Vercel account settings
+- `VERCEL_ORG_ID` - Found in `.vercel/project.json` after linking project
+- `VERCEL_PROJECT_ID` - Found in `.vercel/project.json` after linking project
 
 ## Features & Highlights
 
