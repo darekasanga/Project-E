@@ -9,6 +9,10 @@
     }
   },
   "rewrites": [
+    { "source": "/Index.html", "destination": "/Index.html" },
+    { "source": "/Calcu.html", "destination": "/Calcu.html" },
+    { "source": "/Calcu/(.*)", "destination": "/Calcu/$1" },
+    { "source": "/Chat/(.*)", "destination": "/Chat/$1" },
     { "source":  "/draw", "destination": "/public/draw.html" },
     { "source": "/api/(.*)", "destination": "/api/$1" },
     { "source":  "/(.*)", "destination": "/public/$1" }
