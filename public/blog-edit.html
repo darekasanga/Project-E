@@ -75,20 +75,6 @@
           <p class="tiny muted">選択されたID順で表示します（未選択の場合は先頭から4件）。</p>
         </div>
         <div class="form-row">
-          <label class="tiny" for="cardHeightDefault">カードのデフォルト縦サイズ (px)</label>
-          <select id="cardHeightDefault" name="cardHeightDefault">
-            <option value="320">320</option>
-            <option value="340">340</option>
-            <option value="360">360</option>
-            <option value="380">380</option>
-            <option value="400">400</option>
-            <option value="420">420</option>
-            <option value="440">440</option>
-            <option value="480">480</option>
-          </select>
-          <p class="tiny muted">特集・リストで未指定の場合に使われる基本の高さです。範囲外の値は自動で調整されます。</p>
-        </div>
-        <div class="form-row">
           <label class="tiny" for="cardHeight">カードの縦サイズ (px)</label>
           <input id="cardHeight" name="cardHeight" type="number" min="240" max="800" step="10" placeholder="例: 380">
           <p class="tiny muted">トップ/一覧の特集・カードレイアウトの高さを調整します。240〜800pxの範囲で設定してください。</p>
@@ -297,7 +283,6 @@
   const featuredSelect = document.getElementById("featuredSelect");
   const homeFeaturedSelect = document.getElementById("homeFeaturedSelect");
   const homeLatestSelect = document.getElementById("homeLatestSelect");
-  const cardHeightDefaultSelect = document.getElementById("cardHeightDefault");
   const cardHeightInput = document.getElementById("cardHeight");
   const pinnedChoices = document.getElementById("pinnedChoices");
   const settingsStatus = document.getElementById("settingsStatus");
@@ -409,15 +394,6 @@
   function renderSettingsForm() {
     const articles = BlogData.loadArticles();
     const settings = BlogData.saveSettings(BlogData.loadSettings());
-    const appliedHeight = Number.isInteger(settings.cardHeight) ? settings.cardHeight : settings.cardHeightDefault;
-    const targetDefault = Number.isInteger(settings.cardHeightDefault) ? String(settings.cardHeightDefault) : "380";
-    if (!Array.from(cardHeightDefaultSelect.options).some((opt) => opt.value === targetDefault)) {
-      const customOpt = document.createElement("option");
-      customOpt.value = targetDefault;
-      customOpt.textContent = targetDefault;
-      cardHeightDefaultSelect.appendChild(customOpt);
-    }
-    cardHeightDefaultSelect.value = targetDefault;
     cardHeightInput.value = settings.cardHeight ?? "";
     heroSelect.innerHTML = "";
     featuredSelect.innerHTML = "";
@@ -495,7 +471,7 @@
       pinnedChoices.appendChild(row);
     });
 
-    settingsStatus.textContent = `ヒーロー: ${Number.isInteger(settings.heroId) ? `ID ${settings.heroId}` : "未指定"} / 注目: ${Number.isInteger(settings.featuredId) ? `ID ${settings.featuredId}` : "未指定"} / トップ注目 ${settings.homeFeaturedIds.length} 件 / トップ最新 ${settings.homeLatestIds.length} 件 / 固定 ${settings.footerIds.length} 件 / デフォルト高さ ${settings.cardHeightDefault}px / 適用高さ ${appliedHeight}px`;
+    settingsStatus.textContent = `ヒーロー: ${Number.isInteger(settings.heroId) ? `ID ${settings.heroId}` : "未指定"} / 注目: ${Number.isInteger(settings.featuredId) ? `ID ${settings.featuredId}` : "未指定"} / トップ注目 ${settings.homeFeaturedIds.length} 件 / トップ最新 ${settings.homeLatestIds.length} 件 / 固定 ${settings.footerIds.length} 件 / 高さ ${settings.cardHeight}px`;
   }
 
   function renderCopyForm() {
@@ -866,7 +842,6 @@
     event.preventDefault();
     const heroId = heroSelect.value === "" ? null : parseInt(heroSelect.value, 10);
     const featuredId = featuredSelect.value === "" ? null : parseInt(featuredSelect.value, 10);
-    const cardHeightDefaultValue = parseInt(cardHeightDefaultSelect.value, 10);
     const cardHeightValue = parseInt(cardHeightInput.value, 10);
     const footerIds = Array.from(pinnedChoices.querySelectorAll('input[type="checkbox"]:checked'))
       .map((input) => parseInt(input.value, 10))
@@ -877,9 +852,8 @@
     const homeLatestIds = Array.from(homeLatestSelect.selectedOptions)
       .map((opt) => parseInt(opt.value, 10))
       .filter(Number.isInteger);
-    const normalized = BlogData.saveSettings({ heroId, featuredId, footerIds, homeFeaturedIds, homeLatestIds, cardHeight: cardHeightValue, cardHeightDefault: cardHeightDefaultValue });
-    const appliedHeight = Number.isInteger(normalized.cardHeight) ? normalized.cardHeight : normalized.cardHeightDefault;
-    settingsStatus.textContent = `ヒーロー: ${Number.isInteger(normalized.heroId) ? `ID ${normalized.heroId}` : "未指定"} / 注目: ${Number.isInteger(normalized.featuredId) ? `ID ${normalized.featuredId}` : "未指定"} / トップ注目 ${normalized.homeFeaturedIds.length} 件 / トップ最新 ${normalized.homeLatestIds.length} 件 / 固定 ${normalized.footerIds.length} 件 / デフォルト高さ ${normalized.cardHeightDefault}px / 適用高さ ${appliedHeight}px 保存しました`;
+    const normalized = BlogData.saveSettings({ heroId, featuredId, footerIds, homeFeaturedIds, homeLatestIds, cardHeight: cardHeightValue });
+    settingsStatus.textContent = `ヒーロー: ${Number.isInteger(normalized.heroId) ? `ID ${normalized.heroId}` : "未指定"} / 注目: ${Number.isInteger(normalized.featuredId) ? `ID ${normalized.featuredId}` : "未指定"} / トップ注目 ${normalized.homeFeaturedIds.length} 件 / トップ最新 ${normalized.homeLatestIds.length} 件 / 固定 ${normalized.footerIds.length} 件 / 高さ ${normalized.cardHeight}px 保存しました`;
   }
 
   function handleCopySave(event) {

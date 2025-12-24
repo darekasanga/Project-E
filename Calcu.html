@@ -151,19 +151,8 @@
     }
     .diff{font-size:11px;color:#6b7280;margin-top:2px;}
 
-    .type-toggle{
-      display:grid;
-      grid-template-columns:repeat(2,minmax(0,1fr));
-      gap:6px;
-      align-items:stretch;
-      justify-items:stretch;
-    }
-    .typeBtn{
-      width:100%;
-      white-space:normal;
-      line-height:1.15;
-    }
-    .typeBtn:nth-child(3){grid-column:1 / -1;}
+    .type-toggle{display:flex;flex-direction:column;gap:4px;align-items:center;}
+    .typeBtn{width:92px;white-space:normal;line-height:1.15;}
     .typeBtn.active{background:var(--accent);border-color:var(--accent);color:#fff;}
 
     .vac-btn{
