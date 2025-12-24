@@ -138,11 +138,14 @@
     applyCopy();
 
     function applyCardHeight(settings) {
-      if (Number.isInteger(settings?.cardHeight)) {
-        document.documentElement.style.setProperty("--card-height", `${settings.cardHeight}px`);
-      } else {
-        document.documentElement.style.removeProperty("--card-height");
+      const size = Number.isInteger(settings?.cardHeight)
+        ? settings.cardHeight
+        : (Number.isInteger(settings?.cardHeightDefault) ? settings.cardHeightDefault : null);
+      if (Number.isInteger(size)) {
+        document.documentElement.style.setProperty("--card-height", `${size}px`);
+        return;
       }
+      document.documentElement.style.removeProperty("--card-height");
     }
 
     function formatRelative(index) {
