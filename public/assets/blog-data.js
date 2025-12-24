@@ -75,14 +75,6 @@
   }
 
   function normalizeSettings(raw) {
-    const DEFAULT_CARD_HEIGHT = 380;
-    const CARD_HEIGHT_MIN = 240;
-    const CARD_HEIGHT_MAX = 800;
-    const clampCardHeight = (value, fallback = DEFAULT_CARD_HEIGHT) => {
-      if (!Number.isInteger(value)) return fallback;
-      return Math.min(CARD_HEIGHT_MAX, Math.max(CARD_HEIGHT_MIN, value));
-    };
-
     const articles = loadArticles();
     const limit = articles.length;
     const buildSelection = (rawList, maxItems) => {
@@ -109,11 +101,10 @@
       : [];
     const homeLatestIds = buildSelection(raw?.homeLatestIds, 4);
     const homeFeaturedIds = buildSelection(raw?.homeFeaturedIds ?? raw?.featureSliderIds, 6);
-    const cardHeightDefault = clampCardHeight(raw?.cardHeightDefault, DEFAULT_CARD_HEIGHT);
     const cardHeight = Number.isInteger(raw?.cardHeight)
-      ? clampCardHeight(raw.cardHeight, cardHeightDefault)
-      : null;
-    return { heroId, featuredId, footerIds, homeLatestIds, homeFeaturedIds, cardHeight, cardHeightDefault };
+      ? Math.min(800, Math.max(240, raw.cardHeight))
+      : 380;
+    return { heroId, featuredId, footerIds, homeLatestIds, homeFeaturedIds, cardHeight };
   }
 
   function loadSettings() {

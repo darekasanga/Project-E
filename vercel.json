@@ -1,17 +1,16 @@
 {
   "version": 2,
-  "rewrites": [
-    {
-      "source": "/draw",
-      "destination": "/public/draw.html"
+  "functions": {
+    "api/*.js": {
+      "runtime": "nodejs18.x"
     },
-    {
-      "source": "/api/(.*)",
-      "destination": "/api/$1"
-    },
-    {
-      "source": "/(.*)",
-      "destination": "/public/$1"
+    "api/*.php": {
+      "runtime": "now-php@1.0.0"
     }
+  },
+  "rewrites": [
+    { "source":  "/draw", "destination": "/public/draw.html" },
+    { "source": "/api/(.*)", "destination": "/api/$1" },
+    { "source":  "/(.*)", "destination": "/public/$1" }
   ]
 }
