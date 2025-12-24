@@ -39,6 +39,18 @@
     }
     header h1{margin:0;font-size:20px;font-weight:700;}
     header p{margin:2px 0 0;font-size:12px;opacity:.9;}
+    .session-box{
+      display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-top:6px;
+    }
+    .session-pill{
+      padding:4px 10px;border-radius:999px;
+      background:rgba(255,255,255,.15);color:#fff;
+      font-size:11px;font-weight:800;letter-spacing:0.01em;
+      border:1px solid rgba(255,255,255,.24);
+    }
+    .session-link{
+      color:#ecfeff;font-size:12px;font-weight:700;text-decoration:underline;
+    }
     .sidebar-toggle{
       margin-left:auto;
       border:none;border-radius:999px;
@@ -151,8 +163,12 @@
     }
     .diff{font-size:11px;color:#6b7280;margin-top:2px;}
 
-    .type-toggle{display:flex;flex-direction:column;gap:4px;align-items:center;}
-    .typeBtn{width:92px;white-space:normal;line-height:1.15;}
+    .type-toggle{
+      display:grid;grid-template-columns:repeat(2, minmax(0,1fr));
+      gap:6px;align-items:stretch;justify-items:stretch;
+    }
+    .typeBtn{width:100%;white-space:normal;line-height:1.15;}
+    .type-toggle .typeBtn:last-child{grid-column:1 / -1;}
     .typeBtn.active{background:var(--accent);border-color:var(--accent);color:#fff;}
 
     .vac-btn{
@@ -182,9 +198,13 @@
       <h1>延長・預り保育 計算</h1>
       <p>延長：30分200円（3,000円上限）／ 預り：定額（要件反映済）</p>
       <p style="font-size:11px;margin:4px 0 0;opacity:0.85;">
-        <span style="font-weight:700;">v1.3.0</span> | 
+        <span style="font-weight:700;">v1.4.0</span> | 
         最終更新: <span id="lastUpdated">--</span>
       </p>
+      <div class="session-box">
+        <span class="session-pill" id="userBadge">未ログイン</span>
+        <a class="session-link" href="login.html">ログイン / 前回の画面に戻る</a>
+      </div>
     </div>
     <button id="toggleSidebar" class="sidebar-toggle">サイドバーをとじる</button>
   </header>
@@ -261,6 +281,7 @@
     </div>
   </main>
 
+<script src="./session-helper.js"></script>
 <script>
 /* =========================
    状態・設定
@@ -939,6 +960,31 @@ function makeRecordKey({rawDate, school, clazz, name}){
 }
 
 /* =========================
+   ログイン連携
+========================= */
+function updateUserBadge(){
+  const badge = document.getElementById("userBadge");
+  if (!badge || !window.PortalSession) return;
+  const user = PortalSession.getCurrentUser();
+  if (user){
+    const info = PortalSession.getUserInfo(user);
+    const lastLabel = info?.lastTitle || info?.lastPath || "";
+    badge.textContent = `ログイン中: ${user}`;
+    badge.title = lastLabel ? `前回: ${lastLabel}` : "前回の画面を記録します";
+  } else {
+    badge.textContent = "未ログイン";
+    badge.title = "ログインして前回の画面を記録します";
+  }
+}
+
+function rememberCurrentPage(){
+  if (!window.PortalSession) return;
+  const path = location.pathname + location.search + location.hash;
+  PortalSession.rememberPage(path, document.title);
+  updateUserBadge();
+}
+
+/* =========================
    永続化
 ========================= */
 function loadState(){
@@ -982,6 +1028,7 @@ function updateLastModified(){
 
 // Initialize on load
 updateLastModified();
+rememberCurrentPage();
 </script>
 </body>
 </html>

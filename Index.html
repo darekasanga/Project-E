@@ -287,6 +287,22 @@
         </ul>
         <div class="btn">ツールを開く →</div>
       </a>
+
+      <a href="login.html" class="card">
+        <div class="card-title">
+          <div class="card-icon">🔑</div>
+          ログイン & 画面復元
+        </div>
+        <p class="card-description">ユーザーごとに最後に見た画面へ自動ジャンプ</p>
+        <ul class="card-features">
+          <li>ユーザー名だけで簡易ログイン</li>
+          <li>前回の画面を保存して自動復元</li>
+          <li>複数ユーザーの履歴を保持</li>
+          <li>ローカル保存のみで安心</li>
+          <li>トップへ戻るリンク付き</li>
+        </ul>
+        <div class="btn">ログインページを開く →</div>
+      </a>
     </div>
 
     <div class="info-panel">
@@ -308,5 +324,12 @@
       <p>© 2024 保育園延長・預かり保育計算ツール</p>
     </footer>
   </div>
+  <script src="session-helper.js"></script>
+  <script>
+    if (window.PortalSession) {
+      const path = location.pathname + location.search + location.hash;
+      PortalSession.rememberPage(path, document.title);
+    }
+  </script>
 </body>
 </html>

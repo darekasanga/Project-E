@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ログイン | 前回の画面を復元</title>
+  <style>
+    :root{
+      --accent:#06b6d4;
+      --accent-2:#0891b2;
+      --bg:#0b1621;
+      --panel:#0f1f2f;
+      --border:#163042;
+      --text:#e5edf5;
+      --muted:#9fb6c8;
+    }
+    *{box-sizing:border-box;}
+    html,body{margin:0;padding:0;}
+    body{
+      font-family:"Noto Sans JP",system-ui,-apple-system,"Segoe UI",sans-serif;
+      background:radial-gradient(circle at 20% 20%, rgba(6,182,212,.25), transparent 32%),
+        radial-gradient(circle at 80% 0%, rgba(8,145,178,.18), transparent 32%),
+        var(--bg);
+      color:var(--text);
+      min-height:100vh;
+      padding:24px;
+      display:flex;align-items:center;justify-content:center;
+    }
+    .container{width:100%;max-width:960px;display:grid;gap:16px;}
+    .panel{
+      background:var(--panel);
+      border:1px solid var(--border);
+      border-radius:14px;
+      padding:18px;
+      box-shadow:0 16px 50px rgba(0,0,0,.28);
+    }
+    header{
+      display:flex;align-items:center;justify-content:space-between;
+      gap:12px;
+    }
+    .brand{
+      display:flex;align-items:center;gap:10px;
+    }
+    .logo{
+      width:42px;height:42px;border-radius:12px;
+      background:linear-gradient(145deg, #e0f2fe, #cffafe);
+      color:#0e7490;font-weight:900;font-size:20px;
+      display:flex;align-items:center;justify-content:center;
+      box-shadow:0 10px 24px rgba(0,0,0,.3);
+    }
+    h1{margin:0;font-size:22px;letter-spacing:0.01em;}
+    .subtitle{margin:0;color:var(--muted);font-size:13px;}
+    .link-btn{
+      color:var(--text);text-decoration:none;font-weight:800;
+      border:1px solid var(--border);padding:8px 12px;border-radius:999px;
+      background:rgba(255,255,255,.04);
+    }
+    form{display:grid;gap:10px;}
+    label{font-weight:800;font-size:13px;}
+    input[type="text"]{
+      width:100%;padding:12px 14px;border-radius:10px;border:1px solid var(--border);
+      background:rgba(255,255,255,.04);color:var(--text);font-size:15px;
+    }
+    input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(6,182,212,.18);}
+    button{
+      border:none;border-radius:10px;padding:12px 14px;
+      background:linear-gradient(120deg, var(--accent), var(--accent-2));
+      color:#fff;font-weight:800;cursor:pointer;font-size:14px;
+      box-shadow:0 8px 24px rgba(6,182,212,.25);
+    }
+    .ghost{
+      background:rgba(255,255,255,.04);
+      border:1px solid var(--border);
+      color:var(--text);
+      box-shadow:none;
+    }
+    .muted{color:var(--muted);font-size:13px;}
+    .status{
+      background:rgba(255,255,255,.04);
+      border:1px dashed var(--border);
+      border-radius:12px;
+      padding:10px 12px;
+      font-size:13px;
+    }
+    .user-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:10px;}
+    .user-card{
+      border:1px solid var(--border);
+      border-radius:12px;
+      padding:12px;
+      background:rgba(255,255,255,.02);
+      display:grid;gap:6px;
+    }
+    .user-title{font-weight:900;font-size:15px;}
+    .pill{
+      display:inline-flex;align-items:center;gap:6px;
+      padding:4px 8px;border-radius:999px;
+      background:rgba(6,182,212,.15);color:#e0faff;font-weight:800;font-size:11px;
+    }
+    .small-actions{display:flex;gap:8px;flex-wrap:wrap;}
+    .hint{font-size:12px;color:var(--muted);}
+    @media(max-width:640px){
+      body{padding:14px;}
+      h1{font-size:19px;}
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header class="panel">
+      <div class="brand">
+        <div class="logo">園</div>
+        <div>
+          <h1>ログインで前回の画面を復元</h1>
+          <p class="subtitle">ユーザーごとに最後に開いたページへ自動ジャンプします</p>
+        </div>
+      </div>
+      <a class="link-btn" href="Index.html">ポータルに戻る</a>
+    </header>
+
+    <section class="panel">
+      <form id="loginForm">
+        <div>
+          <label for="username">ユーザー名</label>
+          <input id="username" name="username" type="text" placeholder="例: tanaka" autocomplete="username" required>
+        </div>
+        <div class="small-actions" style="align-items:center;justify-content:space-between;">
+          <div class="hint">ログインすると前回の画面を保存し、自動で開きます。</div>
+          <button type="submit">ログインして前回の画面を開く</button>
+        </div>
+      </form>
+      <p class="muted" style="margin:6px 0 0;">※ パスワード不要の簡易ログインです。同じ端末のローカル保存のみ使用します。</p>
+    </section>
+
+    <section class="panel">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;">
+        <h2 style="margin:0;font-size:16px;">最近利用したユーザー</h2>
+        <button type="button" class="ghost" id="logoutBtn">ログアウト</button>
+      </div>
+      <div id="userList" class="user-list" style="margin-top:12px;"></div>
+      <p class="hint" id="userHint" style="margin:10px 0 0;"></p>
+    </section>
+
+    <section class="panel status" id="statusBox">
+      前回の画面を確認しています...
+    </section>
+  </div>
+
+  <script src="session-helper.js"></script>
+  <script>
+    const statusBox = document.getElementById("statusBox");
+    const userList = document.getElementById("userList");
+    const userHint = document.getElementById("userHint");
+    const loginForm = document.getElementById("loginForm");
+    const usernameInput = document.getElementById("username");
+    const logoutBtn = document.getElementById("logoutBtn");
+    let redirectTimer = null;
+
+    function sanitizeTarget(path){
+      if(!path) return "Index.html";
+      const normalized = path.split("#")[0].split("?")[0];
+      if(/login\.html$/i.test(normalized)) return "Index.html";
+      return path;
+    }
+
+    function renderUsers(){
+      if(!window.PortalSession){
+        userList.innerHTML = "<p class='muted'>セッション情報を読み込めませんでした。</p>";
+        return;
+      }
+      const users = PortalSession.getAllUsers();
+      if(!users.length){
+        userList.innerHTML = "<p class='muted'>まだ保存済みのユーザーはいません。</p>";
+        userHint.textContent = "ユーザー名でログインすると、ここに最近利用した人が表示されます。";
+        return;
+      }
+      userHint.textContent = "カードをクリックすると、そのユーザーでログインし前回の画面を開きます。";
+      userList.innerHTML = users.map(u=>{
+        const label = u.lastTitle || u.lastPath || "最後に開いた画面なし";
+        const when = u.lastVisitedAt ? new Date(u.lastVisitedAt).toLocaleString("ja-JP") : "-";
+        return `
+          <button type="button" class="user-card" data-user="${u.name}">
+            <div class="user-title">${u.name}</div>
+            <div class="pill">前回: ${label}</div>
+            <div class="hint">最終利用: ${when}</div>
+          </button>
+        `;
+      }).join("");
+      userList.querySelectorAll("[data-user]").forEach(btn=>{
+        btn.addEventListener("click", ()=> handleLogin(btn.dataset.user));
+      });
+    }
+
+    function startRedirect(target, label){
+      clearTimeout(redirectTimer);
+      const safeTarget = sanitizeTarget(target);
+      const displayLabel = label || safeTarget;
+      statusBox.textContent = `${displayLabel} を開いています...`;
+      redirectTimer = setTimeout(()=>{ location.href = safeTarget; }, 700);
+    }
+
+    function handleLogin(name){
+      if(!name || !window.PortalSession) return;
+      const user = PortalSession.setCurrentUser(name);
+      const info = PortalSession.getUserInfo(user);
+      const target = sanitizeTarget(info?.lastPath);
+      const label = info?.lastTitle || target || "トップページ";
+      statusBox.textContent = info?.lastPath
+        ? `前回の画面 (${label}) に移動します。`
+        : "前回の画面が未保存のためトップページを開きます。";
+      startRedirect(target, label);
+      renderUsers();
+    }
+
+    loginForm.addEventListener("submit", (e)=>{
+      e.preventDefault();
+      handleLogin(usernameInput.value.trim());
+    });
+
+    logoutBtn.addEventListener("click", ()=>{
+      if(!window.PortalSession) return;
+      PortalSession.clearCurrentUser();
+      statusBox.textContent = "ログアウトしました。ユーザー名を入力して再ログインしてください。";
+      clearTimeout(redirectTimer);
+      renderUsers();
+    });
+
+    document.addEventListener("DOMContentLoaded", ()=>{
+      renderUsers();
+      if(!window.PortalSession){
+        statusBox.textContent = "セッション管理が利用できません。";
+        return;
+      }
+      const current = PortalSession.getCurrentUser();
+      if(current){
+        const info = PortalSession.getUserInfo(current);
+        if(info?.lastPath){
+          statusBox.textContent = `ログイン中: ${current} / 前回: ${info.lastTitle || info.lastPath} を開きます。`;
+          startRedirect(info.lastPath, info.lastTitle || info.lastPath);
+        }else{
+          statusBox.textContent = `ログイン中: ${current} / 前回の画面は未保存です。`;
+        }
+      }else{
+        statusBox.textContent = "ユーザー名を入力すると、前回の画面を自動で開きます。";
+      }
+    });
+  </script>
+</body>
+</html>
