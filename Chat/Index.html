@@ -62,6 +62,12 @@
       background: radial-gradient(circle at top left, rgba(56,189,248,0.1), transparent 60%);
     }
 
+    .title-block {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
     header .title {
       font-size: 18px;
       font-weight: 600;
@@ -85,6 +91,39 @@
     header .subtitle {
       font-size: 12px;
       color: var(--text-muted);
+    }
+
+    .session-box {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .login-pill {
+      padding: 6px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(148, 163, 184, 0.35);
+      background: rgba(15,23,42,0.7);
+      font-size: 11px;
+      color: var(--text-main);
+      font-weight: 700;
+    }
+
+    .login-link {
+      color: var(--text-muted);
+      font-size: 12px;
+      text-decoration: underline;
+      font-weight: 700;
     }
 
     /* --- PC View (default) --- */
@@ -679,15 +718,21 @@
 <body>
   <div class="app-shell">
     <header>
-      <div>
+      <div class="title-block">
         <div class="title">
           <span class="logo">TOC</span>
           <span>Chat TOC Maker</span>
         </div>
         <div class="subtitle">会話ログから自動でカテゴリ別の「目次」を作成してジャンプ ✨</div>
       </div>
-      <div class="badge">
-        🔨🤖🔧 <span>HTML + CSS + JS だけでローカル動作</span>
+      <div class="header-right">
+        <div class="badge">
+          🔨🤖🔧 <span>HTML + CSS + JS だけでローカル動作</span>
+        </div>
+        <div class="session-box">
+          <span class="login-pill" id="chatUserBadge">未ログイン</span>
+          <a class="login-link" href="../login.html">ログイン / 前回の画面へ</a>
+        </div>
       </div>
     </header>
 
@@ -1171,9 +1216,29 @@ Assistant: 小さな「完成するもの」を作るのがおすすめです。
     });
   </script>
 
-<script>
-  window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };
-</script>
-<script defer src="/_vercel/insights/script.js"></script>
+  <script src="../session-helper.js"></script>
+  <script>
+    (function(){
+      if(!window.PortalSession) return;
+      const badge = document.getElementById("chatUserBadge");
+      const path = location.pathname + location.search + location.hash;
+      PortalSession.rememberPage(path, document.title);
+      if(!badge) return;
+      const user = PortalSession.getCurrentUser();
+      if (user){
+        const info = PortalSession.getUserInfo(user);
+        badge.textContent = `ログイン中: ${user}`;
+        badge.title = info?.lastTitle || info?.lastPath || "";
+      } else {
+        badge.textContent = "未ログイン";
+        badge.title = "ログインすると前回の画面を記録します";
+      }
+    })();
+  </script>
+
+  <script>
+    window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };
+  </script>
+  <script defer src="/_vercel/insights/script.js"></script>
 </body>
 </html>
