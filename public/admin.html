@@ -32,7 +32,7 @@
       </div>
       <h2>ログイン</h2>
       <p>ユーザー名とパスワードを入力してください。認証後は管理リンクが解放されます。</p>
-      <form class="stack" id="loginForm">
+      <form class="stack" id="loginForm" aria-label="管理者ログインフォーム">
         <div class="form-row">
           <label for="username" class="tiny">ユーザー名</label>
           <input id="username" name="username" type="text" autocomplete="username" placeholder="admin" required>
@@ -46,7 +46,7 @@
           <p class="tiny">初期認証情報: <strong>admin / admin</strong></p>
         </div>
       </form>
-      <div class="badge" style="display:none; background: rgba(248,113,113,0.18); color: #fecdd3;" id="errorMessage">ユーザー名またはパスワードが違います。</div>
+      <div class="badge" style="display:none; background: rgba(248,113,113,0.18); color: #fecdd3;" id="errorMessage" role="alert" aria-live="polite">ユーザー名またはパスワードが違います。</div>
     </section>
 
     <section class="hero" id="adminPanel" style="display:none;">
