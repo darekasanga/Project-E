@@ -1,0 +1,1151 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <title>Chat TOC Maker - Emperor News</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <style>
+    :root {
+      --bg: #0f172a;
+      --bg-soft: #111827;
+      --bg-softer: #020617;
+      --accent: #38bdf8;
+      --accent-soft: rgba(56, 189, 248, 0.12);
+      --accent-strong: #0ea5e9;
+      --danger: #f97373;
+      --text-main: #e5e7eb;
+      --text-muted: #9ca3af;
+      --border: #1f2933;
+      --radius-lg: 14px;
+      --radius-md: 10px;
+      --radius-sm: 6px;
+      --shadow-soft: 0 18px 40px rgba(15,23,42,0.9);
+      --shadow-inner: inset 0 0 0 1px rgba(148,163,184,0.12);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      min-height: 100vh;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: radial-gradient(circle at top, #1e293b 0, #020617 55%);
+      color: var(--text-main);
+      display: flex;
+      align-items: stretch;
+      justify-content: center;
+    }
+
+    .app-shell {
+      display: flex;
+      flex-direction: column;
+      width: 100%;
+      max-width: 1200px;
+      margin: 16px;
+      background: linear-gradient(135deg, rgba(15, 23, 42, 0.98), rgba(2, 6, 23, 0.98));
+      border-radius: 24px;
+      box-shadow: var(--shadow-soft);
+      border: 1px solid rgba(148, 163, 184, 0.22);
+      overflow: hidden;
+    }
+
+    header {
+      padding: 16px 22px;
+      border-bottom: 1px solid rgba(148, 163, 184, 0.18);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: radial-gradient(circle at top left, rgba(56,189,248,0.1), transparent 60%);
+      gap: 8px;
+    }
+
+    header .left {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    header .title {
+      font-size: 18px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    header .title span.logo {
+      width: 26px;
+      height: 26px;
+      border-radius: 9px;
+      background: radial-gradient(circle at 30% 20%, #38bdf8, #0f172a);
+      border: 1px solid rgba(148,163,184,0.5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 15px;
+    }
+
+    header .subtitle {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .header-right {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 4px;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 10px;
+      padding: 2px 6px;
+      border-radius: 999px;
+      border: 1px solid rgba(148,163,184,0.5);
+      color: #cbd5f5;
+      background: rgba(15,23,42,0.85);
+    }
+
+    .link-home {
+      font-size: 11px;
+      color: #93c5fd;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 3px 7px;
+      border-radius: 999px;
+      border: 1px solid rgba(148,163,184,0.4);
+      background: rgba(15,23,42,0.9);
+    }
+
+    .link-home:hover {
+      background: rgba(15,23,42,1);
+      border-color: rgba(148,163,184,0.7);
+      text-decoration: none;
+    }
+
+    .main {
+     	display: grid;
+     	grid-template-columns: minmax(0, 1.1fr) minmax(0, 1.4fr);
+     	gap: 0;
+     	min-height: 500px;
+    }
+
+    .panel {
+     	padding: 16px 18px;
+     	border-right: 1px solid rgba(148, 163, 184, 0.18);
+    }
+
+    .panel:last-child {
+     	border-right: none;
+    }
+
+    .panel-header {
+     	display: flex;
+     	justify-content: space-between;
+     	align-items: center;
+     	margin-bottom: 8px;
+    }
+
+    .panel-title {
+     	font-size: 13px;
+     	font-weight: 600;
+     	letter-spacing: 0.02em;
+     	text-transform: uppercase;
+     	color: var(--text-muted);
+    }
+
+    .hint {
+     	font-size: 11px;
+     	color: var(--text-muted);
+    }
+
+    textarea#rawInput {
+     	width: 100%;
+     	min-height: 170px;
+     	max-height: 300px;
+     	resize: vertical;
+     	padding: 10px 12px;
+     	border-radius: var(--radius-md);
+     	border: 1px solid var(--border);
+     	background: radial-gradient(circle at top left, rgba(51,65,85,0.25), rgba(15,23,42,0.98));
+     	color: var(--text-main);
+     	font-size: 13px;
+     	line-height: 1.5;
+     	outline: none;
+     	box-shadow: var(--shadow-inner);
+    }
+
+    textarea#rawInput::placeholder {
+     	color: #64748b;
+    }
+
+    .controls-row {
+     	display: flex;
+     	flex-wrap: wrap;
+     	gap: 8px;
+     	margin-top: 8px;
+     	align-items: center;
+     	justify-content: space-between;
+    }
+
+    .left-controls {
+     	display: flex;
+     	gap: 8px;
+     	flex-wrap: wrap;
+     	align-items: center;
+    }
+
+    .right-controls {
+     	display: flex;
+     	gap: 8px;
+     	align-items: center;
+    }
+
+    label.small {
+     	font-size: 11px;
+     	color: var(--text-muted);
+     	display: flex;
+     	align-items: center;
+     	gap: 4px;
+     	background: rgba(15,23,42,0.8);
+     	padding: 4px 7px;
+     	border-radius: 999px;
+     	border: 1px solid rgba(148,163,184,0.3);
+    }
+
+    label.small input {
+     	background: transparent;
+     	border: none;
+     	color: var(--text-main);
+     	outline: none;
+     	width: 90px;
+     	font-size: 11px;
+    }
+
+    button.primary {
+     	border-radius: 999px;
+     	border: none;
+     	padding: 7px 14px;
+     	font-size: 12px;
+     	display: inline-flex;
+     	align-items: center;
+     	gap: 6px;
+     	cursor: pointer;
+     	background: radial-gradient(circle at top left, var(--accent-strong), #0369a1);
+     	color: white;
+     	box-shadow: 0 10px 25px rgba(56,189,248,0.5);
+     	transition: transform 0.08s ease, box-shadow 0.08s ease, filter 0.08s ease;
+    }
+
+    button.primary:active {
+     	transform: translateY(1px) scale(0.99);
+     	box-shadow: 0 6px 16px rgba(56,189,248,0.35);
+     	filter: brightness(0.97);
+    }
+
+    button.secondary {
+     	border-radius: 999px;
+     	border: 1px solid rgba(148,163,184,0.4);
+     	padding: 6px 10px;
+     	font-size: 11px;
+     	display: inline-flex;
+     	align-items: center;
+     	gap: 5px;
+     	cursor: pointer;
+     	background: rgba(15,23,42,0.9);
+     	color: var(--text-muted);
+     	transition: background 0.08s ease, border-color 0.08s ease, color 0.08s ease;
+    }
+
+    button.secondary:hover {
+     	background: rgba(15,23,42,1);
+     	border-color: rgba(148,163,184,0.6);
+     	color: #e5e7eb;
+    }
+
+    .status-line {
+     	margin-top: 4px;
+     	font-size: 11px;
+     	color: var(--text-muted);
+     	display: flex;
+     	align-items: center;
+     	gap: 6px;
+    }
+
+    .status-dot {
+     	width: 7px;
+     	height: 7px;
+     	border-radius: 50%;
+     	background: #22c55e;
+     	box-shadow: 0 0 10px rgba(34,197,94,0.8);
+    }
+
+    .status-dot.idle {
+     	background: #64748b;
+     	box-shadow: none;
+    }
+
+    .layout {
+     	display: grid;
+     	grid-template-columns: 230px minmax(0, 1fr);
+     	gap: 12px;
+     	margin-top: 10px;
+     	min-height: 280px;
+    }
+
+    .toc-panel {
+     	border-radius: var(--radius-lg);
+     	background: linear-gradient(145deg, #020617, #020617);
+     	box-shadow: var(--shadow-inner);
+     	border: 1px solid rgba(148,163,184,0.28);
+     	padding: 10px;
+     	display: flex;
+     	flex-direction: column;
+     	min-height: 220px;
+     	max-height: 360px;
+     	overflow: hidden;
+    }
+
+    .toc-header {
+     	display: flex;
+     	justify-content: space-between;
+     	align-items: center;
+     	margin-bottom: 6px;
+    }
+
+    .toc-title {
+     	font-size: 12px;
+     	text-transform: uppercase;
+     	letter-spacing: 0.08em;
+     	color: #9ca3af;
+    }
+
+    .toc-count {
+     	font-size: 11px;
+     	color: var(--text-muted);
+    }
+
+    .toc-body {
+     	overflow-y: auto;
+     	padding-right: 4px;
+     	margin-right: -2px;
+    }
+
+    .toc-category {
+     	margin-bottom: 8px;
+    }
+
+    .toc-category:last-child {
+     	margin-bottom: 0;
+    }
+
+    .toc-category-header {
+     	display: flex;
+     	align-items: center;
+     	justify-content: space-between;
+     	gap: 4px;
+     	padding: 4px 6px;
+     	border-radius: var(--radius-sm);
+     	background: radial-gradient(circle at left, rgba(56,189,248,0.06), transparent);
+     	cursor: default;
+    }
+
+    .toc-category-name {
+     	font-size: 11px;
+     	font-weight: 600;
+     	display: flex;
+     	align-items: center;
+     	gap: 6px;
+    }
+
+    .cat-dot {
+     	width: 8px;
+     	height: 8px;
+     	border-radius: 999px;
+     	background: rgba(148,163,184,0.9);
+    }
+
+    .cat-dot.html { background: #f97316; }
+    .cat-dot.css { background: #22c55e; }
+    .cat-dot.js { background: #eab308; }
+    .cat-dot.other { background: #6366f1; }
+
+    .toc-category-count {
+     	font-size: 10px;
+     	color: var(--text-muted);
+    }
+
+    .toc-item-list {
+     	margin-top: 4px;
+     	padding-left: 6px;
+     	border-left: 1px dashed rgba(55,65,81,0.8);
+    }
+
+    .toc-item {
+     	font-size: 11px;
+     	padding: 4px 4px;
+     	border-radius: var(--radius-sm);
+     	color: var(--text-muted);
+     	cursor: pointer;
+     	display: flex;
+     	align-items: center;
+     	gap: 6px;
+     	border: 1px solid transparent;
+     	margin-bottom: 2px;
+    }
+
+    .toc-item:last-child {
+     	margin-bottom: 0;
+    }
+
+    .toc-item:hover {
+     	color: #e5e7eb;
+     	background: rgba(15,23,42,1);
+     	border-color: rgba(148,163,184,0.5);
+    }
+
+    .toc-item.active {
+     	color: #e0f2fe;
+     	background: rgba(8,47,73,0.9);
+     	border-color: rgba(56,189,248,0.8);
+     	box-shadow: 0 0 0 1px rgba(56,189,248,0.4);
+    }
+
+    .toc-item-prefix {
+     	font-size: 10px;
+     	color: #64748b;
+    }
+
+    .toc-item-title {
+     	white-space: nowrap;
+     	overflow: hidden;
+     	text-overflow: ellipsis;
+     	flex: 1;
+    }
+
+    .toc-item-meta {
+        font-size: 9px;
+        color: #6b7280;
+    }
+
+    .toc-item-actions {
+        display: flex;
+        gap: 6px;
+        margin-left: auto;
+        align-items: center;
+        opacity: 0;
+        transition: opacity 0.15s ease;
+    }
+
+    .toc-item:hover .toc-item-actions,
+    .toc-item:focus-within .toc-item-actions {
+        opacity: 1;
+    }
+
+    .content-panel {
+     	border-radius: var(--radius-lg);
+     	background: radial-gradient(circle at top right, rgba(30,64,175,0.3), #020617);
+     	box-shadow: var(--shadow-inner);
+     	border: 1px solid rgba(148,163,184,0.32);
+     	padding: 10px;
+     	display: flex;
+     	flex-direction: column;
+     	min-height: 220px;
+     	max-height: 360px;
+    }
+
+    .content-header {
+     	display: flex;
+     	justify-content: space-between;
+     	align-items: center;
+     	margin-bottom: 6px;
+    }
+
+    .content-title {
+     	font-size: 12px;
+     	color: var(--text-muted);
+    }
+
+    .content-body {
+     	overflow-y: auto;
+     	padding-right: 6px;
+     	margin-right: -2px;
+     	font-size: 12px;
+     	line-height: 1.5;
+     	white-space: pre-wrap;
+    }
+
+    .conversation-block {
+     	padding: 8px;
+     	border-radius: var(--radius-md);
+     	border: 1px solid rgba(148,163,184,0.2);
+     	background: rgba(15,23,42,0.9);
+     	margin-bottom: 8px;
+     	scroll-margin-top: 36px;
+    }
+
+    .conversation-block.highlight {
+        border-color: rgba(56,189,248,0.9);
+        box-shadow: 0 0 0 1px rgba(56,189,248,0.6);
+        background: radial-gradient(circle at top left, rgba(56,189,248,0.18), rgba(15,23,42,0.95));
+    }
+
+    .conversation-head {
+        display: flex;
+        gap: 10px;
+        align-items: flex-start;
+        justify-content: space-between;
+        flex-wrap: wrap;
+    }
+
+    .conversation-title {
+     	font-size: 12px;
+     	font-weight: 600;
+     	margin-bottom: 4px;
+    }
+
+    .conversation-meta {
+     	font-size: 10px;
+     	color: #64748b;
+     	margin-bottom: 4px;
+    }
+
+    .conversation-body {
+        font-size: 12px;
+        color: #e5e7eb;
+    }
+
+    .icon-btn {
+        background: rgba(30, 41, 59, 0.8);
+        color: #e5e7eb;
+        border: 1px solid rgba(148, 163, 184, 0.4);
+        border-radius: 8px;
+        padding: 6px 8px;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 12px;
+        transition: all 0.15s ease;
+    }
+
+    .icon-btn:hover {
+        background: rgba(30, 41, 59, 1);
+        border-color: rgba(148, 163, 184, 0.7);
+    }
+
+    .icon-btn.danger {
+        color: #fecdd3;
+        border-color: rgba(248, 113, 113, 0.5);
+        background: rgba(248, 113, 113, 0.08);
+    }
+
+    .icon-btn.danger:hover {
+        background: rgba(248, 113, 113, 0.14);
+    }
+
+    .badge-pill {
+     	padding: 1px 5px;
+     	border-radius: 999px;
+     	font-size: 9px;
+     	background: rgba(15,23,42,0.9);
+     	border: 1px solid rgba(148,163,184,0.55);
+     	color: #9ca3af;
+    }
+
+    .empty-state {
+     	margin-top: 24px;
+     	text-align: center;
+     	color: #6b7280;
+     	font-size: 12px;
+    }
+
+    .empty-state span {
+     	font-size: 20px;
+     	display: block;
+     	margin-bottom: 8px;
+    }
+
+    footer {
+     	border-top: 1px solid rgba(148, 163, 184, 0.18);
+     	padding: 8px 16px;
+     	display: flex;
+     	justify-content: space-between;
+     	font-size: 10px;
+     	color: var(--text-muted);
+     	flex-wrap: wrap;
+     	gap: 4px;
+    }
+
+    footer a {
+     	color: #93c5fd;
+     	text-decoration: none;
+    }
+
+    footer a:hover {
+     	text-decoration: underline;
+    }
+
+    @media (max-width: 880px) {
+     	.main {
+     	  grid-template-columns: minmax(0, 1fr);
+     	}
+
+     	.panel {
+     	  border-right: none;
+     	  border-bottom: 1px solid rgba(148, 163, 184, 0.18);
+     	}
+
+     	.panel:last-child {
+     	  border-bottom: none;
+     	}
+
+     	.layout {
+     	  grid-template-columns: minmax(0, 1fr);
+     	}
+
+     	.toc-panel {
+     	  max-height: 220px;
+     	}
+
+     	.content-panel {
+     	  max-height: 260px;
+     	}
+
+     	header {
+     	  flex-direction: column;
+     	  align-items: flex-start;
+     	}
+
+     	.header-right {
+     	  align-items: flex-start;
+     	}
+    }
+
+    @media (max-width: 600px) {
+     	.app-shell {
+     	  margin: 8px;
+     	}
+
+     	.controls-row {
+     	  flex-direction: column;
+     	  align-items: flex-start;
+     	}
+
+     	label.small {
+     	  width: 100%;
+     	  justify-content: space-between;
+     	}
+
+     	label.small input {
+     	  width: 50%;
+     	  text-align: right;
+     	}
+    }
+  </style>
+</head>
+<body>
+  <div class="app-shell">
+    <header>
+      <div class="left">
+        <div class="title">
+          <span class="logo">TOC</span>
+          <span>Chat TOC Maker</span>
+        </div>
+        <div class="subtitle">会話ログから自動でカテゴリ別の「目次」を作成してジャンプ ✨</div>
+      </div>
+      <div class="header-right">
+        <a class="link-home" href="https://www.emperor.news">
+          ← Emperor News に戻る
+        </a>
+        <div class="badge">
+          🔨🤖🔧 <span>HTML + CSS + JS だけでローカル動作</span>
+        </div>
+      </div>
+    </header>
+
+    <div class="main">
+      <!-- LEFT: Input -->
+      <div class="panel">
+        <div class="panel-header">
+          <div class="panel-title">1. 会話ログを貼り付け</div>
+          <div class="hint">※ 1つの会話ごとに「区切り文字」で分けるのがおすすめ</div>
+        </div>
+        <textarea id="rawInput" placeholder="例：
+=== Chat 1 ===
+User: HTML のナビゲーションバー作りたい
+Assistant: ...
+
+=== Chat 2 ===
+User: JavaScript でタイマーを作りたい
+Assistant: ...
+"></textarea>
+
+        <div class="controls-row">
+          <div class="left-controls">
+            <label class="small">
+              区切り文字
+              <input id="delimiterInput" type="text" value="===" />
+            </label>
+
+            <label class="small">
+              最大会話数
+              <input id="maxConvInput" type="number" min="1" max="500" value="200" />
+            </label>
+          </div>
+          <div class="right-controls">
+            <button class="secondary" id="sampleBtn">
+              サンプルを入れる
+            </button>
+            <button class="primary" id="analyzeBtn">
+              <span>解析して目次を作る</span> <span>⚡</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="status-line">
+          <span class="status-dot idle" id="statusDot"></span>
+          <span id="statusText">待機中: ログを貼り付けて「解析」ボタンを押してください</span>
+        </div>
+      </div>
+
+      <!-- RIGHT: TOC & Content -->
+      <div class="panel">
+        <div class="panel-header">
+          <div class="panel-title">2. 自動目次 & 本文ビュー</div>
+          <div class="hint">左でカテゴリ / 目次を選ぶと、右側の該当会話へスクロール ✨</div>
+        </div>
+
+        <div class="layout">
+          <!-- TOC -->
+          <div class="toc-panel">
+            <div class="toc-header">
+              <div class="toc-title">目次 / Categories</div>
+              <div class="toc-count" id="tocCount">0 件</div>
+            </div>
+            <div class="toc-body" id="tocBody">
+              <div class="empty-state">
+                <span>🧭</span>
+                ここにカテゴリ別の「目次」が表示されます。<br />
+                左のテキストエリアに会話を貼り付けて「解析」を押してください。
+              </div>
+            </div>
+          </div>
+
+          <!-- Content -->
+          <div class="content-panel">
+            <div class="content-header">
+              <div class="content-title">会話本文</div>
+              <div id="contentMeta" class="badge-pill">0 件</div>
+            </div>
+            <div class="content-body" id="contentBody">
+              <div class="empty-state">
+                <span>📜</span>
+                ここに会話本文が表示されます。<br />
+                左側の目次をクリックすると該当会話にジャンプします。
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <footer>
+      <div>ローカルのみで動作・データ送信なし（ただの HTML / CSS / JS ツール）</div>
+      <div>区切り文字やカテゴリルールは JS を編集すればカスタマイズ可能</div>
+    </footer>
+  </div>
+
+  <script src="/assets/lightbox.js"></script>
+  <script>
+    let conversations = [];
+    let activeConvId = null;
+
+    const rawInputEl = document.getElementById('rawInput');
+    const delimiterInputEl = document.getElementById('delimiterInput');
+    const maxConvInputEl = document.getElementById('maxConvInput');
+    const analyzeBtn = document.getElementById('analyzeBtn');
+    const sampleBtn = document.getElementById('sampleBtn');
+    const statusDotEl = document.getElementById('statusDot');
+    const statusTextEl = document.getElementById('statusText');
+    const tocBodyEl = document.getElementById('tocBody');
+    const tocCountEl = document.getElementById('tocCount');
+    const contentBodyEl = document.getElementById('contentBody');
+    const contentMetaEl = document.getElementById('contentMeta');
+
+    function reindexConversations(list) {
+      return list.map((conv, idx) => ({ ...conv, id: idx }));
+    }
+
+    function setStatus(mode, text) {
+      if (mode === 'busy') {
+        statusDotEl.classList.remove('idle');
+        statusTextEl.textContent = text || '解析中...';
+      } else {
+        statusDotEl.classList.add('idle');
+        statusTextEl.textContent = text || '待機中';
+      }
+    }
+
+    function guessCategory(text) {
+      const lower = text.toLowerCase();
+
+      if (lower.includes('javascript') || lower.includes('js ') || lower.includes(' js') || lower.includes('function')) {
+        return 'js';
+      }
+      if (lower.includes('css') || lower.includes('flex') || lower.includes('grid') || lower.includes('style')) {
+        return 'css';
+      }
+      if (lower.includes('html') || lower.includes('<div') || lower.includes('<body') || lower.includes('<head')) {
+        return 'html';
+      }
+      return 'other';
+    }
+
+    function categoryLabel(cat) {
+      switch (cat) {
+        case 'html': return 'HTML / マークアップ';
+        case 'css': return 'CSS / スタイル';
+        case 'js': return 'JavaScript / ロジック';
+        default: return 'その他 / 雑談';
+      }
+    }
+
+    function categoryEmoji(cat) {
+      switch (cat) {
+        case 'html': return '📐';
+        case 'css': return '🎨';
+        case 'js': return '⚙️';
+        default: return '💭';
+      }
+    }
+
+    function extractTitleFromBlock(block) {
+      const lines = block
+        .split('\n')
+        .map(line => line.trim())
+        .filter(line => line.length > 0);
+
+      if (lines.length === 0) return '（無題）';
+
+      const firstMeaningful = lines[0]
+        .replace(/^User\s*:/i, '')
+        .replace(/^Assistant\s*:/i, '')
+        .trim();
+
+      const maxLen = 32;
+      if (firstMeaningful.length > maxLen) {
+        return firstMeaningful.slice(0, maxLen) + '…';
+      }
+      return firstMeaningful || '（無題）';
+    }
+
+    function parseInput(rawText, delimiter, maxConv) {
+      const trimmed = rawText.trim();
+      if (!trimmed) return [];
+
+      const blocks = trimmed
+        .split(delimiter)
+        .map(b => b.trim())
+        .filter(b => b.length > 0);
+
+      const limitedBlocks = blocks.slice(0, maxConv);
+
+      const parsed = limitedBlocks.map((block, idx) => {
+        const title = extractTitleFromBlock(block);
+        const category = guessCategory(block + ' ' + title);
+        return {
+          id: idx,
+          title,
+          category,
+          body: block
+        };
+      });
+
+      return parsed;
+    }
+
+    function groupByCategory(convs) {
+      const grouped = { html: [], css: [], js: [], other: [] };
+      convs.forEach(conv => {
+        if (!grouped[conv.category]) {
+          grouped[conv.category] = [];
+        }
+        grouped[conv.category].push(conv);
+      });
+      return grouped;
+    }
+
+    function renderTOC(convs) {
+      tocBodyEl.innerHTML = '';
+      const total = convs.length;
+      tocCountEl.textContent = total + ' 件';
+
+      if (total === 0) {
+        const empty = document.createElement('div');
+        empty.className = 'empty-state';
+        empty.innerHTML = '<span>🧭</span>解析結果がありません。<br />左に会話を貼り付けて「解析」を押してください。';
+        tocBodyEl.appendChild(empty);
+        return;
+      }
+
+      const grouped = groupByCategory(convs);
+      const order = ['html', 'css', 'js', 'other'];
+
+      order.forEach(cat => {
+        const catConvs = grouped[cat] || [];
+        if (catConvs.length === 0) return;
+
+        const catEl = document.createElement('div');
+        catEl.className = 'toc-category';
+
+        const headerEl = document.createElement('div');
+        headerEl.className = 'toc-category-header';
+
+        const nameEl = document.createElement('div');
+        nameEl.className = 'toc-category-name';
+
+        const dotEl = document.createElement('div');
+        dotEl.className = 'cat-dot ' + cat;
+
+        const labelEl = document.createElement('span');
+        labelEl.textContent = categoryEmoji(cat) + ' ' + categoryLabel(cat);
+
+        nameEl.appendChild(dotEl);
+        nameEl.appendChild(labelEl);
+
+        const countEl = document.createElement('div');
+        countEl.className = 'toc-category-count';
+        countEl.textContent = catConvs.length + ' 件';
+
+        headerEl.appendChild(nameEl);
+        headerEl.appendChild(countEl);
+
+        const listEl = document.createElement('div');
+        listEl.className = 'toc-item-list';
+
+        catConvs.forEach(conv => {
+          const itemEl = document.createElement('div');
+          itemEl.className = 'toc-item';
+          itemEl.dataset.convId = conv.id;
+
+          const prefixEl = document.createElement('div');
+          prefixEl.className = 'toc-item-prefix';
+          prefixEl.textContent = '#' + (conv.id + 1);
+
+          const titleEl = document.createElement('div');
+          titleEl.className = 'toc-item-title';
+          titleEl.textContent = conv.title;
+
+          const metaEl = document.createElement('div');
+          metaEl.className = 'toc-item-meta';
+          const length = conv.body.length;
+          metaEl.textContent = length + '字';
+
+          const actionsEl = document.createElement('div');
+          actionsEl.className = 'toc-item-actions';
+
+          const deleteBtn = document.createElement('button');
+          deleteBtn.className = 'icon-btn danger';
+          deleteBtn.type = 'button';
+          deleteBtn.innerHTML = '🗑️ 削除';
+          deleteBtn.addEventListener('click', (event) => {
+            event.stopPropagation();
+            deleteConversation(conv.id);
+          });
+
+          actionsEl.appendChild(deleteBtn);
+
+          itemEl.appendChild(prefixEl);
+          itemEl.appendChild(titleEl);
+          itemEl.appendChild(metaEl);
+          itemEl.appendChild(actionsEl);
+
+          itemEl.addEventListener('click', () => {
+            focusConversation(conv.id);
+          });
+
+          listEl.appendChild(itemEl);
+        });
+
+        catEl.appendChild(headerEl);
+        catEl.appendChild(listEl);
+        tocBodyEl.appendChild(catEl);
+      });
+
+      const first = convs[0];
+      if (first) {
+        focusConversation(first.id, false);
+      }
+    }
+
+    function renderContent(convs) {
+      contentBodyEl.innerHTML = '';
+      const total = convs.length;
+      contentMetaEl.textContent = total + ' 件';
+
+      if (total === 0) {
+        const empty = document.createElement('div');
+        empty.className = 'empty-state';
+        empty.innerHTML = '<span>📜</span>まだ会話がありません。<br />解析後にここに全文が表示されます。';
+        contentBodyEl.appendChild(empty);
+        return;
+      }
+
+      convs.forEach(conv => {
+        const blockEl = document.createElement('div');
+        blockEl.className = 'conversation-block';
+        blockEl.id = 'conv-' + conv.id;
+
+        const headEl = document.createElement('div');
+        headEl.className = 'conversation-head';
+
+        const titleEl = document.createElement('div');
+        titleEl.className = 'conversation-title';
+        titleEl.textContent = '#' + (conv.id + 1) + ' ' + conv.title;
+
+        const metaEl = document.createElement('div');
+        metaEl.className = 'conversation-meta';
+        metaEl.textContent = categoryEmoji(conv.category) + ' ' + categoryLabel(conv.category) +
+          ' ｜ ' + conv.body.length + '字';
+
+        const actionsEl = document.createElement('div');
+        actionsEl.className = 'toc-item-actions';
+
+        const deleteBtn = document.createElement('button');
+        deleteBtn.className = 'icon-btn danger';
+        deleteBtn.type = 'button';
+        deleteBtn.innerHTML = '🗑️ 削除';
+        deleteBtn.addEventListener('click', (event) => {
+          event.stopPropagation();
+          deleteConversation(conv.id);
+        });
+
+        actionsEl.appendChild(deleteBtn);
+
+        headEl.appendChild(titleEl);
+        headEl.appendChild(actionsEl);
+
+        const bodyEl = document.createElement('div');
+        bodyEl.className = 'conversation-body';
+        bodyEl.textContent = conv.body;
+
+        blockEl.appendChild(headEl);
+        blockEl.appendChild(metaEl);
+        blockEl.appendChild(bodyEl);
+
+        contentBodyEl.appendChild(blockEl);
+      });
+    }
+
+    function clearActiveHighlights() {
+      document.querySelectorAll('.toc-item.active').forEach(el => {
+        el.classList.remove('active');
+      });
+      document.querySelectorAll('.conversation-block.highlight').forEach(el => {
+        el.classList.remove('highlight');
+      });
+    }
+
+    function focusConversation(convId, smoothScroll = true) {
+      activeConvId = convId;
+      clearActiveHighlights();
+
+      const tocItem = document.querySelector('.toc-item[data-conv-id="' + convId + '"]');
+      if (tocItem) {
+        tocItem.classList.add('active');
+        const parentScroll = tocBodyEl;
+        const rect = tocItem.getBoundingClientRect();
+        const parentRect = parentScroll.getBoundingClientRect();
+        const offset = rect.top - parentRect.top;
+        parentScroll.scrollBy({
+          top: offset - parentScroll.clientHeight / 4,
+          behavior: 'smooth'
+        });
+      }
+
+      const blockEl = document.getElementById('conv-' + convId);
+      if (blockEl) {
+        blockEl.classList.add('highlight');
+        blockEl.scrollIntoView({
+          behavior: smoothScroll ? 'smooth' : 'instant',
+          block: 'start'
+        });
+      }
+    }
+
+    function deleteConversation(convId) {
+      const nextConvs = conversations.filter(conv => conv.id !== convId);
+      conversations = reindexConversations(nextConvs);
+      activeConvId = null;
+
+      renderTOC(conversations);
+      renderContent(conversations);
+
+      const message = conversations.length
+        ? `削除しました。残り ${conversations.length} 件。`
+        : 'すべてのセッションを削除しました。';
+      setStatus('idle', message);
+    }
+
+    analyzeBtn.addEventListener('click', () => {
+      const rawText = rawInputEl.value || '';
+      const delimiter = (delimiterInputEl.value || '===').trim();
+      let maxConv = parseInt(maxConvInputEl.value, 10);
+
+      if (!delimiter) {
+        alert('区切り文字が空です。例: "===" などを指定してください。');
+        return;
+      }
+
+      if (Number.isNaN(maxConv) || maxConv <= 0) {
+        maxConv = 200;
+        maxConvInputEl.value = String(maxConv);
+      }
+
+      setStatus('busy', '解析中: 会話を分割してカテゴリ分けしています...');
+
+      setTimeout(() => {
+        conversations = parseInput(rawText, delimiter, maxConv);
+
+        renderTOC(conversations);
+        renderContent(conversations);
+
+        setStatus(
+          'idle',
+          '解析完了: ' + conversations.length + ' 件の会話を認識しました（カテゴリ別に目次を作成）'
+        );
+      }, 60);
+    });
+
+    sampleBtn.addEventListener('click', () => {
+      const sample = `=== Chat 1 ===
+User: HTML でレスポンシブなヘッダーナビを作りたいです。
+Assistant: flexbox を使うとシンプルに実装できますよ。まずはベースとなる HTML を書いてみましょう...
+
+=== Chat 2 ===
+User: CSS の grid を使ってカードレイアウトを組みたいです。
+Assistant: grid-template-columns を使って、レスポンシブに列数を変えるのが定番です...
+
+=== Chat 3 ===
+User: JavaScript で 10 分タイマーを作りたい。
+Assistant: setInterval と Date を組み合わせれば実現できます。まずは基本のカウントダウンから書いてみましょう...
+
+=== Chat 4 ===
+User: ただの雑談ですが、プログラミング勉強のモチベーションが続きません。
+Assistant: 小さな「完成するもの」を作るのがおすすめです。このツールみたいに、自分専用のミニアプリを...`;
+      rawInputEl.value = sample;
+      setStatus('idle', 'サンプルログを読み込みました。「解析」ボタンを押してテストしてみてください。');
+    });
+  </script>
+</body>
+</html>
