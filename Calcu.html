@@ -110,13 +110,14 @@
     .tab-panel.active{display:block;}
 
     /* 日カード */
-    th.col-day,td.col-day{width:86px;padding:0;border:none;}
+    th.col-day,td.col-day{width:100px;padding:0;border:none;}
     .daycard{
-      width:86px;min-height:132px;
-      border:1px solid #e5e7eb;border-radius:10px;
+      width:100px;min-height:150px;
+      border:1px solid #e5e7eb;border-radius:12px;
       margin:0 auto;background:#fff;
-      position:relative;padding:6px 6px 8px;
-      display:flex;flex-direction:column;gap:4px;align-items:center;
+      position:relative;padding:8px 8px 10px;
+      display:flex;flex-direction:column;gap:6px;align-items:center;
+      box-shadow:0 2px 8px rgba(0,0,0,.08);
     }
     .daycard::before{
       content:"";position:absolute;left:0;top:0;height:100%;width:5px;
@@ -137,7 +138,7 @@
     .pill.attend{border-color:#0891b2;color:#155e75;}
     .pill.absent{border-color:#b91c1c;color:#7f1d1d;}
     .pill.closed{border-color:#ea580c;color:#9a3412;}
-    .dc-tags{display:flex;flex-wrap:wrap;gap:4px;justify-content:center;min-height:18px;}
+    .dc-tags{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;min-height:18px;}
     .tag{
       font-size:9px;border-radius:999px;padding:1px 6px;
       border:1px solid #d1d5db;color:#6b7280;background:transparent;
@@ -151,12 +152,12 @@
     }
     .diff{font-size:11px;color:#6b7280;margin-top:2px;}
 
-    .type-toggle{display:flex;flex-direction:column;gap:4px;align-items:center;}
-    .typeBtn{width:92px;white-space:normal;line-height:1.15;}
+    .type-toggle{display:flex;flex-direction:column;gap:6px;align-items:center;}
+    .typeBtn{width:96px;white-space:normal;line-height:1.15;}
     .typeBtn.active{background:var(--accent);border-color:var(--accent);color:#fff;}
 
     .vac-btn{
-      width:92px;border-radius:12px;
+      width:96px;border-radius:12px;
       border:1px solid #d1d5db;background:#fff;color:#374151;
       padding:6px 8px;font-weight:800;font-size:11px;
     }
@@ -170,7 +171,7 @@
     }
     .az-chip.off{border-color:#d4d4d8;background:#f8fafc;color:#6b7280;}
     .az-chip .fee{font-size:12px;font-weight:900;}
-    .auto-note{font-size:10px;color:#6b7280;}
+    .auto-note{font-size:10px;color:#6b7280;font-weight:600;background:#f8fafc;padding:2px 4px;border-radius:4px;}
 
     .row-selected td{outline:2px solid #22d3ee;outline-offset:-2px;}
   </style>
@@ -626,7 +627,7 @@ function renderSummary(summary){
       <thead>
         <tr>
           <th>名前</th><th>園</th><th>月</th>
-          <th>延長回数</th><th>延長料金</th><th>預り料金</th><th>合計</th>
+          <th>延長回数</th><th>内訳／計算</th><th>預り料金</th><th>合計</th>
         </tr>
       </thead>
       <tbody>${rows}</tbody>
@@ -693,7 +694,7 @@ function renderDetails(details){
               <button type="button" class="${vacationBtnClass}" data-rk="${esc(item.recordKey)}">${vacationBtnLabel}</button>
               <div class="dc-tags">${tagType}${tagAz}</div>
               ${azChip}
-              ${autoTypeTag ? `<div class="auto-note">8:30〜16:30 自動判定</div>` : ``}
+              ${item.arrive && item.leave ? `<div class="auto-note">${item.arrive}〜${item.leave}</div>` : ``}
             </div>
           </td>
           <td>
@@ -711,8 +712,8 @@ function renderDetails(details){
             <input class="time-input leaveInput" data-rk="${esc(item.recordKey)}" value="${esc(item.leave)}" placeholder="HH:MM">
             <div class="diff">${formatDiff(item.deltaLeave)}</div>
           </td>
-          <td>${item.extMinutes>0 ? `${item.extMinutes}分` : "—"}</td>
-          <td>${item.extMinutes>0 ? `${item.extFee.toLocaleString()}円` : "適用なし"}</td>
+          <td>${item.extMinutes>0 ? `${Math.ceil(item.extMinutes/30)*30}分` : "—"}</td>
+          <td>${item.extMinutes>0 ? `${Math.ceil(item.extMinutes/30)*30}分 × 200円 = ${item.extFee.toLocaleString()}円` : "適用なし"}</td>
           <td><b>${item.extMinutes>0 || item.azukariFee>0 ? `${item.totalFee.toLocaleString()}円` : "—"}</b></td>
         </tr>
       `;
@@ -727,8 +728,8 @@ function renderDetails(details){
               <th>区分</th>
               <th>登園</th>
               <th>降園</th>
-              <th>延長(分)</th>
-              <th>延長料金</th>
+              <th>延長時間</th>
+              <th>内訳／計算</th>
               <th>合計</th>
             </tr>
           </thead>
