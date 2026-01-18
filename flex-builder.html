@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LINE Flex Message Builder</title>
+  <link rel="stylesheet" href="flex-builder/styles/flex-builder.css">
+  <link rel="stylesheet" href="flex-builder/styles/flex-preview.css">
+</head>
+<body>
+  <div id="app" class="flex-builder-app">
+    <!-- Header -->
+    <header class="app-header">
+      <div class="header-left">
+        <div class="logo-circle">F</div>
+        <div class="header-info">
+          <h1>Flex Message Builder</h1>
+          <p>LINE メッセージ作成ツール</p>
+        </div>
+      </div>
+      
+      <div class="header-center">
+        <div class="template-info">
+          <input type="text" id="template-name" placeholder="テンプレート名" class="template-name-input">
+          <select id="template-category" class="template-category-select">
+            <option value="statement">明細通知</option>
+            <option value="confirm">確認メッセージ</option>
+            <option value="refund">キャンセル・返金</option>
+          </select>
+        </div>
+      </div>
+      
+      <div class="header-right">
+        <div class="header-actions">
+          <button id="undo-btn" class="action-btn" disabled title="元に戻す">↶</button>
+          <button id="redo-btn" class="action-btn" disabled title="やり直し">↷</button>
+          <button id="save-btn" class="action-btn primary">保存</button>
+          <button id="preview-json-btn" class="action-btn">JSON</button>
+          <div class="dropdown">
+            <button class="action-btn dropdown-toggle">メニュー ▼</button>
+            <div class="dropdown-menu">
+              <button id="new-template-btn">新規作成</button>
+              <button id="load-template-btn">読み込み</button>
+              <button id="duplicate-btn">複製</button>
+              <button id="export-btn">エクスポート</button>
+              <button id="import-btn">インポート</button>
+              <hr>
+              <button id="test-send-btn">テスト送信</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="app-main">
+      <!-- Left Panel: Component Palette -->
+      <aside class="left-panel">
+        <div class="panel-header">
+          <h3>コンポーネント</h3>
+          <div class="search-box">
+            <input type="text" id="component-search" placeholder="検索...">
+          </div>
+        </div>
+        
+        <div class="component-palette" id="component-palette">
+          <!-- Components will be populated by JavaScript -->
+        </div>
+      </aside>
+
+      <!-- Center Panel: Canvas -->
+      <section class="center-panel">
+        <div class="canvas-header">
+          <div class="placement-tabs">
+            <button class="tab-btn active" data-placement="header">ヘッダー</button>
+            <button class="tab-btn" data-placement="body">ボディ</button>
+            <button class="tab-btn" data-placement="footer">フッター</button>
+          </div>
+          
+          <div class="canvas-actions">
+            <select id="bubble-size" class="bubble-size-select">
+              <option value="nano">Nano</option>
+              <option value="micro">Micro</option>
+              <option value="kilo">Kilo</option>
+              <option value="mega" selected>Mega</option>
+              <option value="giga">Giga</option>
+            </select>
+          </div>
+        </div>
+        
+        <div class="canvas-container">
+          <div class="canvas" id="canvas">
+            <div class="placement-container" id="header-container" data-placement="header">
+              <div class="placement-label">ヘッダー</div>
+              <div class="drop-zone" data-placement="header">
+                <div class="empty-message">コンポーネントをドラッグしてください</div>
+              </div>
+            </div>
+            
+            <div class="placement-container active" id="body-container" data-placement="body">
+              <div class="placement-label">ボディ</div>
+              <div class="drop-zone" data-placement="body">
+                <div class="empty-message">コンポーネントをドラッグしてください</div>
+              </div>
+            </div>
+            
+            <div class="placement-container" id="footer-container" data-placement="footer">
+              <div class="placement-label">フッター</div>
+              <div class="drop-zone" data-placement="footer">
+                <div class="empty-message">コンポーネントをドラッグしてください</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Right Panel: Properties & Preview -->
+      <aside class="right-panel">
+        <div class="panel-tabs">
+          <button class="panel-tab active" data-tab="properties">プロパティ</button>
+          <button class="panel-tab" data-tab="preview">プレビュー</button>
+          <button class="panel-tab" data-tab="theme">テーマ</button>
+        </div>
+        
+        <!-- Properties Tab -->
+        <div class="tab-content active" id="properties-tab">
+          <div class="properties-panel" id="properties-panel">
+            <div class="no-selection">
+              <p>コンポーネントを選択してください</p>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Preview Tab -->
+        <div class="tab-content" id="preview-tab">
+          <div class="preview-controls">
+            <div class="device-selector">
+              <button class="device-btn active" data-device="mobile">📱</button>
+              <button class="device-btn" data-device="tablet">📱</button>
+              <button class="device-btn" data-device="desktop">🖥️</button>
+            </div>
+            <button id="refresh-preview" class="refresh-btn">🔄</button>
+          </div>
+          
+          <div class="preview-container" id="preview-container">
+            <div class="preview-placeholder">
+              プレビューを生成中...
+            </div>
+          </div>
+        </div>
+        
+        <!-- Theme Tab -->
+        <div class="tab-content" id="theme-tab">
+          <div class="theme-panel" id="theme-panel">
+            <div class="theme-section">
+              <h4>カラーテーマ</h4>
+              <div class="color-inputs">
+                <div class="color-input-group">
+                  <label>プライマリ</label>
+                  <input type="color" id="primary-color" value="#06b6d4">
+                </div>
+                <div class="color-input-group">
+                  <label>セカンダリ</label>
+                  <input type="color" id="secondary-color" value="#0891b2">
+                </div>
+                <div class="color-input-group">
+                  <label>テキスト</label>
+                  <input type="color" id="text-color" value="#111827">
+                </div>
+                <div class="color-input-group">
+                  <label>背景</label>
+                  <input type="color" id="bg-color" value="#ffffff">
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </aside>
+    </main>
+
+    <!-- Status Bar -->
+    <footer class="status-bar">
+      <div class="status-left">
+        <span id="status-message">準備完了</span>
+      </div>
+      <div class="status-right">
+        <span id="component-count">コンポーネント: 0</span>
+        <span id="validation-status">✓ 有効</span>
+      </div>
+    </footer>
+  </div>
+
+  <!-- Modals -->
+  <!-- Template List Modal -->
+  <div id="template-list-modal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>テンプレート一覧</h3>
+        <button class="modal-close">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="template-filters">
+          <input type="text" id="template-search" placeholder="テンプレート名で検索...">
+          <select id="category-filter">
+            <option value="">すべてのカテゴリ</option>
+            <option value="statement">明細通知</option>
+            <option value="confirm">確認メッセージ</option>
+            <option value="refund">キャンセル・返金</option>
+          </select>
+        </div>
+        <div class="template-list" id="template-list">
+          <!-- Templates will be populated by JavaScript -->
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button id="load-default-templates" class="btn secondary">デフォルトテンプレート読み込み</button>
+        <button class="btn secondary modal-cancel">キャンセル</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- JSON Preview Modal -->
+  <div id="json-modal" class="modal">
+    <div class="modal-content large">
+      <div class="modal-header">
+        <h3>Flex Message JSON</h3>
+        <button class="modal-close">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="json-actions">
+          <button id="copy-json" class="btn primary">コピー</button>
+          <button id="download-json" class="btn secondary">ダウンロード</button>
+          <button id="validate-json" class="btn secondary">検証</button>
+        </div>
+        <pre id="json-display" class="json-display"></pre>
+      </div>
+      <div class="modal-footer">
+        <button class="btn secondary modal-cancel">閉じる</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Confirmation Modal -->
+  <div id="confirm-modal" class="modal">
+    <div class="modal-content small">
+      <div class="modal-header">
+        <h3 id="confirm-title">確認</h3>
+        <button class="modal-close">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p id="confirm-message">この操作を実行しますか？</p>
+      </div>
+      <div class="modal-footer">
+        <button id="confirm-ok" class="btn primary">OK</button>
+        <button class="btn secondary modal-cancel">キャンセル</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- File Input for Import -->
+  <input type="file" id="import-file-input" accept=".json" style="display: none;">
+
+  <!-- Scripts -->
+  <script type="module" src="flex-builder/ui/FlexBuilder.js"></script>
+</body>
+</html>
+
